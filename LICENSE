@@ -1,0 +1,38 @@
+MIT License
+
+Copyright (c) 2026 Pablo Ruan Lopes / Lovarch
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+---
+
+ADDITIONAL NOTICE FOR ITALIAN LEGAL/REGULATORY OUTPUT:
+
+This software generates pre-compiled drafts of Italian regulatory documents
+(CILA, SCIA, Paesaggistica, Capitolato d'Appalto) based on DPR 380/2001,
+UNI 11337-7, CAM Edilizia 2025, and CNAPPC 2023 frameworks.
+
+These outputs DO NOT replace:
+- Qualified electronic signature (firma digitale QES) of a licensed architect
+- Professional liability of an authorized architect (architetto abilitato)
+- On-site survey and structural verification per NTC 2018
+- Health & safety coordination per D.Lgs 81/2008
+
+The user assumes full responsibility for verifying outputs and obtaining
+the necessary professional review before submission to any authority.
