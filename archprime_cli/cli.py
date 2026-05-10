@@ -124,20 +124,33 @@ def info_cmd() -> None:
 
 
 # ════════════════════════════════════════════════════════════════════════════
-# Subcommands registration (lazy imports to avoid loading heavy deps on startup)
+# Subcommands registration
 #
-# Each subcommand module exposes its own `app: typer.Typer` instance.
-# Registered in subsequent stories:
-#   Story 2.2 → login, signup
-#   Story 1.1+ → init (placeholder)
-#   Story 1.5 → audit, run, consolidate, status
-#   Story 3.4 → upgrade
-#   Story 2.3 → account
-#
-# Pattern:
-#     from archprime_cli.commands import login as login_cmd
-#     app.add_typer(login_cmd.app, name="login", help="...")
+# Each subcommand is either:
+# - a single-action command via app.command()(fn)
+# - a multi-subcommand group via app.add_typer(sub.app, name=...)
 # ════════════════════════════════════════════════════════════════════════════
+
+# Story 2.2 — Free mode signup with lead capture
+from archprime_cli.commands.signup import signup_command  # noqa: E402
+
+app.command(name="signup", help="Cadastro Free interattivo (lead capture).")(
+    signup_command
+)
+
+# Story 2.3 — GDPR right-to-erasure + account info
+from archprime_cli.commands import account as account_cmd  # noqa: E402
+
+app.add_typer(
+    account_cmd.app,
+    name="account",
+    help="Gestione account (info, delete GDPR).",
+)
+
+# TODO Story 2.2 also → login command (subcommand group: free / premium)
+# TODO Story 1.1+ → arch init <project>
+# TODO Story 1.5 → arch audit / run / consolidate / status
+# TODO Story 3.4 → arch upgrade (CTA free→premium)
 
 
 if __name__ == "__main__":

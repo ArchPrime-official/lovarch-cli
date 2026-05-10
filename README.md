@@ -2,6 +2,10 @@
 
 > **AI-powered architectural project execution CLI** — squad di 17 agenti specializzati che esegue audit input, briefing, normativa IT, CAD, BIM/IFC, computo metrico, capitolato, pratiche edilizie (CILA/SCIA), contratto CNAPPC, energy/LCA preliminare, dossier consolidato — in 14 minuti vs 3 settimane di lavoro tradizionale.
 
+> ⚠️ **Status: ALPHA (v0.x)** — non ancora pubblicato su PyPI. Distribuzione attuale: wheel privato fornito agli iscritti al [Corso IA Avanzato per Architetti](https://lovarch.com/corso) (€1.497).
+>
+> Source code attualmente nel monorepo [ByPabloRuanL/lovarch](https://github.com/ByPabloRuanL/lovarch/tree/main/cli) (privato). Lo split verso `ArchPrime-official/archprime-cli` (pubblico) è pianificato pre-v1.0 prima del primo release PyPI. Vedi [MIGRATION-PLAN.md](MIGRATION-PLAN.md).
+
 🌐 **Lingue:** [🇮🇹 Italiano](README.md) (default) · [🇵🇹 Português](README.pt.md) · [🇬🇧 English](README.en.md) · [🇪🇸 Español](README.es.md)
 
 ---

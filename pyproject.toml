@@ -72,11 +72,14 @@ dev = [
 ]
 
 [project.urls]
+# NOTE: archprime-cli source is currently in the Lovarch monorepo.
+# A standalone public repo (ArchPrime-official/archprime-cli) will be created
+# pre-v1.0 (PyPI publish gate). See cli/MIGRATION-PLAN.md for split strategy.
 Homepage = "https://archprime.io"
-Documentation = "https://docs.archprime.io/cli"
-Repository = "https://github.com/lovarch/archprime-cli"
-Issues = "https://github.com/lovarch/archprime-cli/issues"
-Changelog = "https://github.com/lovarch/archprime-cli/blob/main/CHANGELOG.md"
+Documentation = "https://lovarch.com/cli-docs"
+Repository = "https://github.com/ByPabloRuanL/lovarch/tree/main/cli"
+Issues = "https://lovarch.com/cli-issues"
+Course = "https://lovarch.com/corso"
 
 [tool.hatch.version]
 path = "archprime_cli/version.py"
