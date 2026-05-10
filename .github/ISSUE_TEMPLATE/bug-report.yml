@@ -1,0 +1,98 @@
+name: Bug report
+description: Something in lovarch-cli doesn't behave as documented
+labels: [bug, triage]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug.
+
+        **Security issues should NOT be filed publicly here.** Email pablo@archprime.io instead.
+
+  - type: input
+    id: version
+    attributes:
+      label: lovarch-cli version
+      description: Output of `lovarch --version`
+      placeholder: lovarch-cli 0.1.0-beta.1
+    validations:
+      required: true
+
+  - type: dropdown
+    id: install-method
+    attributes:
+      label: How is it installed?
+      options:
+        - From source (git clone + pip install -e .)
+        - PyPI (pip install lovarch-cli) [when available]
+        - Homebrew (brew install lovarch-cli) [when available]
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: python
+    attributes:
+      label: Python version
+      description: Output of `python3 --version`
+      placeholder: Python 3.12.x
+    validations:
+      required: true
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options:
+        - macOS
+        - Linux
+        - Windows (WSL2)
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: command
+    attributes:
+      label: Command that triggered the bug
+      description: Paste the exact command line you ran.
+      render: shell
+      placeholder: lovarch init villa-toscana --sample
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: What did you expect to happen?
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: What actually happened? Include error messages, stack traces, screenshots.
+      render: shell
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: Minimal reproduction steps
+      placeholder: |
+        1. `lovarch login`
+        2. `lovarch init test --sample`
+        3. See error in output
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Confirmation
+      options:
+        - label: I'm not reporting a security issue (those go to pablo@archprime.io)
+          required: true
+        - label: I searched existing issues and didn't find a duplicate
+          required: true

@@ -1,0 +1,62 @@
+name: Feature request
+description: Suggest a new capability for lovarch-cli
+labels: [enhancement, triage]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for proposing an idea. Please describe the *outcome* you want,
+        not the implementation. We may pick a different solution than the one
+        you have in mind.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem you're trying to solve
+      description: What's the pain point this feature would address?
+      placeholder: As an architect using lovarch-cli, I want X because Y.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposed
+    attributes:
+      label: Proposed solution
+      description: How could this look from the user's perspective?
+      placeholder: |
+        ```bash
+        lovarch new-command <args>
+        ```
+        Would produce ...
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Workarounds you've tried, similar tools, etc.
+
+  - type: dropdown
+    id: scope
+    attributes:
+      label: Which area does this touch?
+      options:
+        - New command
+        - Existing command (modification)
+        - Auth / signup / login
+        - Squad pipeline (agents, tasks, workflows)
+        - i18n / translations
+        - Distribution (PyPI, Homebrew, Docker)
+        - Documentation
+        - Other
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Confirmation
+      options:
+        - label: I checked the [CHANGELOG](https://github.com/ArchPrime-official/lovarch-cli/blob/main/CHANGELOG.md) Unreleased section
+          required: true
+        - label: I searched existing issues and didn't find a duplicate
+          required: true
