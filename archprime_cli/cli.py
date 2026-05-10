@@ -158,9 +158,15 @@ app.command(name="login", help="Login al CLI (--free o --premium).")(
     login_command
 )
 
+# Story 3.4 — CTA Free → Premium upgrade flow (opens browser)
+from archprime_cli.commands.upgrade import upgrade_command  # noqa: E402
+
+app.command(name="upgrade", help="Passa da Free a Premium (apre il browser).")(
+    upgrade_command
+)
+
 # TODO Story 1.1+ → arch init <project>
 # TODO Story 1.5 → arch audit / run / consolidate / status
-# TODO Story 3.4 → arch upgrade (CTA free→premium)
 
 
 if __name__ == "__main__":

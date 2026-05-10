@@ -52,5 +52,12 @@
     "unknown_api_error": "Error API: {error_code}",
     "credits_insufficient": "Créditos insuficientes: tienes {remaining}, necesitas {required} (faltan {deficit}). Recarga en https://lovarch.com/credits.",
     "credits_check_failed": "Verificación de créditos falló: {message}"
+  },
+  "upgrade": {
+    "title": "🚀 Upgrade a Premium",
+    "already_premium_title": "✓ Cuenta Premium activa",
+    "body_free": "Actualiza a Premium para desbloquear:\n • Créditos AI incluidos (desde 50.000 cr/mes)\n • Almacenamiento cloud sincronizado entre dispositivos\n • Colaboración en equipo\n • Soporte prioritario",
+    "already_premium": "Ya eres Premium ✨ Para gestionar créditos, facturación y equipo abre el dashboard:",
+    "no_account_hint": "Sin cuenta configurada. Ejecuta [bold cyan]arch signup[/bold cyan] o [bold cyan]arch login --premium[/bold cyan] antes de [bold]arch upgrade[/bold]."
   }
 }
