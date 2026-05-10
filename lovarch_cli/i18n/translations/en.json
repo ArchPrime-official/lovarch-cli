@@ -151,7 +151,7 @@
     "created": "[green]✓[/green] Folder created at [bold]{path}[/bold]",
     "sample_copied": "[green]✓[/green] villa-chianti sample copied ([bold]{count}[/bold] input files)",
     "no_sample": "Sample-input not found at {path}",
-    "sample_hint": "The squad payload may not have been synced. Reinstall with [cyan]pip install -e .[/cyan].",
+    "sample_hint": "Sample-input villa-chianti (49MB of photos/DXF/PDF) is NOT shipped with the BETA package. Download it from [cyan]https://github.com/ArchPrime-official/lovarch-cli/releases/latest[/cyan] (file [bold]sample-villa-chianti.zip[/bold]) and unzip into the project's input folder.",
     "next_steps": "Next steps:\n 1. [cyan]lovarch audit {name}[/cyan] — verify the 18 inputs\n 2. [cyan]lovarch run dal-brief-al-cantiere[/cyan] — run the workflow"
   }
 }

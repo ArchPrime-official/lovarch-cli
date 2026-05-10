@@ -151,7 +151,7 @@
     "created": "[green]✓[/green] Cartella creata in [bold]{path}[/bold]",
     "sample_copied": "[green]✓[/green] Sample villa-chianti copiato ([bold]{count}[/bold] file di input)",
     "no_sample": "Sample-input non trovato in {path}",
-    "sample_hint": "Il payload squad potrebbe non essere stato sincronizzato. Reinstalla con [cyan]pip install -e .[/cyan].",
+    "sample_hint": "Sample-input villa-chianti (49MB di foto/DXF/PDF) non è incluso nel pacchetto BETA. Scaricalo da [cyan]https://github.com/ArchPrime-official/lovarch-cli/releases/latest[/cyan] (file [bold]sample-villa-chianti.zip[/bold]) e decomprimilo nella cartella di input del progetto.",
     "next_steps": "Prossimi passi:\n 1. [cyan]lovarch audit {name}[/cyan] — verifica i 18 input\n 2. [cyan]lovarch run dal-brief-al-cantiere[/cyan] — esegui il workflow"
   }
 }

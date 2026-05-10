@@ -32,7 +32,10 @@ jobs:
           pip install pyflakes
 
       - name: pyflakes
-        run: pyflakes lovarch_cli tests
+        # Exclude lovarch_cli/squad/: it is vendored from the monorepo squad
+        # repo (architettura-progetto). Drift fixes belong in that repo.
+        run: |
+          find lovarch_cli tests -type d -name squad -prune -o -name '*.py' -print | xargs pyflakes
 
       - name: pytest
         run: pytest tests/ -v --tb=short

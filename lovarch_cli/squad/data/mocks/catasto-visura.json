@@ -1,0 +1,72 @@
+{
+  "meta": {
+    "source": "MOCK · OpenAPI.com Catasto · da sostituire in produzione",
+    "version": "1.0",
+    "issued_at": "2026-04-25T10:00:00+02:00",
+    "mock": true
+  },
+  "request": {
+    "indirizzo": "Via Fiori Chiari 17",
+    "comune": "Milano",
+    "provincia": "MI",
+    "regione": "Lombardia"
+  },
+  "dati_catastali": {
+    "foglio": "356",
+    "particella": "127",
+    "subalterno": "12",
+    "mappale": "127/12",
+    "categoria": "A/2",
+    "classe": "5",
+    "consistenza": "5,5 vani",
+    "rendita_eur": 1456.32,
+    "zona_censuaria": "01"
+  },
+  "intestatari": [
+    {
+      "nome": "Marco",
+      "cognome": "Rossini",
+      "codice_fiscale": "RSSMRC83A15F205X",
+      "quota": "1/2",
+      "diritto": "proprietà"
+    },
+    {
+      "nome": "Giulia",
+      "cognome": "Bianchi",
+      "codice_fiscale": "BNCGLI88D52F205Y",
+      "quota": "1/2",
+      "diritto": "proprietà"
+    }
+  ],
+  "ubicazione": {
+    "indirizzo_completo": "Via Fiori Chiari 17, 20121 Milano (MI)",
+    "piano": "3",
+    "scala": "A",
+    "interno": "5",
+    "civico": "17"
+  },
+  "vincoli_dichiarati": [
+    {
+      "tipo": "vincolo_paesaggistico",
+      "fonte": "D.Lgs 42/2004",
+      "descrizione": "Zona A1 PGT Milano · NAF · Brera",
+      "applicabile": true
+    },
+    {
+      "tipo": "vincolo_monumentale_indiretto",
+      "fonte": "art. 45 D.Lgs 42/2004",
+      "descrizione": "Edificio in zona di rispetto monumenti circostanti",
+      "applicabile": true
+    }
+  ],
+  "superfici": {
+    "superficie_lorda_m2": 120.0,
+    "superficie_utile_m2": 102.3,
+    "superficie_balconi_m2": 0,
+    "superficie_terrazzi_m2": 20.0,
+    "vani_catastali": 5.5
+  },
+  "anno_costruzione_dichiarato": 1910,
+  "ultima_variazione_catastale": "2018-06-15",
+  "note": "Visura ipotecaria non richiesta. Per atti notarili richiedere visura per soggetto."
+}

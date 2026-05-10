@@ -1,26 +1,26 @@
 """Hatchling build hook — sync architettura-progetto squad into the package.
 
-This hook runs at build time (uv build, pip install -e .) and copies relevant
-files from sibling squads/architettura-progetto/ into lovarch_cli/squad/ so
-the published wheel ships with the squad as bundled package data.
+This hook runs at build time (uv build, pip install -e .) and refreshes the
+vendored squad payload in lovarch_cli/squad/ from a sibling source repo.
 
-WITHOUT this sync, the CLI ships empty — `arch run` would have no agents to
-orchestrate, no tasks to execute, no workflow YAML to follow. This is a
-CRITICAL build step.
+Two-mode behavior:
 
-Behavior:
-- Looks for squads/architettura-progetto/ as sibling of cli/ (monorepo dev)
-- Falls back to NO-OP if running inside an isolated CI sdist (squad already
-  bundled by previous sync). The .gitkeep marker in lovarch_cli/squad/
-  ensures the directory exists even before first sync.
+1. Standalone (default — public ArchPrime-official/lovarch-cli):
+   No sibling squad/. Squad is committed inside lovarch_cli/squad/ as a
+   light vendor (~830KB without sample-inputs). Hook detects missing source
+   and exits NO-OP — preserves the committed payload. Sample-input villa-
+   chianti (49MB) lives in GitHub Releases, downloaded by `lovarch init
+   --sample` on demand.
 
-Repository layout (monorepo dev):
-    Lovarch/
-    ├── cli/                        ← this package
-    │   ├── pyproject.toml          ← references scripts/sync_squad.py
-    │   ├── lovarch_cli/squad/    ← target (gitignored, populated here)
-    │   └── scripts/sync_squad.py   ← this file
-    └── squads/architettura-progetto/   ← source (sibling)
+2. Monorepo dev (Pablo's Lovarch repo with cli/):
+   Hook finds sibling squads/architettura-progetto/, refreshes the vendored
+   payload from it (skipping EXCLUDE_RELATIVE — heavy sample-inputs).
+   Used to keep the standalone repo's vendor in sync via
+   scripts/refresh_squad_vendor.py.
+
+WITHOUT a populated squad, `arch run` and `arch init --sample` cannot
+function — agents/tasks/workflows/templates and the pipeline_runner.py
+must be present in lovarch_cli/squad/.
 """
 from __future__ import annotations
 
@@ -37,9 +37,17 @@ COPY_DIRS: tuple[str, ...] = (
     "workflows",
     "checklists",
     "templates",
+    "scripts",
     "data",
 )
 SQUAD_FILES: tuple[str, ...] = ("README.md", "config.yaml")
+# Excluded from vendor: heavy sample-inputs (~49MB of jpgs/pdfs/dxfs).
+# These are shipped via GitHub Releases and downloaded lazily by
+# `lovarch init --sample`. See docs/squad-vendoring.md.
+EXCLUDE_RELATIVE: frozenset[str] = frozenset({
+    "data/sample-input",
+    "data/sample-input-villa-chianti",
+})
 
 
 class SyncSquadBuildHook(BuildHookInterface):
@@ -73,12 +81,19 @@ class SyncSquadBuildHook(BuildHookInterface):
             else:
                 child.unlink()
 
-        # Copy directories
+        # Copy directories (skipping heavy excludes).
+        def _ignore(_dir: str, names: list[str]) -> list[str]:
+            base = Path(_dir).relative_to(squad_src)
+            return [
+                n for n in names
+                if str((base / n).as_posix()) in EXCLUDE_RELATIVE
+            ]
+
         copied_dirs = 0
         for dirname in COPY_DIRS:
             src_dir = squad_src / dirname
             if src_dir.exists() and src_dir.is_dir():
-                shutil.copytree(src_dir, squad_dst / dirname)
+                shutil.copytree(src_dir, squad_dst / dirname, ignore=_ignore)
                 copied_dirs += 1
 
         # Copy top-level files
