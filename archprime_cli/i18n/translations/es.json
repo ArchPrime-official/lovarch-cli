@@ -48,6 +48,8 @@
   "errors": {
     "network": "Error de red llamando {function_name}: {exc}",
     "invalid_json": "JSON inválido de {function_name} (HTTP {status_code}): {snippet}",
-    "unknown_api_error": "Error API: {error_code}"
+    "unknown_api_error": "Error API: {error_code}",
+    "credits_insufficient": "Créditos insuficientes: tienes {remaining}, necesitas {required} (faltan {deficit}). Recarga en https://lovarch.com/credits.",
+    "credits_check_failed": "Verificación de créditos falló: {message}"
   }
 }
