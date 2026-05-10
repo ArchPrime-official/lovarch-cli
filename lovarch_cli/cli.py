@@ -172,7 +172,14 @@ app.command(name="init", help="Inizializza un nuovo progetto (con --sample copia
     init_command
 )
 
-# TODO Fase A.2-A.5 → lovarch audit / run / consolidate / status
+# Fase A.2 — 18-point input validation checklist
+from lovarch_cli.commands.audit import audit_command  # noqa: E402
+
+app.command(name="audit", help="Audit dei 18 input prima del run (verdict PASS/CONCERNS/FAIL).")(
+    audit_command
+)
+
+# TODO Fase A.3-A.5 → lovarch run / consolidate / status
 
 
 if __name__ == "__main__":
