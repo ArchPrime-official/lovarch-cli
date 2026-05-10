@@ -2,9 +2,9 @@
 
 > **AI-powered architectural project execution CLI** — squad di 17 agenti specializzati che esegue audit input, briefing, normativa IT, CAD, BIM/IFC, computo metrico, capitolato, pratiche edilizie (CILA/SCIA), contratto CNAPPC, energy/LCA preliminare, dossier consolidato — in 14 minuti vs 3 settimane di lavoro tradizionale.
 
-> ⚠️ **Status: ALPHA (v0.x)** — non ancora pubblicato su PyPI. Distribuzione attuale: wheel privato fornito agli iscritti al [Corso IA Avanzato per Architetti](https://lovarch.com/corso) (€1.497).
+> ⚠️ **Status: BETA (v0.1.x)** — pre-PyPI release. Distribuzione attuale: clone diretto + `pip install -e .` per gli iscritti al [Corso IA Avanzato per Architetti](https://lovarch.com/corso) (€1.497).
 >
-> Source code attualmente nel monorepo [ByPabloRuanL/lovarch](https://github.com/ByPabloRuanL/lovarch/tree/main/cli) (privato). Lo split verso `Lovarch-official/lovarch-cli` (pubblico) è pianificato pre-v1.0 prima del primo release PyPI. Vedi [MIGRATION-PLAN.md](MIGRATION-PLAN.md).
+> Repository pubblico in `ArchPrime-official/lovarch-cli`. Edge Functions server-side rimangono nel monorepo Lovarch. Pubblicazione su PyPI + Homebrew prevista nelle prossime settimane (v0.1.0 stable).
 
 🌐 **Lingue:** [🇮🇹 Italiano](README.md) (default) · [🇵🇹 Português](README.pt.md) · [🇬🇧 English](README.en.md) · [🇪🇸 Español](README.es.md)
 
@@ -56,24 +56,35 @@ arch login --premium
 ## Quick start
 
 ```bash
-# Installa (consigliato pipx per ambiente isolato)
-pipx install lovarch-cli
+# Installa da source (PyPI release in arrivo)
+git clone https://github.com/ArchPrime-official/lovarch-cli.git
+cd lovarch-cli
+python3.12 -m venv .venv && source .venv/bin/activate
+pip install -e .
 
-# Primo login
-arch login
+# Verifica installazione
+lovarch --version    # → lovarch-cli 0.1.0
 
-# Inizializza un progetto
-arch init villa-toscana
+# Primo login (Free o Premium)
+lovarch login
 
-# Audit dell'input (18 controlli prima di iniziare)
-arch audit villa-toscana
+# Inizializza un progetto (con --sample copia villa-chianti starter)
+lovarch init villa-toscana --sample
 
-# Esegui workflow completo (14 min)
-arch run dal-brief-al-cantiere --project villa-toscana
+# Audit dei 18 input prima di girare il pipeline
+lovarch audit villa-toscana
 
-# Consolida deliverable
-arch consolidate villa-toscana
+# Esegui workflow (Free=dry-run · Premium=produzione)
+lovarch run dal-brief-al-cantiere --project villa-toscana
+
+# Consolida deliverable in DOSSIER.zip
+lovarch consolidate villa-toscana
+
+# Stato di tutti i progetti
+lovarch status
 ```
+
+> Backward compatibility: `arch` funziona come alias di `lovarch` per chi ha già muscle memory.
 
 ## Comandi disponibili
 
