@@ -17,9 +17,23 @@ from typing import Any
 
 DEFAULT_HOME = Path.home() / ".archprime"
 
-# Primary URL — overridable via env for staging/dev
-DEFAULT_API_URL = os.environ.get("LOVARCH_API_URL", "https://api.lovarch.com")
-DEFAULT_API_ANON_KEY = os.environ.get("LOVARCH_ANON_KEY", "")
+# Lovarch Supabase API endpoint.
+#
+# Decision 2026-05-10 (Pablo + Orion): Opção A — URL Supabase direta.
+# Custom domain api.lovarch.com fica para fase pre-PyPI public publish
+# (ver cli/MIGRATION-PLAN.md). Quando criado, usuários instalados continuam
+# funcionando via env LOVARCH_API_URL override ou bump de versão.
+#
+# The anon key below is PUBLIC by Supabase design (role=anon, RLS-protected).
+# Same key shipped in Lovarch web frontend bundle. Safe to embed in
+# distributed CLI source.
+DEFAULT_API_URL = os.environ.get(
+    "LOVARCH_API_URL", "https://cuxbydmyahjaplzkthkr.supabase.co"
+)
+DEFAULT_API_ANON_KEY = os.environ.get(
+    "LOVARCH_ANON_KEY",
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN1eGJ5ZG15YWhqYXBsemt0aGtyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzODM3OTYsImV4cCI6MjA4Nzk1OTc5Nn0.UtHrPjSP40pwsRy6vCQseC5YA4DZ6e-hO8sXcRL8w_E",
+)
 
 
 @dataclass

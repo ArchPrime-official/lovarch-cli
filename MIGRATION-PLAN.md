@@ -134,3 +134,15 @@ Documentation = "https://docs.archprime.io/cli"
 | Data | Quem | Decisão |
 |------|------|---------|
 | 2026-05-10 | Pablo + Orion | Mantém monorepo agora, split planejado pré-v1.0. PyPI público confirmado como canal de distribuição final. |
+| 2026-05-10 | Pablo + Orion | API URL: **Opção A** (URL Supabase direta `https://cuxbydmyahjaplzkthkr.supabase.co`) em vez de criar `api.lovarch.com` agora. Anon key hardcoded em `config.py` (public por design Supabase). Custom domain ficará pra fase pre-PyPI public (alinha com split timing). |
+
+## Tarefa pré-PyPI public: criar `api.lovarch.com`
+
+Quando hora de splitar repo + publicar PyPI:
+
+1. Verificar plano Supabase é Pro/Team (Custom Domains exige)
+2. Supabase Dashboard → Settings → Custom Domains → adicionar `api.lovarch.com`
+3. Cloudflare DNS → add TXT (verificação) + CNAME (`api` → target Supabase) — **DNS only ⚪, não Proxied 🟠**
+4. Aguardar SSL cert Let's Encrypt (~5-15min)
+5. Bump archprime-cli minor (`0.x.0`) com nova URL default — usuários instalados continuam funcionando via env `LOVARCH_API_URL` ou re-install
+6. Atualizar `pyproject.toml` URLs → apontar pro novo repo público
