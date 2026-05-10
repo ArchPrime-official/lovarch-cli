@@ -38,5 +38,16 @@
     "state_mismatch": "Errore di sicurezza: state non corrisponde (possibile CSRF). Riprova.",
     "auth_denied": "Autorizzazione negata dall'utente.",
     "login_success": "✓ Login Premium completato"
+  },
+  "info": {
+    "title": "Stato",
+    "mode_not_configured": "non configurato — esegui 'arch login' per iniziare",
+    "powered_by": "🌐 Powered by Lovarch — https://lovarch.com",
+    "course_promo": "🎓 Corso IA Avanzato per Architetti — https://lovarch.com/corso"
+  },
+  "errors": {
+    "network": "Errore di rete chiamando {function_name}: {exc}",
+    "invalid_json": "JSON non valido da {function_name} (HTTP {status_code}): {snippet}",
+    "unknown_api_error": "Errore API: {error_code}"
   }
 }

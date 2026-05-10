@@ -27,7 +27,7 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.text import Text
 
-from archprime_cli.i18n import set_current_lang
+from archprime_cli.i18n import current_lang, set_current_lang, t
 from archprime_cli.version import __version__
 
 console = Console()
@@ -99,6 +99,7 @@ def main(
 @app.command(name="info")
 def info_cmd() -> None:
     """Mostra informazioni sulla installazione corrente."""
+    lang = current_lang()
     title = Text("archprime-cli", style="bold gold1")
     body = Text.assemble(
         ("Version: ", "dim"),
@@ -110,19 +111,19 @@ def info_cmd() -> None:
         ("Squad:   ", "dim"),
         ("architettura-progetto (17 agents, 6 tasks, 1 workflow)\n", "bold"),
         ("Mode:    ", "dim"),
-        ("not configured — run 'arch login' to begin", "italic yellow"),
+        (t("info.mode_not_configured", lang=lang), "italic yellow"),
     )
     console.print(
         Panel(
             Text.assemble(title, "\n\n", body),
-            title="[bold]Status[/bold]",
+            title=f"[bold]{t('info.title', lang=lang)}[/bold]",
             border_style="gold1",
             padding=(1, 2),
         )
     )
     console.print(
-        "\n[dim]🌐 Powered by Lovarch — https://lovarch.com[/dim]\n"
-        "[dim]🎓 Corso IA Avanzato per Architetti — https://lovarch.com/corso[/dim]\n"
+        f"\n[dim]{t('info.powered_by', lang=lang)}[/dim]\n"
+        f"[dim]{t('info.course_promo', lang=lang)}[/dim]\n"
     )
 
 

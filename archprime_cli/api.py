@@ -18,6 +18,7 @@ from typing import Any
 import httpx
 
 from archprime_cli.config import DEFAULT_API_ANON_KEY, DEFAULT_API_URL
+from archprime_cli.i18n import t
 
 
 class LovarchApiError(Exception):
@@ -80,21 +81,26 @@ class ApiClient:
             async with httpx.AsyncClient(timeout=timeout) as client:
                 response = await client.post(url, json=body, headers=headers)
         except httpx.RequestError as exc:
-            msg = f"Network error calling {function_name}: {exc}"
+            msg = t("errors.network", function_name=function_name, exc=str(exc))
             raise LovarchApiError(msg) from exc
 
         try:
             payload = response.json()
         except ValueError as exc:
-            msg = (
-                f"Invalid JSON from {function_name} (HTTP {response.status_code}): "
-                f"{response.text[:200]}"
+            msg = t(
+                "errors.invalid_json",
+                function_name=function_name,
+                status_code=response.status_code,
+                snippet=response.text[:200],
             )
             raise LovarchApiError(msg, status_code=response.status_code) from exc
 
         if response.status_code >= 400 or payload.get("ok") is False:
             error_code = payload.get("error", "unknown_error")
-            message = payload.get("message", f"API error: {error_code}")
+            # Server-localized message wins; otherwise build a localized fallback.
+            message = payload.get("message") or t(
+                "errors.unknown_api_error", error_code=error_code
+            )
             raise LovarchApiError(
                 message=message,
                 status_code=response.status_code,
