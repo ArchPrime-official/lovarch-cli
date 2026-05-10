@@ -133,12 +133,17 @@ def test_project_yaml_contains_metadata(runner: CliRunner, tmp_path: Path):
 # --sample flag
 # ──────────────────────────────────────────────────────────────────────────
 
-def test_sample_flag_copies_bundled_input(
+def test_sample_flag_copies_resolved_source(
     runner: CliRunner, tmp_path: Path
 ):
+    """When the downloader resolves a sample (bundled/cache/download), init
+    copies its contents into the project's input/ dir."""
     fake_src = _make_fake_sample(tmp_path)
+    from lovarch_cli.sample_downloader import SampleSource
+
     with patch(
-        "lovarch_cli.commands.init._sample_input_dir", return_value=fake_src
+        "lovarch_cli.sample_downloader.resolve_sample_source",
+        return_value=SampleSource(path=fake_src, origin="cache"),
     ):
         result = runner.invoke(
             _app(),
@@ -159,14 +164,16 @@ def test_sample_flag_copies_bundled_input(
     assert meta["sample"] is True
 
 
-def test_sample_missing_does_not_fail_dir_creation(
+def test_sample_download_error_does_not_fail_dir_creation(
     runner: CliRunner, tmp_path: Path
 ):
-    """If the bundled sample is missing (broken install), the project dir
-    is still created so the user can populate input/ manually."""
-    missing = tmp_path / "does-not-exist"
+    """If the downloader cannot obtain the sample (offline, checksum fail, etc.),
+    the project dir is still created so the user can populate input/ manually."""
+    from lovarch_cli.sample_downloader import SampleDownloadError
+
     with patch(
-        "lovarch_cli.commands.init._sample_input_dir", return_value=missing
+        "lovarch_cli.sample_downloader.resolve_sample_source",
+        side_effect=SampleDownloadError("network down"),
     ):
         result = runner.invoke(
             _app(),
@@ -175,8 +182,8 @@ def test_sample_missing_does_not_fail_dir_creation(
     # Exit 0 because we don't bail — user can still add input manually.
     assert result.exit_code == 0
     assert (tmp_path / "projects" / "villa-test" / "input").is_dir()
-    # Warning message present
-    assert "Sample-input not found" in result.stdout
+    # The downloader's error message is surfaced to the user
+    assert "network down" in result.stdout
 
 
 # ──────────────────────────────────────────────────────────────────────────
