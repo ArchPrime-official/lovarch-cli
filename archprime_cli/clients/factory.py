@@ -2,7 +2,7 @@
 pair based on authentication mode.
 
 Free mode  → LocalSqliteClient + LocalFilesystemStorage
-Premium mode → LovarchSupabaseClient + LovarchS3Storage (Epic 3)
+Premium mode → LovarchSupabaseClient + LovarchStorage (uses keyring tokens)
 """
 from __future__ import annotations
 
@@ -24,7 +24,8 @@ def get_clients(
         archprime_home: override default ~/.archprime/ (mainly for tests)
 
     Raises:
-        NotImplementedError: premium mode not yet implemented (Epic 3)
+        RuntimeError: premium requested but no session in keyring (user must
+        run `arch login --premium` first).
     """
     if mode == ExecutionMode.FREE:
         persistence = LocalSqliteClient(archprime_home=archprime_home)
@@ -35,12 +36,19 @@ def get_clients(
         return persistence, storage
 
     if mode == ExecutionMode.PREMIUM:
-        msg = (
-            "Premium mode requires Lovarch authentication (Epic 3 — not yet "
-            "implemented). For now, use 'arch login --free' to run standalone "
-            "with your own API keys."
-        )
-        raise NotImplementedError(msg)
+        # Lazy imports — avoid loading httpx + Supabase modules in free flows
+        from archprime_cli.auth.session import LovarchSession
+        from archprime_cli.clients.lovarch_storage import LovarchStorage
+        from archprime_cli.clients.lovarch_supabase import LovarchSupabaseClient
+
+        session = LovarchSession.load()
+        if session is None:
+            msg = (
+                "Premium mode requires authentication. Run "
+                "'arch login --premium' first."
+            )
+            raise RuntimeError(msg)
+        return LovarchSupabaseClient(session), LovarchStorage(session)
 
     msg = f"Unknown execution mode: {mode}"
     raise ValueError(msg)
