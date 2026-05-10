@@ -1,10 +1,13 @@
 # lovarch-cli
 
+[![CI](https://github.com/ArchPrime-official/lovarch-cli/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/ArchPrime-official/lovarch-cli/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue.svg)](https://www.python.org/downloads/)
+[![Release](https://img.shields.io/github/v/release/ArchPrime-official/lovarch-cli?include_prereleases)](https://github.com/ArchPrime-official/lovarch-cli/releases)
+
 > **AI-powered architectural project execution CLI** — squad di 17 agenti specializzati che esegue audit input, briefing, normativa IT, CAD, BIM/IFC, computo metrico, capitolato, pratiche edilizie (CILA/SCIA), contratto CNAPPC, energy/LCA preliminare, dossier consolidato — in 14 minuti vs 3 settimane di lavoro tradizionale.
 
-> ⚠️ **Status: BETA (v0.1.x)** — pre-PyPI release. Distribuzione attuale: clone diretto + `pip install -e .` per gli iscritti al [Corso IA Avanzato per Architetti](https://lovarch.com/corso) (€1.497).
->
-> Repository pubblico in `ArchPrime-official/lovarch-cli`. Edge Functions server-side rimangono nel monorepo Lovarch. Pubblicazione su PyPI + Homebrew prevista nelle prossime settimane (v0.1.0 stable).
+> ⚠️ **Status: BETA (v0.1.x)** — installazione da sorgente o GitHub Release. Pubblicazione su PyPI + Homebrew **arriverà con v0.1.0 stable** (prossime settimane). Usato in produzione dagli iscritti al [Corso IA Avanzato per Architetti](https://lovarch.com/corso) (€1.497).
 
 🌐 **Lingue:** [🇮🇹 Italiano](README.md) (default) · [🇵🇹 Português](README.pt.md) · [🇬🇧 English](README.en.md) · [🇪🇸 Español](README.es.md)
 
@@ -29,8 +32,7 @@
 ### 🆓 Free Mode (registrazione richiesta)
 
 ```bash
-pip install lovarch-cli
-arch login --free
+lovarch signup
 # → Cadastro: Nome completo, email, telefono, paese, lingua
 ```
 
@@ -53,29 +55,53 @@ arch login --premium
 - Sincronizzazione web app `lovarch.com/admin/squad-execution/{id}/live`
 - Team member ownership automatico
 
-## Quick start
+## Installazione
+
+### Da sorgente (BETA — metodo attuale)
 
 ```bash
-# Installa da source (PyPI release in arrivo)
 git clone https://github.com/ArchPrime-official/lovarch-cli.git
 cd lovarch-cli
 python3.12 -m venv .venv && source .venv/bin/activate
 pip install -e .
+lovarch --version    # → lovarch-cli 0.1.0-beta.1
+```
 
+### Da PyPI 🚧 *coming soon* (v0.1.0 stable)
+
+```bash
+# Disponibile alla pubblicazione su PyPI:
+pipx install lovarch-cli           # raccomandato (isolato)
+# oppure
+pip install lovarch-cli            # globale
+```
+
+### Da Homebrew 🚧 *coming soon* (macOS / Linux)
+
+```bash
+brew tap ArchPrime-official/lovarch
+brew install lovarch-cli
+```
+
+> Backward compatibility: il comando `arch` è alias di `lovarch` per chi ha già muscle memory dalla versione di sviluppo interna.
+
+## Quick start
+
+```bash
 # Verifica installazione
-lovarch --version    # → lovarch-cli 0.1.0
+lovarch --version    # → lovarch-cli 0.1.0-beta.1
 
-# Primo login (Free o Premium)
+# Primo login (interattivo: Free o Premium)
 lovarch login
 
-# Inizializza un progetto (con --sample copia villa-chianti starter)
+# Inizializza un progetto (con --sample scarica villa-chianti da GitHub Releases)
 lovarch init villa-toscana --sample
 
 # Audit dei 18 input prima di girare il pipeline
 lovarch audit villa-toscana
 
 # Esegui workflow (Free=dry-run · Premium=produzione)
-lovarch run dal-brief-al-cantiere --project villa-toscana
+lovarch run dal-brief-al-cantiere villa-toscana
 
 # Consolida deliverable in DOSSIER.zip
 lovarch consolidate villa-toscana
@@ -83,8 +109,6 @@ lovarch consolidate villa-toscana
 # Stato di tutti i progetti
 lovarch status
 ```
-
-> Backward compatibility: `arch` funziona come alias di `lovarch` per chi ha già muscle memory.
 
 ## Comandi disponibili
 
@@ -121,9 +145,11 @@ MIT License — vedi [LICENSE](LICENSE).
 
 ## Link
 
-- 🌐 [archprime.io](https://archprime.io)
+- 🌐 [archprime.io](https://archprime.io) · [lovarch.com](https://lovarch.com)
 - 📚 [Documentazione](https://docs.archprime.io/cli)
-- 🐛 [Issues](https://github.com/lovarch/lovarch-cli/issues)
+- 🐛 [Issues](https://github.com/ArchPrime-official/lovarch-cli/issues)
+- 📋 [Releases](https://github.com/ArchPrime-official/lovarch-cli/releases) · [Changelog](./CHANGELOG.md)
+- 🤝 [Contributing](./CONTRIBUTING.md)
 - 🎓 [Corso IA Avanzato per Architetti](https://lovarch.com/corso) (€1.497)
 
 ---

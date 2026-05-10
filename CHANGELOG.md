@@ -1,0 +1,133 @@
+# Changelog
+
+All notable changes to `lovarch-cli` are documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+
+### Planned for v0.1.0 (stable)
+
+- Publish to PyPI (`pip install lovarch-cli`)
+- Submit Homebrew formula auto-bump on tag
+- README polish + status badges
+- Bump `SAMPLE_RELEASE_TAG` to `v0.1.0` after re-uploading the sample asset
+- First production-ready release usable in the May 2026 IA Avanzato course
+
+### Deferred to Q3
+
+- **Story 1.3 — `pipeline_runner.py` refactor**: split the 1821-line legacy
+  runner into modular phases. Currently shelled out via subprocess; works
+  but is hard to unit-test independently. Adding `--legacy-runner` flag
+  to allow fallback during the migration.
+
+## [0.1.0-beta.1] — 2026-05-10
+
+First public BETA. Repository extracted from the Lovarch monorepo into
+`ArchPrime-official/lovarch-cli` via `git filter-repo`. 13 commits of
+CLI-specific history preserved.
+
+### Added — Commands (Fase A)
+
+- `lovarch info` — version + squad + mode status panel
+- `lovarch init <name>` — scaffold a project with `input/`, `output/`,
+  `project.yaml`. `--sample` lazily downloads the villa-chianti starter
+  from GitHub Releases (SHA256 verified, cached in `~/.lovarch/cache/`).
+  `--workflow`, `--force`, `--home` overrides.
+- `lovarch audit <name>` — 18-point input checklist in 3 tiers:
+  REQUIRED (10 — failure means FAIL verdict), RECOMMENDED (4 — CONCERNS),
+  BRIEFING DEPTH (4 — CONCERNS). `--json` flag for CI integration.
+  Persists `last_audit` in `project.yaml`.
+- `lovarch run <workflow> <project>` — pre-flight gates (project exists,
+  input non-empty, last audit ≠ FAIL, credits for Premium).
+  Free mode: subprocess `pipeline_runner.py --dry-run` (simulation, no API
+  calls). Premium mode: subprocess `--real` (debits Lovarch credits).
+  `--skip-audit`, `--skip-credits`, `--dry-run` escape hatches.
+- `lovarch consolidate <name>` — filename-prefix → 6-folder routing
+  (`00-validation/`, `01-bootstrap/`, `02-concept/`, `03-tier1/`,
+  `04-tier2/`, `05-dossier/`) + `99-other/` fallback. ZIP includes a
+  localized README in 4 languages. Persists `last_dossier` in
+  `project.yaml`.
+- `lovarch status [<name>]` — list view (all projects with workflow + audit
+  verdict + dossier state + age) or detail view (audit breakdown, dossier
+  path/size, output count). Reads only `project.yaml`, no backend.
+
+### Added — Auth & Account
+
+- `lovarch signup` — interactive Free signup with GDPR consent. Calls
+  `cli-signup` Edge Function in the Lovarch monorepo; persists token
+  via OS keyring.
+- `lovarch login` — interactive mode selection (free/premium). Premium
+  uses PKCE OAuth flow with local callback server; falls back to manual
+  URL if browser cannot open.
+- `lovarch account info` / `lovarch account delete` — GDPR right-to-erasure
+  (pseudonymizes remote data, revokes token; optionally wipes
+  `~/.lovarch/projects/`).
+- `lovarch upgrade` — opens `/cli-upgrade` (Free) or `/settings/credits`
+  (Premium) with `creds.language` preference.
+
+### Added — Infrastructure
+
+- 4 languages bundled (it/pt/en/es) with parity anti-drift tests
+  (`tests/test_i18n_loader.py`). 120+ keys across `signup`/`account`/
+  `login`/`info`/`errors`/`upgrade`/`init`/`audit`/`run`/`consolidate`/
+  `status` namespaces. Italian is the default; detection via `--lang`
+  flag → `LOVARCH_LANG` env → `LANG` env → `'it'`.
+- `DataPersistenceClient` ABC with `LocalSqliteClient` (Free) and
+  `LovarchSupabaseClient` (Premium) implementations. Mirrors the
+  `pm_squad_executions` / `pm_squad_steps` / `pm_squad_qa_checks`
+  monorepo tables.
+- `CreditsClient` ABC with `FreeCreditsClient` (no-op) and
+  `LovarchCreditsClient` (calls `cli-credits-check` Edge Function with
+  auto-refresh-on-401).
+- 142 pytest passing in 0.7s (smoke E2E + unit coverage for i18n,
+  credits, persistence, audit, init, consolidate, status,
+  sample_downloader).
+- CI matrix Python 3.11/3.12/3.13 + pyflakes + smoke (lovarch info /
+  arch alias).
+- Bundled squad (architettura-progetto, ~830KB) — 17 agents, 6 tasks,
+  1 workflow (`dal-brief-al-cantiere`), 5 checklists, 4 templates. Heavy
+  sample-input villa-chianti (49MB) shipped as a GitHub Releases asset
+  and downloaded lazily by `lovarch init --sample`.
+- Build hook (`scripts/sync_squad.py`) two-mode behavior: NO-OP in
+  standalone repo (preserves vendor); re-syncs from sibling
+  `squads/architettura-progetto/` in monorepo dev.
+- Manual vendor refresh: `scripts/refresh_squad_vendor.py`.
+- Release infrastructure:
+  - `.github/workflows/publish-pypi.yml` — verifies tag matches
+    `lovarch_cli/version.py`, builds wheel + sdist, uploads to PyPI for
+    final tags only (skip pre-release).
+  - `.github/workflows/attach-to-release.yml` — attaches wheel + sdist
+    to the GitHub Release for every `v*` tag.
+  - `.github/workflows/bump-homebrew-formula.yml` — auto-opens bump PR
+    in `ArchPrime-official/homebrew-lovarch` when a final tag is pushed.
+
+### Documentation
+
+- `docs/squad-vendoring.md` — what is vendored, what isn't, why, how to
+  refresh.
+- `docs/release-process.md` — semver bump policy, tag conventions
+  (final vs pre-release), PyPI/Homebrew setup steps, rollback guide.
+- `MIGRATION-PLAN.md` — executed runbook documenting the monorepo →
+  standalone split (filter-repo, history preservation, etc.).
+
+### Companion repositories
+
+- [`ArchPrime-official/homebrew-lovarch`](https://github.com/ArchPrime-official/homebrew-lovarch)
+  — Homebrew tap with `Formula/lovarch-cli.rb`. CI tested via
+  `brew install --build-from-source` + `brew test` on macos-latest.
+
+### Known limitations
+
+- `pip install lovarch-cli` does not yet work — PyPI publish gated on
+  Pablo configuring `PYPI_API_TOKEN` secret.
+- `brew install lovarch-cli` requires the `brew tap ArchPrime-official/lovarch`
+  step first (no homebrew-core submission yet).
+- `arch run` shells out to the legacy 1821-line `pipeline_runner.py` —
+  Story 1.3 refactor deferred to Q3.
+- Voice/avatar/render features depend on Edge Functions in the Lovarch
+  monorepo — Free dry-run does NOT actually call them.
+
+[Unreleased]: https://github.com/ArchPrime-official/lovarch-cli/compare/v0.1.0-beta.1...HEAD
+[0.1.0-beta.1]: https://github.com/ArchPrime-official/lovarch-cli/releases/tag/v0.1.0-beta.1
