@@ -1,0 +1,105 @@
+name: Bump Homebrew formula
+
+# Triggered when a final release tag is pushed (skips pre-release tags).
+# Computes the new source tarball SHA256 and opens a PR in
+# ArchPrime-official/homebrew-lovarch updating Formula/lovarch-cli.rb.
+#
+# Setup steps (one-time, done by Pablo):
+#   1. Create a fine-grained PAT at https://github.com/settings/personal-access-tokens/new
+#      with scope:
+#        - Repository access: ArchPrime-official/homebrew-lovarch
+#        - Repository permissions: Contents (Read+Write), Pull requests (Read+Write)
+#   2. Register as a repo secret on THIS repo:
+#        gh secret set HOMEBREW_TAP_TOKEN --repo ArchPrime-official/lovarch-cli
+#      Paste the github_pat_... token when prompted.
+#
+# If HOMEBREW_TAP_TOKEN is missing, the job skips gracefully (logs notice).
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+
+jobs:
+  bump:
+    name: Bump tap formula
+    runs-on: ubuntu-latest
+    # Skip pre-release tags (v0.1.0-beta.1, v0.1.0-rc.X, etc.)
+    if: ${{ !contains(github.ref, '-') }}
+
+    steps:
+      - name: Skip if HOMEBREW_TAP_TOKEN not configured
+        if: ${{ secrets.HOMEBREW_TAP_TOKEN == '' }}
+        run: |
+          echo "::notice::HOMEBREW_TAP_TOKEN secret not set — skipping homebrew bump"
+          exit 0
+
+      - uses: actions/checkout@v4
+        if: ${{ secrets.HOMEBREW_TAP_TOKEN != '' }}
+
+      - name: Compute tag + tarball SHA256
+        if: ${{ secrets.HOMEBREW_TAP_TOKEN != '' }}
+        id: meta
+        run: |
+          tag="${GITHUB_REF#refs/tags/}"
+          version="${tag#v}"
+          url="https://github.com/ArchPrime-official/lovarch-cli/archive/refs/tags/${tag}.tar.gz"
+          # GitHub takes a few seconds to publish the tarball after the tag
+          # push — retry up to 5 times.
+          for attempt in 1 2 3 4 5; do
+            if curl -fsSL "$url" -o /tmp/source.tar.gz; then
+              break
+            fi
+            echo "Attempt $attempt failed, waiting 10s..."
+            sleep 10
+          done
+          sha="$(shasum -a 256 /tmp/source.tar.gz | awk '{print $1}')"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
+
+      - name: Checkout tap
+        if: ${{ secrets.HOMEBREW_TAP_TOKEN != '' }}
+        uses: actions/checkout@v4
+        with:
+          repository: ArchPrime-official/homebrew-lovarch
+          token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+          path: tap
+
+      - name: Patch Formula/lovarch-cli.rb
+        if: ${{ secrets.HOMEBREW_TAP_TOKEN != '' }}
+        working-directory: tap
+        run: |
+          formula="Formula/lovarch-cli.rb"
+          # Replace url + sha256 lines in-place.
+          sed -i \
+            -e "s|url \".*\"|url \"${{ steps.meta.outputs.url }}\"|" \
+            -e "s|sha256 \"[a-f0-9]*\"|sha256 \"${{ steps.meta.outputs.sha }}\"|" \
+            "$formula"
+          git diff "$formula" || true
+
+      - name: Open PR on tap
+        if: ${{ secrets.HOMEBREW_TAP_TOKEN != '' }}
+        working-directory: tap
+        env:
+          GH_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+        run: |
+          branch="bump/lovarch-cli-${{ steps.meta.outputs.version }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$branch"
+          git add Formula/lovarch-cli.rb
+          git commit -m "bump: lovarch-cli ${{ steps.meta.outputs.version }}"
+          git push -u origin "$branch"
+          gh pr create \
+            --base main \
+            --head "$branch" \
+            --title "bump: lovarch-cli ${{ steps.meta.outputs.version }}" \
+            --body "Automated bump triggered by tag push in upstream.
+
+          Source: https://github.com/ArchPrime-official/lovarch-cli/releases/tag/${{ steps.meta.outputs.tag }}
+          SHA256: \`${{ steps.meta.outputs.sha }}\`"
