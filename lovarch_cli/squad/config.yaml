@@ -1,0 +1,408 @@
+pack:
+  name: architettura-progetto
+  version: 2.0.0
+  short-title: Squad Architettura Progetto
+  description: >-
+    Squad specialistico per esecuzione end-to-end di progetti architettonici
+    italiani: dal briefing del cliente al dossier consegnabile all'impresa.
+    14 agenti in 4 tier con 7 mind clones di elite minds (Deming, Juran, English,
+    Dodds, Schumacher, Baldwin, Mazria) e 7 agenti funzionali. Doppia verifica
+    qualità (misure + dati + normativa + output) con loop di retrabalho automatico.
+    Focus: accuratezza millimetrica, conformità normativa IT, zero reinvenzione.
+  author: ArchPrime Team · Lovarch
+  icon: "\U0001F3DB"
+  slashPrefix: architetturaProgetto
+  entry_agent: progetto-chief
+  tested: true
+  updated_at: "2026-04-25"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PATTERN LIBRARY (AP-* prefix)
+# ═══════════════════════════════════════════════════════════════════════════════
+pattern_library:
+  prefix: AP
+  naming_convention:
+    format: "{PREFIX}-{CATEGORY}-{NUMBER}"
+    example: "AP-TP-001"
+  categories:
+    - id: TP
+      name: "Task Patterns"
+      description: "Patterns for architectural project task execution"
+    - id: EP
+      name: "Executor Patterns"
+      description: "Patterns for executor selection (worker vs agent vs hybrid vs human)"
+    - id: PP
+      name: "Process Patterns"
+      description: "Patterns for project workflow phases"
+    - id: QP
+      name: "Quality Patterns"
+      description: "Patterns for QA validation (misure, normativa, dati, output)"
+    - id: NP
+      name: "Normative Patterns"
+      description: "Patterns for Italian regulatory compliance"
+    - id: BP
+      name: "BIM Patterns"
+      description: "Patterns for BIM/CAD/IFC processing"
+  patterns:
+    - id: AP-TP-001
+      name: "Atomic Task Anatomy"
+      description: "8 mandatory fields: name, status, executor, type, input, output, action_items, acceptance_criteria"
+    - id: AP-PP-001
+      name: "Hub-and-Spoke Handoff"
+      description: "All agent handoffs route through @progetto-chief, never directly between specialists"
+    - id: AP-QP-001
+      name: "Triple-Pass Quality Gate"
+      description: "Every Tier 1 output passes through min 2 of 4 QA agents (misure, normativa, dati, output)"
+    - id: AP-QP-002
+      name: "Reject-Retry Loop"
+      description: "QA REJECT routes back to originating agent with diff (max 3 retries, then escalate)"
+    - id: AP-NP-001
+      name: "Italian Regulatory Stack"
+      description: "DPR 380 + UNI 11337 + CAM 2025 + NTC 2018 + D.Lgs 81 mandatory references"
+    - id: AP-BP-001
+      name: "DXF UNI ISO 5457 Compliance"
+      description: "Layer ISO standard, cotazioni ±1mm, cartiglio CNAPPC obbligatori"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# TASK STANDARDS
+# ═══════════════════════════════════════════════════════════════════════════════
+task_standards:
+  enforce_anatomy: true
+  validator: "AP-TP-001"
+  required_fields:
+    - task_name
+    - status
+    - responsible_executor
+    - execution_type
+    - input
+    - output
+    - action_items
+    - acceptance_criteria
+  optional_fields:
+    - estimated_time
+    - dependencies
+    - templates
+    - quality_gate
+    - handoff
+    - veto_conditions
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# EXECUTOR TYPES
+# ═══════════════════════════════════════════════════════════════════════════════
+executor_types:
+  human:
+    id: "AP-EP-001"
+    name: "Human Executor"
+    use_for:
+      - "Firma digitale qualificata (eIDAS QES)"
+      - "Calcolo strutturale certificato (NTC 2018)"
+      - "Rilievo metrico topografico"
+      - "Coordinatore Sicurezza CSP/CSE"
+      - "Approvazione progettuale finale del cliente"
+      - "Firma asseverazione del professionista abilitato"
+  agent:
+    id: "AP-EP-002"
+    name: "Agent Executor (AI)"
+    use_for:
+      - "Brief structuring (UNI 11337)"
+      - "Concept design (moodboard, render)"
+      - "Capitolato writing (UNI 11337-7)"
+      - "Computo metrico estimativo (Prezzario Lombardia)"
+      - "Pratiche pre-compilation (CILA, SCIA)"
+      - "Quality verification (misure, normativa, dati, output)"
+  hybrid:
+    id: "AP-EP-003"
+    name: "Hybrid Executor"
+    use_for:
+      - "Regolamentare verification (AI + human validation)"
+      - "Capitolato review (AI 80% + BIM Manager 20%)"
+      - "APE preliminare (AI estimate + ingegnere energetico firma)"
+      - "Contratto generation (AI + cliente firma)"
+  worker:
+    id: "AP-EP-004"
+    name: "Worker Executor"
+    use_for:
+      - "DXF generation via ezdxf"
+      - "IFC validation via ifcopenshell"
+      - "PDF rendering via ReportLab/WeasyPrint"
+      - "Excel generation via xlsxwriter"
+      - "Geocoding via Mapbox API"
+      - "ZIP packaging final dossier"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# WORKFLOW CONFIGURATION
+# ═══════════════════════════════════════════════════════════════════════════════
+workflow_config:
+  checkpoint_policy: always_active
+  fail_fast: true
+  allow_manual_override: false
+  qa_retry_max: 3
+  parallelization_max: 8
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# AGENTS · 14 in 4 tiers
+# ═══════════════════════════════════════════════════════════════════════════════
+agents:
+  # Tier 0: Orchestration
+  - id: progetto-chief
+    name: Progetto Chief
+    tier: 0
+    role: Orchestrator & Italian Architectural Project Knowledge Hub
+    type: functional
+
+  - id: auditor-input
+    name: Auditor Input
+    tier: 0
+    role: Pre-flight Input Gate Validator
+    type: functional
+
+  # Tier 1: Technical Execution (11 agents)
+  - id: briefing-architect
+    name: Briefing Architect
+    tier: 1
+    role: Brief Structuring (UNI 11337 / LOIN EN 17412-1)
+    type: functional
+
+  - id: regolatorio-it
+    name: Regolatorio IT
+    tier: 1
+    role: Italian Regulatory Compliance (DPR 380, D.Lgs 42, PRG)
+    type: functional
+
+  - id: concept-designer
+    name: Concept Designer
+    tier: 1
+    role: Visual Concept (Moodboard, Palette, Render FLUX)
+    type: mind_clone
+    based_on: "Patrik Schumacher (ZHA) — AI architectural ideation pioneer"
+
+  - id: cad-engineer
+    name: CAD Engineer
+    tier: 1
+    role: 2D Quotated Plans (UNI ISO 5457, ezdxf)
+    type: functional
+    critical: misure_zero_tolerance
+
+  - id: bim-engineer
+    name: BIM Engineer
+    tier: 1
+    role: BIM/IFC4 LOD 300 Modeling
+    type: mind_clone
+    based_on: "Mark Baldwin — BIM Manager's Handbook author"
+
+  - id: computo-engineer
+    name: Computo Engineer
+    tier: 1
+    role: Quantity Take-off + Prezzario Lombardia
+    type: functional
+    critical: dati_zero_tolerance
+
+  - id: capitolato-writer
+    name: Capitolato Writer
+    tier: 1
+    role: Capitolato Speciale d'Appalto (UNI 11337-7 + CAM 2025)
+    type: functional
+
+  - id: pratiche-it
+    name: Pratiche IT
+    tier: 1
+    role: CILA/SCIA/Paesaggistica Pre-compilation
+    type: functional
+    requires_human_signature: true
+
+  - id: contratto-architect
+    name: Contratto Architect
+    tier: 1
+    role: Contratto CNAPPC + Equo Compenso L.49/2023
+    type: functional
+
+  - id: energy-prelim
+    name: Energy Preliminary
+    tier: 1
+    role: APE Preliminare + LCA Embodied Carbon
+    type: mind_clone
+    based_on: "Edward Mazria — Architecture 2030 founder"
+
+  - id: deliverable-builder
+    name: Deliverable Builder
+    tier: 1
+    role: Final Deliverables (Presentation, Portal, ZIP)
+    type: functional
+
+  # Tier 2: Quality Assurance (4 mind clones)
+  - id: quality-misure
+    name: Quality Misure
+    tier: 2
+    role: Measurement Verification (±1mm tolerance)
+    type: mind_clone
+    based_on: "W. Edwards Deming — Total Quality Management"
+
+  - id: quality-normativa
+    name: Quality Normativa
+    tier: 2
+    role: Italian Normative Compliance Verification
+    type: mind_clone
+    based_on: "Joseph Juran — Quality Trilogy"
+
+  - id: quality-dati
+    name: Quality Dati
+    tier: 2
+    role: Cross-Document Data Coherence
+    type: mind_clone
+    based_on: "Larry English — Information Quality"
+
+  - id: quality-output
+    name: Quality Output
+    tier: 2
+    role: Deliverable Completeness + Behavior Testing
+    type: mind_clone
+    based_on: "Kent C. Dodds — Testing Trophy"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# CENTRAL DOCUMENT (mandatory consultation)
+# ═══════════════════════════════════════════════════════════════════════════════
+central_document:
+  path: "data/architettura-progetto-rules.md"
+  rule: "ALL agents MUST consult this document before any action"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# CHANGELOG
+# ═══════════════════════════════════════════════════════════════════════════════
+changelog:
+  path: "data/CHANGELOG.md"
+  rule: "ALL agents MUST update this file after completing any project execution"
+  consult: "Read before acting to understand recent project executions"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# HANDOFF PROTOCOL · Hub-and-Spoke (mandatory)
+# ═══════════════════════════════════════════════════════════════════════════════
+handoff_protocol:
+  topology: hub_and_spoke
+  hub: "@progetto-chief"
+  critical_rule: >
+    Specialists NEVER chain directly to other specialists. EVERY handoff returns
+    to @progetto-chief, who validates output via handoff-quality-gate and routes
+    the next step. Quality agents (Tier 2) are MANDATORY between Tier 1 and consolidation.
+  artifact: "data/handoff-card-template.md"
+  quality_gate: "checklists/handoff-quality-gate.md"
+  status_machine:
+    states: [Triaged, Routed, InProgress, Returned, Validated, QA_Pending, QA_Pass, QA_Reject, Done]
+    transitions:
+      Triaged_to_Routed: "@progetto-chief"
+      Routed_to_InProgress: "specialist (on receipt)"
+      InProgress_to_Returned: "specialist (with announcement)"
+      Returned_to_QA_Pending: "@progetto-chief routes to applicable QA agent(s)"
+      QA_Pending_to_QA_Pass: "QA agent (verdict PASS)"
+      QA_Pending_to_QA_Reject: "QA agent (verdict REJECT)"
+      QA_Reject_to_InProgress: "originating specialist (retry, max 3)"
+      QA_Pass_to_Validated: "@progetto-chief"
+      Validated_to_Done: "@progetto-chief (after consolidation + Lovarch upload)"
+  required_announcement_format: "Retornando ao @progetto-chief. {trabalho} concluído."
+  enforcement:
+    - "Specialists without handoff_to: @progetto-chief as primary → BLOCKED"
+    - "Output without announcement → REJECTED, returned to specialist"
+    - "Specialist routing directly to another specialist → VETO"
+    - "Tier 1 output skipping Tier 2 QA → VETO"
+    - "QA REJECT after 3 retries → ESCALATE to human (Pablo)"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# QUALITY GATES REFERENCE
+# ═══════════════════════════════════════════════════════════════════════════════
+quality_gates:
+  blocking:
+    - id: "QG-AP-1.1"
+      name: "Input Validation Gate"
+      executor: "@auditor-input"
+      checks: 18
+      blocks: "Workflow start"
+    - id: "QG-AP-1.2"
+      name: "Misure Verification Gate"
+      executor: "@quality-misure"
+      checks: 24
+      blocks: "Tier 1 → consolidation"
+    - id: "QG-AP-1.3"
+      name: "Normativa Verification Gate"
+      executor: "@quality-normativa"
+      checks: 18
+      blocks: "Tier 1 → consolidation"
+    - id: "QG-AP-1.4"
+      name: "Cross-Doc Data Gate"
+      executor: "@quality-dati"
+      checks: 16
+      blocks: "Tier 1 → consolidation"
+    - id: "QG-AP-1.5"
+      name: "Output Completeness Gate"
+      executor: "@quality-output"
+      checks: 14
+      blocks: "Final delivery"
+  validation_command: "python3 squads/architettura-progetto/scripts/validate-squad.py"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PERFORMANCE TARGETS
+# ═══════════════════════════════════════════════════════════════════════════════
+targets:
+  total_duration_max_seconds: 840
+  parallel_agents_max: 8
+  qa_retry_max: 3
+  deliverables_count: 27
+  tier1_parallel_start_second: 120
+  tier2_after_tier1: true
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# OUTPUT LANGUAGES
+# ═══════════════════════════════════════════════════════════════════════════════
+output_languages:
+  primary: it
+  secondary: [en, es, pt]
+  terminology_source: UNI 11337 + CNAPPC + ISO 5457
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# EXECUTION
+# ═══════════════════════════════════════════════════════════════════════════════
+execution:
+  mode: claude_code_local
+  chief_is_orchestrator: true
+  parallelization_tool: Task
+  state_persistence: pm_squad_steps_table
+  file_output_base: ~/projects/{project_slug}/
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# INTEGRATION · LOVARCH PLATFORM
+# ═══════════════════════════════════════════════════════════════════════════════
+integration:
+  supabase_tables:
+    - pm_squad_executions
+    - pm_squad_steps
+    - pm_squad_qa_checks
+  admin_pages:
+    - /admin/squad-execution/:id/live
+    - /admin/squad-execution/:id/dossier
+  edge_functions_used:
+    - moodboard-suggest
+    - render-ai-generate
+    - render-plan-to-3d
+    - colors-generate
+    - fonts-recommend
+    - brochure-generate
+    - brainstorm-generate
+    - calendar-generate
+    - portal-ai
+    - portal-auth
+    - ai-site-generate
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# EXTERNAL APIs
+# ═══════════════════════════════════════════════════════════════════════════════
+external_apis:
+  required_for_demo:
+    - mapbox_geocoding
+  required_for_production:
+    - openapi_com
+    - yousign_api
+    - deepl_pro
+    - meteostat
+    - ec3_building
+  optional:
+    - one_click_lca
+    - dei_plus_prezzario
+    - cubicasa

@@ -1,0 +1,43 @@
+{
+  "meta": {
+    "source": "MOCK · OpenAPI.com Firma Digitale / Yousign QES · da sostituire in produzione",
+    "version": "1.0",
+    "provider_simulated": "Aruba Sign QES",
+    "compliance": ["eIDAS QES", "PAdES B-LT"],
+    "mock": true
+  },
+  "envelope": {
+    "id": "env_mock_8f3a2b1e7c4d",
+    "status": "pending_signature",
+    "created_at": "2026-04-25T10:30:00+02:00",
+    "expires_at": "2026-05-09T23:59:59+02:00",
+    "document_path": "07-cliente/contratto-servizi.pdf",
+    "document_title": "Contratto prestazione professionale · Attico Brera",
+    "document_pages": 6,
+    "document_hash_sha256": "a1b2c3d4e5f6...",
+    "signer": {
+      "name": "Marco Rossini",
+      "email": "marco.rossini@example.it",
+      "codice_fiscale": "RSSMRC83A15F205X",
+      "phone": "+39 333 123 4567",
+      "auth_method": "SPID",
+      "qualified_certificate_provider": "Aruba PEC SpA"
+    },
+    "signature_url": "https://mock.firma.example/sign/env_mock_8f3a2b1e7c4d?token=mock_token",
+    "audit_trail_url": "https://mock.firma.example/audit/env_mock_8f3a2b1e7c4d",
+    "signature_levels": {
+      "available": ["FES", "AdES", "QES"],
+      "required": "QES"
+    }
+  },
+  "estimated_cost_eur": 12.50,
+  "callback_url": "https://lovarch.com/api/firma/webhook",
+  "next_steps": [
+    "Cliente riceve email con link di firma",
+    "Cliente verifica identità via SPID o CIE",
+    "Cliente firma con certificato qualificato Aruba",
+    "Webhook notifica Lovarch · documento firmato disponibile per download",
+    "Documento PAdES-LT viene salvato in pm_documents"
+  ],
+  "note": "In produzione, sostituire con chiamata reale a OpenAPI.com firma o Yousign API."
+}

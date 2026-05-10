@@ -59,8 +59,13 @@ Thumbs.db
 # CLI runtime data (NEVER commit user credentials)
 .lovarch/
 *.lovarch/
-lovarch_cli/squad/*
-!lovarch_cli/squad/.gitkeep
+
+# Squad payload — vendored from monorepo Lovarch (see scripts/refresh_squad_vendor.py).
+# Light vendor (~830KB, no sample-inputs); sample-input villa-chianti is shipped
+# via GitHub Releases and downloaded lazily by `lovarch init --sample`.
+# We ignore the heavy sample-inputs even if accidentally rsynced into the tree.
+lovarch_cli/squad/data/sample-input/
+lovarch_cli/squad/data/sample-input-villa-chianti/
 
 # Local test outputs
 test-output/

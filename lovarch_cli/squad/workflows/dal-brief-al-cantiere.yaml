@@ -1,0 +1,218 @@
+name: dal-brief-al-cantiere
+version: 1.0.0
+description: >
+  Workflow principale del squad architettura-progetto.
+  Esegue progetto end-to-end: dal briefing del cliente al dossier consegnabile all'impresa.
+  Target: 14 minuti, 27 deliverable, 4 destinatari (cliente, comune, impresa, studio).
+
+# ============================================================================
+# Phases
+# ============================================================================
+
+phases:
+
+  # --------------------------------------------------------------------------
+  # PHASE 0: Initialization
+  # --------------------------------------------------------------------------
+  - id: phase_0_init
+    name: Inizializzazione
+    duration_target_seconds: 30
+    agent: "@progetto-chief"
+    actions:
+      - create_pm_squad_executions_row
+      - load_input_files
+      - validate_environment    # supabase service_role, file system access
+    blocks_next_phase: true
+
+  # --------------------------------------------------------------------------
+  # PHASE 1: Audit input
+  # --------------------------------------------------------------------------
+  - id: phase_1_audit
+    name: Audit input
+    duration_target_seconds: 90
+    agent: "@auditor-input"
+    blocks_next_phase: true
+    veto_conditions:
+      - input_validation_failed
+      - critical_data_missing
+    on_reject:
+      action: halt_and_ask_pablo
+      message: "Input incompleto: {missing_items}"
+
+  # --------------------------------------------------------------------------
+  # PHASE 2: Tier 1 esecuzione parallela (11 agenti)
+  # --------------------------------------------------------------------------
+  - id: phase_2_tier1_parallel
+    name: Esecuzione tecnica parallela
+    duration_target_seconds: 540   # 9 minuti
+    parallel: true
+    parallel_agents:
+      - id: a1
+        agent: "@briefing-architect"
+        depends_on_phase_1: true
+        depends_on_extracted_data: ["briefing"]
+        timeout_seconds: 90
+
+      - id: a2
+        agent: "@regolatorio-it"
+        depends_on: [a1]   # ha bisogno di brief-strutturato.json
+        timeout_seconds: 120
+
+      - id: a3
+        agent: "@concept-designer"
+        depends_on: [a1]
+        timeout_seconds: 300   # render gargalo
+
+      - id: a4
+        agent: "@cad-engineer"
+        depends_on: [a1]
+        timeout_seconds: 180
+
+      - id: a5
+        agent: "@bim-engineer"
+        depends_on: [a4]
+        timeout_seconds: 180
+
+      - id: a6
+        agent: "@computo-engineer"
+        depends_on: [a5]   # ha bisogno di quantitativi.json
+        timeout_seconds: 120
+
+      - id: a7
+        agent: "@capitolato-writer"
+        depends_on: [a6, a2]
+        timeout_seconds: 180
+
+      - id: a8
+        agent: "@pratiche-it"
+        depends_on: [a2, a4]
+        timeout_seconds: 120
+
+      - id: a9
+        agent: "@contratto-architect"
+        depends_on_phase_1: true
+        timeout_seconds: 90
+
+      - id: a10
+        agent: "@energy-prelim"
+        depends_on: [a4, a5, a6]
+        timeout_seconds: 120
+
+      - id: a11
+        agent: "@deliverable-builder"
+        depends_on: [a3, a4, a6, a7, a9]   # ultimo, consolidatore
+        timeout_seconds: 90
+
+    on_agent_timeout: retry_once_then_escalate
+    on_agent_error: retry_once_then_escalate
+    blocks_next_phase: true
+
+  # --------------------------------------------------------------------------
+  # PHASE 3: Tier 2 QA parallelo (4 agenti)
+  # --------------------------------------------------------------------------
+  - id: phase_3_qa_parallel
+    name: Conferenza qualità
+    duration_target_seconds: 90
+    parallel: true
+    parallel_agents:
+      - agent: "@quality-misure"
+        verifies: ["@cad-engineer", "@bim-engineer"]
+
+      - agent: "@quality-normativa"
+        verifies: ["@regolatorio-it", "@capitolato-writer", "@pratiche-it", "@contratto-architect"]
+
+      - agent: "@quality-dati"
+        verifies: all_tier_1_outputs
+
+      - agent: "@quality-output"
+        verifies: deliverables_completeness
+
+    on_qa_reject:
+      action: route_to_phase_2_retry
+      retry_logic:
+        max_retries: 3
+        per_agent: true
+        if_max_reached: escalate_to_pablo
+    blocks_next_phase: true
+
+  # --------------------------------------------------------------------------
+  # PHASE 4: Consolidation
+  # --------------------------------------------------------------------------
+  - id: phase_4_consolidate
+    name: Consolidamento dossier
+    duration_target_seconds: 60
+    agent: "@progetto-chief"
+    actions:
+      - generate_readme_index
+      - create_dossier_zip
+      - upload_all_to_lovarch_storage
+      - insert_pm_documents_rows
+      - generate_manifest_with_sha256
+      - git_commit_with_tag
+      - mark_pm_squad_executions_status_completed
+      - open_finder
+      - print_final_summary
+
+  # --------------------------------------------------------------------------
+  # PHASE 5: Reveal (per palestra)
+  # --------------------------------------------------------------------------
+  - id: phase_5_reveal
+    name: Reveal in palco
+    optional: true
+    duration_target_seconds: 30
+    actions:
+      - print_url_to_terminal: "https://lovarch.com/admin/squad-execution/{execution_id}/dossier"
+      - say_to_pablo: "Dossier pronto. URL aperto."
+
+# ============================================================================
+# Performance targets
+# ============================================================================
+
+targets:
+  total_duration_seconds: 840   # 14 min
+  parallel_max: 8
+  qa_retry_max: 3
+  deliverables_min: 25
+
+# ============================================================================
+# Failure modes
+# ============================================================================
+
+failure_modes:
+  audit_reject:
+    severity: blocking
+    action: ask_pablo
+
+  agent_timeout_x3:
+    severity: blocking
+    action: escalate_to_pablo
+
+  qa_reject_x3:
+    severity: blocking
+    action: escalate_to_pablo
+    log: full_diff_history
+
+  storage_quota:
+    severity: critical
+    action: halt_immediately
+    notify: pablo
+
+  api_5xx_persistent:
+    severity: blocking
+    action: pause_60s_retry_3x_then_escalate
+
+# ============================================================================
+# Realtime tracking
+# ============================================================================
+
+tracking:
+  table: pm_squad_steps
+  insert_on:
+    - agent_start
+    - agent_complete
+    - qa_verdict
+    - retry_initiated
+  update_on:
+    - status_change
+    - output_files_added
+  publish_realtime: true
