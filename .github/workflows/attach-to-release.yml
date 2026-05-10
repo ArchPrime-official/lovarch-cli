@@ -1,0 +1,62 @@
+name: Attach wheel + sdist to GitHub Release
+
+# Runs after publish-pypi.yml completes successfully (any tag).
+# Downloads the dist artifact and attaches it to the GitHub Release that
+# matches the pushed tag. Creates the release if it doesn't exist.
+#
+# This complements publish-pypi.yml:
+#   - Final tags (v0.1.0) → published to PyPI AND attached to GitHub Release
+#   - Pre-release tags (v0.1.0-beta.1) → ONLY attached to GitHub Release
+#                                        (no PyPI upload — see publish-pypi.yml)
+
+on:
+  workflow_run:
+    workflows: ["Publish to PyPI"]
+    types: [completed]
+    branches-ignore: ["**"]  # workflow_run on tags only — branches list empty
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  attach:
+    name: Attach dist artifacts to release
+    runs-on: ubuntu-latest
+    # Only run from a tag push (workflow_run trigger lacks artifacts ctx).
+    if: ${{ startsWith(github.ref, 'refs/tags/v') }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install build tooling
+        run: |
+          python -m pip install --upgrade pip
+          pip install build
+
+      - name: Build wheel + sdist
+        run: python -m build
+
+      - name: Determine if pre-release
+        id: classify
+        run: |
+          if echo "$GITHUB_REF" | grep -qE 'refs/tags/v[0-9]+\.[0-9]+\.[0-9]+-'; then
+            echo "prerelease=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "prerelease=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create or update GitHub Release with dist
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*
+          fail_on_unmatched_files: true
+          generate_release_notes: true
+          prerelease: ${{ steps.classify.outputs.prerelease == 'true' }}
