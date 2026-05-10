@@ -147,7 +147,13 @@ app.add_typer(
     help="Gestione account (info, delete GDPR).",
 )
 
-# TODO Story 2.2 also → login command (subcommand group: free / premium)
+# Story 3.3 — premium PKCE login + free redirect
+from archprime_cli.commands.login import login_command  # noqa: E402
+
+app.command(name="login", help="Login al CLI (--free o --premium).")(
+    login_command
+)
+
 # TODO Story 1.1+ → arch init <project>
 # TODO Story 1.5 → arch audit / run / consolidate / status
 # TODO Story 3.4 → arch upgrade (CTA free→premium)
