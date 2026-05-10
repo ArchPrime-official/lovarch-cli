@@ -71,13 +71,11 @@ dev = [
 ]
 
 [project.urls]
-# NOTE: lovarch-cli source is currently in the Lovarch monorepo.
-# A standalone public repo (Lovarch-official/lovarch-cli) will be created
-# pre-v1.0 (PyPI publish gate). See cli/MIGRATION-PLAN.md for split strategy.
 Homepage = "https://archprime.io"
 Documentation = "https://lovarch.com/cli-docs"
-Repository = "https://github.com/ByPabloRuanL/lovarch/tree/main/cli"
-Issues = "https://lovarch.com/cli-issues"
+Repository = "https://github.com/ArchPrime-official/lovarch-cli"
+Issues = "https://github.com/ArchPrime-official/lovarch-cli/issues"
+Changelog = "https://github.com/ArchPrime-official/lovarch-cli/releases"
 Course = "https://lovarch.com/corso"
 
 [tool.hatch.version]
