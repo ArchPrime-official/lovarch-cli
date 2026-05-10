@@ -47,13 +47,10 @@ err_console = Console(stderr=True)
 # Forbids path-traversal characters and shell-unfriendly chars.
 PROJECT_NAME_RX = re.compile(r"^[a-z0-9][a-z0-9-]{1,62}$")
 
-# Bundled sample-input lives inside the synced squad payload (see
-# scripts/sync_squad.py — the hatchling build hook copies the squad to
-# lovarch_cli/squad/ at install time).
-def _sample_input_dir() -> Path:
-    """Locate the bundled sample-input dir relative to the installed package."""
-    pkg_root = Path(__file__).resolve().parent.parent
-    return pkg_root / "squad" / "data" / "sample-input-villa-chianti"
+# Sample-input villa-chianti is NOT bundled in the wheel (49MB of photos/DXF/
+# PDF — too heavy). It ships as a GitHub Releases asset and lovarch_cli.
+# sample_downloader.resolve_sample_source() handles bundled→cache→download
+# resolution transparently.
 
 
 def _project_dir(home: Path, name: str) -> Path:
@@ -131,14 +128,21 @@ def init_command(
     input_dir.mkdir(parents=True)
     output_dir.mkdir()
 
-    # ─── Optional: copy bundled sample-input ─────────────────────────────
+    # ─── Optional: resolve + copy sample-input (lazy download if needed) ─
     sample_copied_count = 0
+    sample_origin: str | None = None
     if sample:
-        src = _sample_input_dir()
-        if not src.exists():
-            err_console.print(
-                f"\n[red]✗ {t('init.no_sample', lang=lang, path=str(src))}[/red]"
-            )
+        from lovarch_cli.sample_downloader import (
+            SampleDownloadError,
+            resolve_sample_source,
+        )
+
+        try:
+            resolved = resolve_sample_source(console=console, lang=lang, home=home)
+            src = resolved.path
+            sample_origin = resolved.origin
+        except SampleDownloadError as exc:
+            err_console.print(f"\n[red]✗ {exc}[/red]")
             err_console.print(
                 f"[dim]{t('init.sample_hint', lang=lang)}[/dim]\n"
             )
@@ -172,6 +176,10 @@ def init_command(
         body_lines.append(
             t("init.sample_copied", lang=lang, count=sample_copied_count)
         )
+        if sample_origin in {"cache", "download"}:
+            body_lines.append(
+                f"[dim]{t(f'init.sample_origin_{sample_origin}', lang=lang)}[/dim]"
+            )
     body_lines.append("")
     body_lines.append(t("init.next_steps", lang=lang, name=project))
 

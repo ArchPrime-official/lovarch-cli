@@ -151,7 +151,17 @@
     "created": "[green]✓[/green] Carpeta creada en [bold]{path}[/bold]",
     "sample_copied": "[green]✓[/green] Sample villa-chianti copiado ([bold]{count}[/bold] archivos de input)",
     "no_sample": "Sample-input no encontrado en {path}",
-    "sample_hint": "Sample-input villa-chianti (49MB de fotos/DXF/PDF) no está incluido en el paquete BETA. Descárgalo desde [cyan]https://github.com/ArchPrime-official/lovarch-cli/releases/latest[/cyan] (archivo [bold]sample-villa-chianti.zip[/bold]) y descomprímelo en la carpeta de input del proyecto.",
+    "sample_hint": "Vuelve a intentar con conexión a internet o descarga manualmente [bold]sample-villa-chianti.zip[/bold] desde [cyan]https://github.com/ArchPrime-official/lovarch-cli/releases/latest[/cyan] y descomprímelo en la carpeta de input del proyecto.",
+    "sample_origin_cache": "↳ origen: caché local (~/.lovarch/cache/sample-villa-chianti/)",
+    "sample_origin_download": "↳ origen: descargado desde GitHub Releases + almacenado en caché",
+    "downloading": "Descargando {asset}",
+    "fetching_sample": "Descargando sample desde {url}",
+    "download_failed": "Descarga fallida desde {url}: {error}",
+    "checksum_failed": "SHA256 no coincide — esperado {expected}, recibido {actual}. Archivo corrupto o release alterada.",
+    "extract_failed": "Fallo al extraer el archivo: {error}",
+    "unexpected_zip_layout": "Layout zip inesperado — carpeta '{expected}/' no encontrada en la raíz.",
+    "zip_unsafe": "Entrada zip insegura (path traversal): {entry}",
+    "no_sample_offline": "Sample-input no disponible sin conexión y descargas deshabilitadas.",
     "next_steps": "Próximos pasos:\n 1. [cyan]lovarch audit {name}[/cyan] — verifica los 18 inputs\n 2. [cyan]lovarch run dal-brief-al-cantiere[/cyan] — ejecuta el workflow"
   }
 }

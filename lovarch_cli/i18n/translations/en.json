@@ -151,7 +151,17 @@
     "created": "[green]✓[/green] Folder created at [bold]{path}[/bold]",
     "sample_copied": "[green]✓[/green] villa-chianti sample copied ([bold]{count}[/bold] input files)",
     "no_sample": "Sample-input not found at {path}",
-    "sample_hint": "Sample-input villa-chianti (49MB of photos/DXF/PDF) is NOT shipped with the BETA package. Download it from [cyan]https://github.com/ArchPrime-official/lovarch-cli/releases/latest[/cyan] (file [bold]sample-villa-chianti.zip[/bold]) and unzip into the project's input folder.",
+    "sample_hint": "Retry with internet access or manually download [bold]sample-villa-chianti.zip[/bold] from [cyan]https://github.com/ArchPrime-official/lovarch-cli/releases/latest[/cyan] and unzip into the project's input folder.",
+    "sample_origin_cache": "↳ source: local cache (~/.lovarch/cache/sample-villa-chianti/)",
+    "sample_origin_download": "↳ source: downloaded from GitHub Releases + cached locally",
+    "downloading": "Downloading {asset}",
+    "fetching_sample": "Fetching sample from {url}",
+    "download_failed": "Download failed from {url}: {error}",
+    "checksum_failed": "SHA256 mismatch — expected {expected}, got {actual}. File corrupted or release tampered.",
+    "extract_failed": "Failed to extract archive: {error}",
+    "unexpected_zip_layout": "Unexpected zip layout — '{expected}/' folder not found at root.",
+    "zip_unsafe": "Unsafe zip entry (path traversal): {entry}",
+    "no_sample_offline": "Sample-input not available offline and downloads are disabled.",
     "next_steps": "Next steps:\n 1. [cyan]lovarch audit {name}[/cyan] — verify the 18 inputs\n 2. [cyan]lovarch run dal-brief-al-cantiere[/cyan] — run the workflow"
   }
 }
