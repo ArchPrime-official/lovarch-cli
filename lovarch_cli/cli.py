@@ -179,7 +179,26 @@ app.command(name="audit", help="Audit dei 18 input prima del run (verdict PASS/C
     audit_command
 )
 
-# TODO Fase A.3-A.5 → lovarch run / consolidate / status
+# Fase A.3 — Execute the squad pipeline (subprocess wrapper, premium = real)
+from lovarch_cli.commands.run import run_command  # noqa: E402
+
+app.command(name="run", help="Esegui il pipeline (Free=dry-run, Premium=reale).")(
+    run_command
+)
+
+# Fase A.4 — Bundle run output into DOSSIER.zip
+from lovarch_cli.commands.consolidate import consolidate_command  # noqa: E402
+
+app.command(name="consolidate", help="Genera DOSSIER.zip dall'output di un run.")(
+    consolidate_command
+)
+
+# Fase A.5 — Inspect project state and recent runs
+from lovarch_cli.commands.status import status_command  # noqa: E402
+
+app.command(name="status", help="Stato dei progetti e ultime esecuzioni.")(
+    status_command
+)
 
 
 if __name__ == "__main__":
