@@ -1,4 +1,4 @@
-"""Tests for archprime_cli.credits.
+"""Tests for lovarch_cli.credits.
 
 Covers:
 - CreditsBalance dataclass: deficit math, sufficient flag interaction
@@ -14,13 +14,13 @@ from __future__ import annotations
 
 import pytest
 
-from archprime_cli.clients.persistence import ExecutionMode
-from archprime_cli.credits import (
+from lovarch_cli.clients.persistence import ExecutionMode
+from lovarch_cli.credits import (
     CreditsBalance,
     InsufficientCreditsError,
     get_credits_client,
 )
-from archprime_cli.credits.local import FreeCreditsClient
+from lovarch_cli.credits.local import FreeCreditsClient
 
 
 # ──────────────────────────────────────────────────────────────────────────
@@ -147,7 +147,7 @@ def test_factory_premium_without_session_raises(monkeypatch, tmp_path):
     monkeypatch.setenv("HOME", str(tmp_path))
     # Block keyring so it doesn't surface a real session
     monkeypatch.setattr(
-        "archprime_cli.auth.keyring_store.load_premium_session",
+        "lovarch_cli.auth.keyring_store.load_premium_session",
         lambda: None,
     )
     with pytest.raises(RuntimeError, match="arch login --premium"):

@@ -1,4 +1,4 @@
-"""Tests for archprime_cli.commands.upgrade.
+"""Tests for lovarch_cli.commands.upgrade.
 
 The upgrade command is a thin CLI surface that:
   1. Inspects current credentials (none/free/premium)
@@ -17,8 +17,8 @@ import pytest
 import typer
 from typer.testing import CliRunner
 
-from archprime_cli.commands.upgrade import upgrade_command
-from archprime_cli.config import Credentials
+from lovarch_cli.commands.upgrade import upgrade_command
+from lovarch_cli.config import Credentials
 
 
 def _make_app() -> typer.Typer:
@@ -40,7 +40,7 @@ def runner() -> CliRunner:
 def test_upgrade_no_account_exits_with_hint(runner: CliRunner):
     creds = Credentials(mode="none")
     with patch(
-        "archprime_cli.commands.upgrade.load_credentials", return_value=creds
+        "lovarch_cli.commands.upgrade.load_credentials", return_value=creds
     ):
         result = runner.invoke(_make_app(), ["--lang=en"])
     assert result.exit_code == 1
@@ -52,7 +52,7 @@ def test_upgrade_no_account_exits_with_hint(runner: CliRunner):
 def test_upgrade_no_account_localized_in_pt(runner: CliRunner):
     creds = Credentials(mode="none")
     with patch(
-        "archprime_cli.commands.upgrade.load_credentials", return_value=creds
+        "lovarch_cli.commands.upgrade.load_credentials", return_value=creds
     ):
         result = runner.invoke(_make_app(), ["--lang=pt"])
     assert result.exit_code == 1
@@ -75,7 +75,7 @@ def test_upgrade_free_shows_benefits_and_url(runner: CliRunner):
         signed_up_at=datetime.now(timezone.utc).isoformat(),
     )
     with patch(
-        "archprime_cli.commands.upgrade.load_credentials", return_value=creds
+        "lovarch_cli.commands.upgrade.load_credentials", return_value=creds
     ):
         result = runner.invoke(
             _make_app(), ["--no-browser"]
@@ -101,7 +101,7 @@ def test_upgrade_free_uses_user_signup_language(runner: CliRunner):
         signed_up_at=datetime.now(timezone.utc).isoformat(),
     )
     with patch(
-        "archprime_cli.commands.upgrade.load_credentials", return_value=creds
+        "lovarch_cli.commands.upgrade.load_credentials", return_value=creds
     ):
         result = runner.invoke(
             # Even with --lang=en, user's signup lang (es) should win.
@@ -126,9 +126,9 @@ def test_upgrade_free_no_browser_does_not_open(runner: CliRunner):
         signed_up_at=datetime.now(timezone.utc).isoformat(),
     )
     with patch(
-        "archprime_cli.commands.upgrade.load_credentials", return_value=creds
+        "lovarch_cli.commands.upgrade.load_credentials", return_value=creds
     ), patch(
-        "archprime_cli.commands.upgrade.webbrowser.open"
+        "lovarch_cli.commands.upgrade.webbrowser.open"
     ) as mock_open:
         result = runner.invoke(
             _make_app(), ["--no-browser"]
@@ -149,9 +149,9 @@ def test_upgrade_free_default_opens_browser(runner: CliRunner):
         signed_up_at=datetime.now(timezone.utc).isoformat(),
     )
     with patch(
-        "archprime_cli.commands.upgrade.load_credentials", return_value=creds
+        "lovarch_cli.commands.upgrade.load_credentials", return_value=creds
     ), patch(
-        "archprime_cli.commands.upgrade.webbrowser.open"
+        "lovarch_cli.commands.upgrade.webbrowser.open"
     ) as mock_open:
         result = runner.invoke(_make_app(), [])
     assert result.exit_code == 0
@@ -174,7 +174,7 @@ def test_upgrade_premium_shows_dashboard_url(runner: CliRunner):
         signed_up_at=datetime.now(timezone.utc).isoformat(),
     )
     with patch(
-        "archprime_cli.commands.upgrade.load_credentials", return_value=creds
+        "lovarch_cli.commands.upgrade.load_credentials", return_value=creds
     ):
         result = runner.invoke(
             _make_app(), ["--no-browser"]
@@ -196,9 +196,9 @@ def test_upgrade_premium_opens_dashboard_when_browser_enabled(runner: CliRunner)
         signed_up_at=datetime.now(timezone.utc).isoformat(),
     )
     with patch(
-        "archprime_cli.commands.upgrade.load_credentials", return_value=creds
+        "lovarch_cli.commands.upgrade.load_credentials", return_value=creds
     ), patch(
-        "archprime_cli.commands.upgrade.webbrowser.open"
+        "lovarch_cli.commands.upgrade.webbrowser.open"
     ) as mock_open:
         result = runner.invoke(_make_app(), [])
     assert result.exit_code == 0

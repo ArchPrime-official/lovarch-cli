@@ -1,10 +1,10 @@
-# archprime-cli
+# lovarch-cli
 
 > **AI-powered architectural project execution CLI** — squad di 17 agenti specializzati che esegue audit input, briefing, normativa IT, CAD, BIM/IFC, computo metrico, capitolato, pratiche edilizie (CILA/SCIA), contratto CNAPPC, energy/LCA preliminare, dossier consolidato — in 14 minuti vs 3 settimane di lavoro tradizionale.
 
 > ⚠️ **Status: ALPHA (v0.x)** — non ancora pubblicato su PyPI. Distribuzione attuale: wheel privato fornito agli iscritti al [Corso IA Avanzato per Architetti](https://lovarch.com/corso) (€1.497).
 >
-> Source code attualmente nel monorepo [ByPabloRuanL/lovarch](https://github.com/ByPabloRuanL/lovarch/tree/main/cli) (privato). Lo split verso `ArchPrime-official/archprime-cli` (pubblico) è pianificato pre-v1.0 prima del primo release PyPI. Vedi [MIGRATION-PLAN.md](MIGRATION-PLAN.md).
+> Source code attualmente nel monorepo [ByPabloRuanL/lovarch](https://github.com/ByPabloRuanL/lovarch/tree/main/cli) (privato). Lo split verso `Lovarch-official/lovarch-cli` (pubblico) è pianificato pre-v1.0 prima del primo release PyPI. Vedi [MIGRATION-PLAN.md](MIGRATION-PLAN.md).
 
 🌐 **Lingue:** [🇮🇹 Italiano](README.md) (default) · [🇵🇹 Português](README.pt.md) · [🇬🇧 English](README.en.md) · [🇪🇸 Español](README.es.md)
 
@@ -12,7 +12,7 @@
 
 ## Cosa fa
 
-`archprime-cli` orchestra il **Squad Architettura-Progetto** di Lovarch — 17 agenti AI con framework documentati (mind clones di Schumacher, Baldwin, Mazria, Deming, Juran, English, Dodds) — per generare 27 deliverable architettonici conformi alla normativa italiana:
+`lovarch-cli` orchestra il **Squad Architettura-Progetto** di Lovarch — 17 agenti AI con framework documentati (mind clones di Schumacher, Baldwin, Mazria, Deming, Juran, English, Dodds) — per generare 27 deliverable architettonici conformi alla normativa italiana:
 
 - **Audit input** (18 controlli) prima di iniziare
 - **CAD quotato** DXF/PDF (UNI ISO 5457, ±1mm)
@@ -29,14 +29,14 @@
 ### 🆓 Free Mode (registrazione richiesta)
 
 ```bash
-pip install archprime-cli
+pip install lovarch-cli
 arch login --free
 # → Cadastro: Nome completo, email, telefono, paese, lingua
 ```
 
 - Esegui il squad **localmente** con i tuoi propri API keys (OpenAI, Mapbox, fal.ai)
-- Storage in `~/.archprime/projects/` (filesystem locale)
-- Database in `~/.archprime/local.db` (SQLite)
+- Storage in `~/.lovarch/projects/` (filesystem locale)
+- Database in `~/.lovarch/local.db` (SQLite)
 - Tutti i 17 agenti disponibili
 - Tu paghi le tue API direttamente ai provider
 
@@ -57,7 +57,7 @@ arch login --premium
 
 ```bash
 # Installa (consigliato pipx per ambiente isolato)
-pipx install archprime-cli
+pipx install lovarch-cli
 
 # Primo login
 arch login
@@ -94,7 +94,7 @@ Vedi `arch --help` per dettagli completi.
 
 ## Limiti dichiarati
 
-`archprime-cli` **NON** sostituisce:
+`lovarch-cli` **NON** sostituisce:
 
 - ❌ Firma digitale qualificata (QES) dell'architetto abilitato
 - ❌ Calcolo strutturale NTC 2018 (richiede ingegnere strutturale)
@@ -112,7 +112,7 @@ MIT License — vedi [LICENSE](LICENSE).
 
 - 🌐 [archprime.io](https://archprime.io)
 - 📚 [Documentazione](https://docs.archprime.io/cli)
-- 🐛 [Issues](https://github.com/lovarch/archprime-cli/issues)
+- 🐛 [Issues](https://github.com/lovarch/lovarch-cli/issues)
 - 🎓 [Corso IA Avanzato per Architetti](https://lovarch.com/corso) (€1.497)
 
 ---

@@ -57,10 +57,10 @@ coverage.xml
 Thumbs.db
 
 # CLI runtime data (NEVER commit user credentials)
-.archprime/
-*.archprime/
-archprime_cli/squad/*
-!archprime_cli/squad/.gitkeep
+.lovarch/
+*.lovarch/
+lovarch_cli/squad/*
+!lovarch_cli/squad/.gitkeep
 
 # Local test outputs
 test-output/

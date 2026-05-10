@@ -3,7 +3,7 @@ requires = ["hatchling>=1.21"]
 build-backend = "hatchling.build"
 
 [project]
-name = "archprime-cli"
+name = "lovarch-cli"
 description = "AI-powered architectural project execution CLI by Lovarch"
 authors = [{name = "Pablo Ruan Lopes", email = "pablo@archprime.io"}]
 license = {text = "MIT"}
@@ -18,7 +18,6 @@ keywords = [
   "bim",
   "italy",
   "lovarch",
-  "archprime",
   "uni-11337",
   "cila",
 ]
@@ -56,8 +55,8 @@ dependencies = [
 ]
 
 [project.scripts]
-arch = "archprime_cli.cli:app"
-archprime = "archprime_cli.cli:app"
+lovarch = "lovarch_cli.cli:app"
+arch = "lovarch_cli.cli:app"
 
 [project.optional-dependencies]
 premium = ["supabase>=2.4,<3.0"]
@@ -72,8 +71,8 @@ dev = [
 ]
 
 [project.urls]
-# NOTE: archprime-cli source is currently in the Lovarch monorepo.
-# A standalone public repo (ArchPrime-official/archprime-cli) will be created
+# NOTE: lovarch-cli source is currently in the Lovarch monorepo.
+# A standalone public repo (Lovarch-official/lovarch-cli) will be created
 # pre-v1.0 (PyPI publish gate). See cli/MIGRATION-PLAN.md for split strategy.
 Homepage = "https://archprime.io"
 Documentation = "https://lovarch.com/cli-docs"
@@ -82,13 +81,13 @@ Issues = "https://lovarch.com/cli-issues"
 Course = "https://lovarch.com/corso"
 
 [tool.hatch.version]
-path = "archprime_cli/version.py"
+path = "lovarch_cli/version.py"
 
 [tool.hatch.build.targets.wheel]
-packages = ["archprime_cli"]
+packages = ["lovarch_cli"]
 
 [tool.hatch.build.targets.sdist]
-include = ["/archprime_cli", "/scripts", "/README.md", "/LICENSE", "/CHANGELOG.md"]
+include = ["/lovarch_cli", "/scripts", "/README.md", "/LICENSE", "/CHANGELOG.md"]
 
 [tool.hatch.build.hooks.custom]
 path = "scripts/sync_squad.py"
@@ -105,7 +104,7 @@ ignore = ["E501"]
 python_version = "3.11"
 strict = true
 ignore_missing_imports = true
-exclude = ["archprime_cli/squad/", "tests/fixtures/"]
+exclude = ["lovarch_cli/squad/", "tests/fixtures/"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

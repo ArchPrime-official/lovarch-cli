@@ -1,7 +1,7 @@
-"""Tests for archprime_cli.i18n.loader.
+"""Tests for lovarch_cli.i18n.loader.
 
 Covers:
-- Language detection from $ARCHPRIME_LANG and $LANG
+- Language detection from $LOVARCH_LANG and $LANG
 - set_current_lang validation + reset behavior
 - t() lookup with explicit lang override
 - Fallback chain: target → it → en → key
@@ -16,8 +16,8 @@ from pathlib import Path
 
 import pytest
 
-from archprime_cli.i18n import current_lang, set_current_lang, t
-from archprime_cli.i18n.loader import (
+from lovarch_cli.i18n import current_lang, set_current_lang, t
+from lovarch_cli.i18n.loader import (
     DEFAULT_LANGUAGE,
     VALID_LANGUAGES,
     _load_translations,
@@ -25,7 +25,7 @@ from archprime_cli.i18n.loader import (
 
 TRANSLATIONS_DIR = (
     Path(__file__).parent.parent
-    / "archprime_cli"
+    / "lovarch_cli"
     / "i18n"
     / "translations"
 )
@@ -34,7 +34,7 @@ TRANSLATIONS_DIR = (
 @pytest.fixture(autouse=True)
 def reset_lang_state(monkeypatch):
     """Each test starts with no env vars and a fresh module-level lang."""
-    monkeypatch.delenv("ARCHPRIME_LANG", raising=False)
+    monkeypatch.delenv("LOVARCH_LANG", raising=False)
     monkeypatch.delenv("LANG", raising=False)
     set_current_lang(None)  # reset to env-detection mode
     _load_translations.cache_clear()
@@ -52,7 +52,7 @@ def test_default_language_is_italian_when_no_env():
 
 
 def test_archprime_lang_env_takes_priority(monkeypatch):
-    monkeypatch.setenv("ARCHPRIME_LANG", "pt")
+    monkeypatch.setenv("LOVARCH_LANG", "pt")
     monkeypatch.setenv("LANG", "en_US.UTF-8")
     set_current_lang(None)  # force re-detection
     assert current_lang() == "pt"
@@ -86,13 +86,13 @@ def test_set_current_lang_normalizes_case():
 
 
 def test_set_current_lang_invalid_resets_to_env_detection(monkeypatch):
-    monkeypatch.setenv("ARCHPRIME_LANG", "pt")
+    monkeypatch.setenv("LOVARCH_LANG", "pt")
     set_current_lang("xx")  # invalid → resets to env mode
     assert current_lang() == "pt"
 
 
 def test_set_current_lang_none_resets_to_env_detection(monkeypatch):
-    monkeypatch.setenv("ARCHPRIME_LANG", "es")
+    monkeypatch.setenv("LOVARCH_LANG", "es")
     set_current_lang("it")
     assert current_lang() == "it"
     set_current_lang(None)
@@ -105,12 +105,12 @@ def test_set_current_lang_none_resets_to_env_detection(monkeypatch):
 
 def test_t_uses_current_lang_by_default():
     set_current_lang("it")
-    assert t("signup.welcome_title") == "Benvenuto in archprime-cli"
+    assert t("signup.welcome_title") == "Benvenuto in lovarch-cli"
 
 
 def test_t_explicit_lang_overrides_current():
     set_current_lang("it")
-    assert t("signup.welcome_title", lang="en") == "Welcome to archprime-cli"
+    assert t("signup.welcome_title", lang="en") == "Welcome to lovarch-cli"
     # current_lang unchanged
     assert current_lang() == "it"
 

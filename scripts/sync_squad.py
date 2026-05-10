@@ -1,7 +1,7 @@
 """Hatchling build hook — sync architettura-progetto squad into the package.
 
 This hook runs at build time (uv build, pip install -e .) and copies relevant
-files from sibling squads/architettura-progetto/ into archprime_cli/squad/ so
+files from sibling squads/architettura-progetto/ into lovarch_cli/squad/ so
 the published wheel ships with the squad as bundled package data.
 
 WITHOUT this sync, the CLI ships empty — `arch run` would have no agents to
@@ -11,14 +11,14 @@ CRITICAL build step.
 Behavior:
 - Looks for squads/architettura-progetto/ as sibling of cli/ (monorepo dev)
 - Falls back to NO-OP if running inside an isolated CI sdist (squad already
-  bundled by previous sync). The .gitkeep marker in archprime_cli/squad/
+  bundled by previous sync). The .gitkeep marker in lovarch_cli/squad/
   ensures the directory exists even before first sync.
 
 Repository layout (monorepo dev):
     Lovarch/
     ├── cli/                        ← this package
     │   ├── pyproject.toml          ← references scripts/sync_squad.py
-    │   ├── archprime_cli/squad/    ← target (gitignored, populated here)
+    │   ├── lovarch_cli/squad/    ← target (gitignored, populated here)
     │   └── scripts/sync_squad.py   ← this file
     └── squads/architettura-progetto/   ← source (sibling)
 """
@@ -43,7 +43,7 @@ SQUAD_FILES: tuple[str, ...] = ("README.md", "config.yaml")
 
 
 class SyncSquadBuildHook(BuildHookInterface):
-    """Sync architettura-progetto squad files into archprime_cli/squad/."""
+    """Sync architettura-progetto squad files into lovarch_cli/squad/."""
 
     PLUGIN_NAME = "custom"
 
@@ -52,7 +52,7 @@ class SyncSquadBuildHook(BuildHookInterface):
         cli_root = Path(self.root).resolve()
         repo_root = cli_root.parent
         squad_src = repo_root / "squads" / SQUAD_NAME
-        squad_dst = cli_root / "archprime_cli" / "squad"
+        squad_dst = cli_root / "lovarch_cli" / "squad"
 
         squad_dst.mkdir(parents=True, exist_ok=True)
 

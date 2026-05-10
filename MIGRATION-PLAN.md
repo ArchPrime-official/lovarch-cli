@@ -1,4 +1,4 @@
-# archprime-cli — Repo Migration Plan
+# lovarch-cli — Repo Migration Plan
 
 > **Decisão (2026-05-10, Pablo + Orion):** mantemos `cli/` no monorepo Lovarch durante a alpha (v0.x). Splitamos pra repo público dedicado **antes do v1.0** (gate de publicação PyPI).
 >
@@ -18,9 +18,9 @@
 | Razão | Detalhe |
 |-------|---------|
 | **PyPI publish exige source público** | Repository link em `pyproject.toml` aponta pro source. Lovarch é privado → link 404. Aluno do curso clica e dá erro. |
-| **License coherence** | Lovarch é proprietário (sem LICENSE root). archprime-cli é MIT. Coexistir num mesmo repo confunde — pessoas podem assumir todo Lovarch é MIT. |
+| **License coherence** | Lovarch é proprietário (sem LICENSE root). lovarch-cli é MIT. Coexistir num mesmo repo confunde — pessoas podem assumir todo Lovarch é MIT. |
 | **Issues + community** | Aluno do curso reporta bug onde? Repo público dedicado é a doca natural. Tickets do CLI misturados com tickets web Lovarch é ruído. |
-| **Versioning independente** | Tags `archprime-cli-v0.1.0` desacopladas de `lovarch-v...`. Semver claro. |
+| **Versioning independente** | Tags `lovarch-cli-v0.1.0` desacopladas de `lovarch-v...`. Semver claro. |
 | **Auditability** | Comunidade B2B Italia pode auditar source antes de instalar. Privado = dúvida. |
 
 ## Quando splitar
@@ -43,8 +43,8 @@ Quando o trigger acontecer:
 ### 1. Criar repo destino
 
 ```bash
-# Recomendado: ArchPrime-official org (mesma org dos squads)
-gh repo create ArchPrime-official/archprime-cli \
+# Recomendado: Lovarch-official org (mesma org dos squads)
+gh repo create Lovarch-official/lovarch-cli \
   --public \
   --description "AI-powered architectural project execution CLI by Lovarch" \
   --license MIT
@@ -64,7 +64,7 @@ brew install git-filter-repo  # ou: pip install git-filter-repo
 git filter-repo --path cli/ --path-rename cli/:
 
 # Adicionar remote do novo repo
-git remote add origin https://github.com/ArchPrime-official/archprime-cli.git
+git remote add origin https://github.com/Lovarch-official/lovarch-cli.git
 git push -u origin main
 ```
 
@@ -75,7 +75,7 @@ Adicionar `.gitmodules` no novo repo:
 ```ini
 [submodule "squads/architettura-progetto"]
     path = squads/architettura-progetto
-    url = https://github.com/ArchPrime-official/PrimeSquads-architettura-progetto.git
+    url = https://github.com/Lovarch-official/PrimeSquads-architettura-progetto.git
 ```
 
 (Squad provavelmente vira submodule do Lovarch primeiro — checar status com `bump-all-squads.sh`)
@@ -94,16 +94,16 @@ cd /Users/pablo/Lovarch
 git checkout -b chore/remove-cli-after-split
 git rm -r cli/
 # Substituir por submodule pointer (opcional — só se Lovarch precisar buildar CLI no CI):
-git submodule add https://github.com/ArchPrime-official/archprime-cli.git cli
-git commit -m "chore: split archprime-cli into ArchPrime-official/archprime-cli"
+git submodule add https://github.com/Lovarch-official/lovarch-cli.git cli
+git commit -m "chore: split lovarch-cli into Lovarch-official/lovarch-cli"
 gh pr create
 ```
 
 ### 5. Atualizar `pyproject.toml` Repository links
 
 ```toml
-Repository = "https://github.com/ArchPrime-official/archprime-cli"
-Issues = "https://github.com/ArchPrime-official/archprime-cli/issues"
+Repository = "https://github.com/Lovarch-official/lovarch-cli"
+Issues = "https://github.com/Lovarch-official/lovarch-cli/issues"
 Documentation = "https://docs.archprime.io/cli"
 ```
 
@@ -117,7 +117,7 @@ Documentation = "https://docs.archprime.io/cli"
 ### 7. Cross-link nos docs
 
 - Lovarch CLAUDE.md: nota que CLI mudou de repo
-- ArchPrime-official/archprime-cli README: linka pra Lovarch como backend premium
+- Lovarch-official/lovarch-cli README: linka pra Lovarch como backend premium
 - docs.archprime.io: explica arquitetura free/premium e onde contribuir
 
 ## Riscos da migração
@@ -126,8 +126,8 @@ Documentation = "https://docs.archprime.io/cli"
 |-------|-----------|
 | Perder commits/autoria | `git filter-repo` preserva. Validar com `git log --oneline\|wc -l` antes/depois. |
 | Squad sync quebrar | Testar `pip install -e .` no novo repo antes de remover do Lovarch. |
-| PyPI name conflict | Reservar `archprime-cli` no PyPI **agora** (TestPyPI sandbox + reserve real PyPI). |
-| Imports quebrarem em Lovarch | CLI Python NÃO é importado por Lovarch web. Verificar com `grep -r "archprime_cli" src/ supabase/`. |
+| PyPI name conflict | Reservar `lovarch-cli` no PyPI **agora** (TestPyPI sandbox + reserve real PyPI). |
+| Imports quebrarem em Lovarch | CLI Python NÃO é importado por Lovarch web. Verificar com `grep -r "lovarch_cli" src/ supabase/`. |
 
 ## Histórico de decisões
 
@@ -144,5 +144,5 @@ Quando hora de splitar repo + publicar PyPI:
 2. Supabase Dashboard → Settings → Custom Domains → adicionar `api.lovarch.com`
 3. Cloudflare DNS → add TXT (verificação) + CNAME (`api` → target Supabase) — **DNS only ⚪, não Proxied 🟠**
 4. Aguardar SSL cert Let's Encrypt (~5-15min)
-5. Bump archprime-cli minor (`0.x.0`) com nova URL default — usuários instalados continuam funcionando via env `LOVARCH_API_URL` ou re-install
+5. Bump lovarch-cli minor (`0.x.0`) com nova URL default — usuários instalados continuam funcionando via env `LOVARCH_API_URL` ou re-install
 6. Atualizar `pyproject.toml` URLs → apontar pro novo repo público
