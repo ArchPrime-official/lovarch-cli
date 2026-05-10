@@ -27,6 +27,7 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.text import Text
 
+from archprime_cli.i18n import set_current_lang
 from archprime_cli.version import __version__
 
 console = Console()
@@ -85,9 +86,11 @@ def main(
     ] = False,
 ) -> None:
     """archprime-cli — global flags handler."""
-    # Store global state in ctx.obj for subcommands to access.
-    # i18n loader (Epic 4 Story 4.2) will read ctx.obj['lang'] with fallback chain:
-    # explicit --lang > config file > $LANG env var > 'it' default.
+    # Resolve --lang precedence: explicit flag > $ARCHPRIME_LANG > $LANG > 'it'.
+    # set_current_lang() validates against VALID_LANGUAGES and falls back to
+    # env detection if the override is invalid.
+    if lang is not None:
+        set_current_lang(lang)
     ctx.ensure_object(dict)
     ctx.obj["lang"] = lang
     ctx.obj["verbose"] = verbose

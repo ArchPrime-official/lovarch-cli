@@ -1,0 +1,42 @@
+{
+  "signup": {
+    "welcome_title": "Benvenuto in archprime-cli",
+    "welcome_body": "Modalità FREE — registrazione richiesta.\n\nTi chiederemo nome, email, telefono e paese. Useremo queste informazioni solo per:\n • Confermare la tua identità\n • Inviarti aggiornamenti su archprime-cli (opt-out in qualsiasi momento)\n • Permetterti l'upgrade futuro a Premium con stesso account\n\nI tuoi dati sono protetti dal GDPR. Puoi cancellarli con [bold]arch account delete[/bold] in ogni momento.",
+    "prompt_language": "Lingua preferita",
+    "prompt_full_name": "Nome completo",
+    "prompt_email": "Email",
+    "prompt_phone": "Telefono (formato internazionale, es. +39 123 456 7890)",
+    "prompt_country": "Codice paese ISO 3166 (es. IT, BR, US, ES)",
+    "prompt_consent": "Accetti i Termini di Servizio e la Privacy Policy (GDPR)?",
+    "tos_url_label": "TOS:",
+    "consent_required": "Il consenso GDPR è obbligatorio. Cadastro annullato.",
+    "name_too_short": "Min 3 caratteri",
+    "invalid_email": "Email non valida.",
+    "invalid_phone": "Telefono deve essere in formato internazionale (es. +391234567890).",
+    "invalid_country": "Codice paese deve essere 2 lettere (ISO 3166 alpha-2).",
+    "submitting": "Invio in corso...",
+    "next_steps": "[bold green]✓ Cadastro completato[/bold green]\n\nProssimi passi:\n 1. [cyan]arch init <progetto>[/cyan] — crea un nuovo progetto\n 2. [cyan]arch audit <progetto>[/cyan] — verifica gli input\n 3. [cyan]arch run dal-brief-al-cantiere[/cyan] — esegui workflow\n\nPer upgrade a Premium (crediti inclusi): [link]https://lovarch.com/cli-upgrade[/link]"
+  },
+  "account": {
+    "no_account": "Nessun account configurato. Esegui 'arch signup' o 'arch login'.",
+    "delete_warning_title": "⚠️  CANCELLAZIONE ACCOUNT — IRREVERSIBILE",
+    "delete_warning_body": "Stai per cancellare il tuo account archprime-cli (modalità FREE).\n\nCosa succede:\n • I tuoi dati personali (nome, email, telefono) saranno pseudonimizzati (GDPR Art. 17)\n • Il token verrà revocato — non potrai più usare archprime-cli con questo account\n • L'account ombra in Lovarch verrà eliminato\n • [bold]Opzionalmente[/bold] cancelliamo i progetti locali in ~/.archprime/projects/\n\n[red]Questa azione NON può essere annullata.[/red]",
+    "confirm_delete_remote": "Confermi la cancellazione dell'account remoto?",
+    "confirm_delete_local": "Vuoi anche cancellare i progetti locali in ~/.archprime/projects/?",
+    "deletion_aborted": "Cancellazione annullata. Nessun dato modificato.",
+    "deletion_success": "✓ Account cancellato. Grazie per aver provato archprime-cli.",
+    "info_title": "Account corrente",
+    "premium_delete_redirect": "La cancellazione di un account Premium si effettua nell'app web Lovarch:\n  https://lovarch.com/settings/account/delete"
+  },
+  "login": {
+    "choose_mode_prompt": "Scegli modalità",
+    "free_redirect": "Per la modalità Free, esegui [bold cyan]arch signup[/bold cyan].",
+    "opening_browser": "Apertura del browser per il login Lovarch...",
+    "manual_url_hint": "Se il browser non si apre, copia questo URL:",
+    "waiting_callback": "In attesa dell'autorizzazione (timeout 5 min)...",
+    "callback_timeout": "Timeout: nessuna risposta dal browser in 5 minuti.",
+    "state_mismatch": "Errore di sicurezza: state non corrisponde (possibile CSRF). Riprova.",
+    "auth_denied": "Autorizzazione negata dall'utente.",
+    "login_success": "✓ Login Premium completato"
+  }
+}

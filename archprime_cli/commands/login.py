@@ -14,7 +14,7 @@ Premium PKCE flow:
   6. Save tokens via keyring_store.save_premium_session
   7. Show success panel with user info
 
-Localized in 4 languages (Story 4.1 will extract to JSON).
+Localized in 4 languages — keys live in archprime_cli/i18n/translations/*.json.
 """
 from __future__ import annotations
 
@@ -28,13 +28,13 @@ import typer
 from rich.console import Console
 from rich.panel import Panel
 from rich.prompt import Prompt
-from rich.spinner import Spinner
 from rich.text import Text
 
 from archprime_cli.api import ApiClient, LovarchApiError
 from archprime_cli.auth import PkceParams, save_premium_session
 from archprime_cli.auth.local_server import AuthServer
 from archprime_cli.config import DEFAULT_API_URL
+from archprime_cli.i18n import current_lang, set_current_lang, t
 
 console = Console()
 err_console = Console(stderr=True)
@@ -44,77 +44,6 @@ err_console = Console(stderr=True)
 # /cli-auth React page only exists on lovarch.com.
 LOVARCH_WEB_BASE = "https://lovarch.com"
 PKCE_TIMEOUT_SECONDS = 300.0  # 5 minutes — matches DB code TTL
-
-VALID_LANGUAGES = ["it", "pt", "en", "es"]
-
-
-I18N: dict[str, dict[str, str]] = {
-    "choose_mode_prompt": {
-        "it": "Scegli modalità",
-        "pt": "Escolha modalidade",
-        "en": "Choose mode",
-        "es": "Elige modalidad",
-    },
-    "free_redirect": {
-        "it": "Per la modalità Free, esegui [bold cyan]arch signup[/bold cyan].",
-        "pt": "Para o modo Free, execute [bold cyan]arch signup[/bold cyan].",
-        "en": "For Free mode, run [bold cyan]arch signup[/bold cyan].",
-        "es": "Para el modo Free, ejecuta [bold cyan]arch signup[/bold cyan].",
-    },
-    "opening_browser": {
-        "it": "Apertura del browser per il login Lovarch...",
-        "pt": "Abrindo o navegador para login Lovarch...",
-        "en": "Opening browser for Lovarch login...",
-        "es": "Abriendo navegador para login Lovarch...",
-    },
-    "manual_url_hint": {
-        "it": "Se il browser non si apre, copia questo URL:",
-        "pt": "Se o navegador não abrir, copie esta URL:",
-        "en": "If the browser doesn't open, copy this URL:",
-        "es": "Si el navegador no abre, copia esta URL:",
-    },
-    "waiting_callback": {
-        "it": "In attesa dell'autorizzazione (timeout 5 min)...",
-        "pt": "Aguardando autorização (timeout 5 min)...",
-        "en": "Waiting for authorization (5 min timeout)...",
-        "es": "Esperando autorización (timeout 5 min)...",
-    },
-    "callback_timeout": {
-        "it": "Timeout: nessuna risposta dal browser in 5 minuti.",
-        "pt": "Timeout: nenhuma resposta do navegador em 5 minutos.",
-        "en": "Timeout: no response from browser in 5 minutes.",
-        "es": "Timeout: ninguna respuesta del navegador en 5 minutos.",
-    },
-    "state_mismatch": {
-        "it": "Errore di sicurezza: state non corrisponde (possibile CSRF). Riprova.",
-        "pt": "Erro de segurança: state não corresponde (possível CSRF). Tente novamente.",
-        "en": "Security error: state mismatch (possible CSRF). Try again.",
-        "es": "Error de seguridad: state no coincide (posible CSRF). Intenta de nuevo.",
-    },
-    "auth_denied": {
-        "it": "Autorizzazione negata dall'utente.",
-        "pt": "Autorização negada pelo usuário.",
-        "en": "Authorization denied by user.",
-        "es": "Autorización denegada por el usuario.",
-    },
-    "login_success": {
-        "it": "✓ Login Premium completato",
-        "pt": "✓ Login Premium concluído",
-        "en": "✓ Premium login complete",
-        "es": "✓ Login Premium completado",
-    },
-}
-
-
-def t(key: str, lang: str = "it") -> str:
-    return I18N.get(key, {}).get(lang) or I18N.get(key, {}).get("it") or key
-
-
-def _detect_language() -> str:
-    import os
-
-    env_lang = os.environ.get("LANG", "").split("_")[0].lower()
-    return env_lang if env_lang in VALID_LANGUAGES else "it"
 
 
 def login_command(
@@ -135,7 +64,9 @@ def login_command(
     ] = None,
 ) -> None:
     """Login al CLI (Free o Premium)."""
-    lang = lang_flag if lang_flag in VALID_LANGUAGES else _detect_language()
+    if lang_flag is not None:
+        set_current_lang(lang_flag)
+    lang = current_lang()
 
     # Mutually exclusive flags
     if free and premium:
@@ -145,7 +76,7 @@ def login_command(
     if not free and not premium:
         # Interactive choice
         choice = Prompt.ask(
-            f"[bold]{t('choose_mode_prompt', lang)}[/bold]",
+            f"[bold]{t('login.choose_mode_prompt', lang=lang)}[/bold]",
             choices=["free", "premium"],
             default="free",
         )
@@ -154,7 +85,7 @@ def login_command(
 
     if free:
         console.print()
-        console.print(t("free_redirect", lang))
+        console.print(t("login.free_redirect", lang=lang))
         console.print()
         sys.exit(0)
 
@@ -177,15 +108,15 @@ def login_command(
     )
 
     console.print()
-    console.print(f"[gold1]→[/gold1] {t('opening_browser', lang)}")
-    console.print(f"  [dim]{t('manual_url_hint', lang)}[/dim]")
+    console.print(f"[gold1]→[/gold1] {t('login.opening_browser', lang=lang)}")
+    console.print(f"  [dim]{t('login.manual_url_hint', lang=lang)}[/dim]")
     console.print(f"  [dim cyan]{auth_url}[/dim cyan]")
     console.print()
 
     webbrowser.open(auth_url, new=1, autoraise=True)
 
     with console.status(
-        Text.from_markup(f"[gold1]{t('waiting_callback', lang)}[/gold1]"),
+        Text.from_markup(f"[gold1]{t('login.waiting_callback', lang=lang)}[/gold1]"),
         spinner="dots",
     ):
         result = server.wait_for_callback(PKCE_TIMEOUT_SECONDS)
@@ -195,9 +126,13 @@ def login_command(
     # ─── Validate callback ───────────────────────────────────────────────
     if result.error:
         if result.error == "timeout":
-            err_console.print(f"\n[red]✗ {t('callback_timeout', lang)}[/red]")
+            err_console.print(
+                f"\n[red]✗ {t('login.callback_timeout', lang=lang)}[/red]"
+            )
         elif result.error == "access_denied":
-            err_console.print(f"\n[yellow]✗ {t('auth_denied', lang)}[/yellow]")
+            err_console.print(
+                f"\n[yellow]✗ {t('login.auth_denied', lang=lang)}[/yellow]"
+            )
         else:
             err_console.print(
                 f"\n[red]✗ {result.error}: {result.error_description or ''}[/red]"
@@ -205,7 +140,7 @@ def login_command(
         sys.exit(1)
 
     if not result.code or result.state != pkce.state:
-        err_console.print(f"\n[red]✗ {t('state_mismatch', lang)}[/red]")
+        err_console.print(f"\n[red]✗ {t('login.state_mismatch', lang=lang)}[/red]")
         sys.exit(1)
 
     # ─── Exchange code for tokens ────────────────────────────────────────
@@ -260,7 +195,7 @@ def login_command(
     console.print(
         Panel(
             body,
-            title=f"[bold green]{t('login_success', lang)}[/bold green]",
+            title=f"[bold green]{t('login.login_success', lang=lang)}[/bold green]",
             border_style="green",
             padding=(1, 2),
         )
