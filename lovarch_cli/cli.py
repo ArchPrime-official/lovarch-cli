@@ -165,7 +165,13 @@ app.command(name="upgrade", help="Passa da Free a Premium (apre il browser).")(
     upgrade_command
 )
 
-# TODO Fase A.1 → lovarch init <project>
+# Fase A.1 — Create a new project directory (+ optional sample-input)
+from lovarch_cli.commands.init import init_command  # noqa: E402
+
+app.command(name="init", help="Inizializza un nuovo progetto (con --sample copia villa-chianti).")(
+    init_command
+)
+
 # TODO Fase A.2-A.5 → lovarch audit / run / consolidate / status
 
 

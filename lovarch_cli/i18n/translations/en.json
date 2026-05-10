@@ -59,5 +59,15 @@
     "body_free": "Upgrade to Premium to unlock:\n • Included AI credits (from 50,000 cr/month)\n • Cloud storage synced across devices\n • Team collaboration\n • Priority support",
     "already_premium": "You're already Premium ✨ To manage credits, billing and team open the dashboard:",
     "no_account_hint": "No account configured. Run [bold cyan]lovarch signup[/bold cyan] or [bold cyan]lovarch login --premium[/bold cyan] before [bold]lovarch upgrade[/bold]."
+  },
+  "init": {
+    "title": "Project '{name}' initialized",
+    "invalid_name": "✗ Invalid name: '{name}'. Use lowercase letters, digits, and hyphens (2-63 chars).",
+    "already_exists": "Project '{name}' already exists at [bold]{path}[/bold]. Use [bold cyan]--force[/bold cyan] to overwrite.",
+    "created": "[green]✓[/green] Folder created at [bold]{path}[/bold]",
+    "sample_copied": "[green]✓[/green] villa-chianti sample copied ([bold]{count}[/bold] input files)",
+    "no_sample": "Sample-input not found at {path}",
+    "sample_hint": "The squad payload may not have been synced. Reinstall with [cyan]pip install -e .[/cyan].",
+    "next_steps": "Next steps:\n 1. [cyan]lovarch audit {name}[/cyan] — verify the 18 inputs\n 2. [cyan]lovarch run dal-brief-al-cantiere[/cyan] — run the workflow"
   }
 }
