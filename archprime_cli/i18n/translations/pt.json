@@ -37,7 +37,8 @@
     "callback_timeout": "Timeout: nenhuma resposta do navegador em 5 minutos.",
     "state_mismatch": "Erro de segurança: state não corresponde (possível CSRF). Tente novamente.",
     "auth_denied": "Autorização negada pelo usuário.",
-    "login_success": "✓ Login Premium concluído"
+    "login_success": "✓ Login Premium concluído",
+    "modes_mutex": "As opções --free e --premium são mutuamente exclusivas."
   },
   "info": {
     "title": "Status",

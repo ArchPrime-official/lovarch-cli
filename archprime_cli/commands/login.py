@@ -70,7 +70,7 @@ def login_command(
 
     # Mutually exclusive flags
     if free and premium:
-        err_console.print("[red]--free and --premium are mutually exclusive[/red]")
+        err_console.print(f"[red]{t('login.modes_mutex', lang=lang)}[/red]")
         sys.exit(2)
 
     if not free and not premium:
