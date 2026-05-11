@@ -7,17 +7,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Planned for v0.1.1
+(No unreleased changes yet — last release was v0.1.1.)
 
-- Squad dev loop: `LOVARCH_SQUAD_SRC` env var + `--squad-src` flag on
-  `lovarch run` and `lovarch init` so the contributor's monorepo edits
-  are picked up without a refresh round-trip
-- `lovarch dev show-squad-root` to inspect which squad payload would be
-  used right now
-- `lovarch dev refresh-squad` to promote monorepo edits into the
-  vendored snapshot in this repo
-- `docs/agent-development.md` documenting the three-environment model
-  (DEV / STAGED / PRODUCTION) and the daily iteration loop
+## [0.1.1] — 2026-05-11
+
+### Added — Squad development loop
+
+Unlocks the daily iteration cycle on squad-architettura-progetto agents
+without refresh round-trips. Maintainer edits the monorepo, every
+`lovarch run` invocation picks up the change immediately.
+
+- `LOVARCH_SQUAD_SRC` environment variable and `--squad-src` flag on
+  `lovarch run` and `lovarch init`. Resolution chain: flag > env var >
+  bundled vendor. When an override is active, `lovarch run` prints
+  `↳ squad: <path> (source)` so the user knows which payload is in use.
+- New module `lovarch_cli/squad_loader.py` centralizes the resolution
+  logic. Validates that the resolved path looks like a squad payload
+  (has `scripts/pipeline_runner.py` + `agents/`) and raises
+  `SquadNotFoundError` with an actionable message otherwise.
+- `lovarch dev show-squad-root` prints which squad path is currently
+  resolved, plus env var value and bundled fallback for debugging.
+- `lovarch dev refresh-squad [--source PATH] [--target PATH] [--dry-run]`
+  promotes monorepo edits into the vendored snapshot in this repo.
+  Auto-detects target via `__file__` heuristic when running from a dev
+  install (`pip install -e`).
+- `docs/agent-development.md` documents the three-environment model
+  (DEV / STAGED / PRODUCTION), the daily iteration loop, the promotion
+  flow, release cadence, and common pitfalls.
+
+### Other
+
+- Initial v0.1.0 stable release infrastructure validated end-to-end
+  (homebrew tap auto-bump after the secret-context fix in PR #7,
+  GitHub Release attach workflow, brew install + smoke test working
+  on Pablo's machine).
 
 ### Distribution strategy
 
@@ -151,5 +174,7 @@ CLI-specific history preserved.
 - Voice/avatar/render features depend on Edge Functions in the Lovarch
   monorepo — Free dry-run does NOT actually call them.
 
-[Unreleased]: https://github.com/ArchPrime-official/lovarch-cli/compare/v0.1.0-beta.1...HEAD
+[Unreleased]: https://github.com/ArchPrime-official/lovarch-cli/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/ArchPrime-official/lovarch-cli/compare/v0.1.0...v0.1.1
+[0.1.0]: https://github.com/ArchPrime-official/lovarch-cli/compare/v0.1.0-beta.1...v0.1.0
 [0.1.0-beta.1]: https://github.com/ArchPrime-official/lovarch-cli/releases/tag/v0.1.0-beta.1
