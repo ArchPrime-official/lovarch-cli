@@ -13,7 +13,14 @@ name: Bump Homebrew formula
 #        gh secret set HOMEBREW_TAP_TOKEN --repo ArchPrime-official/lovarch-cli
 #      Paste the github_pat_... token when prompted.
 #
-# If HOMEBREW_TAP_TOKEN is missing, the job skips gracefully (logs notice).
+# If HOMEBREW_TAP_TOKEN is missing, the job exits gracefully with a
+# `::notice::` log entry.
+#
+# Note on secret-in-if: GitHub Actions does NOT allow `secrets.X` in
+# step-level `if:` expressions (silently invalidates the workflow). We
+# use the env-var + step-output workaround: read the secret into an env
+# var on the first step, set a step output indicating presence, then
+# gate subsequent steps on that output.
 
 on:
   push:
@@ -31,17 +38,23 @@ jobs:
     if: ${{ !contains(github.ref, '-') }}
 
     steps:
-      - name: Skip if HOMEBREW_TAP_TOKEN not configured
-        if: ${{ secrets.HOMEBREW_TAP_TOKEN == '' }}
+      - name: Check HOMEBREW_TAP_TOKEN presence
+        id: check
+        env:
+          TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
         run: |
-          echo "::notice::HOMEBREW_TAP_TOKEN secret not set — skipping homebrew bump"
-          exit 0
+          if [ -z "${TOKEN}" ]; then
+            echo "::notice::HOMEBREW_TAP_TOKEN secret not set — skipping homebrew bump"
+            echo "has_token=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_token=true" >> "$GITHUB_OUTPUT"
+          fi
 
       - uses: actions/checkout@v4
-        if: ${{ secrets.HOMEBREW_TAP_TOKEN != '' }}
+        if: steps.check.outputs.has_token == 'true'
 
       - name: Compute tag + tarball SHA256
-        if: ${{ secrets.HOMEBREW_TAP_TOKEN != '' }}
+        if: steps.check.outputs.has_token == 'true'
         id: meta
         run: |
           tag="${GITHUB_REF#refs/tags/}"
@@ -63,7 +76,7 @@ jobs:
           echo "sha=$sha" >> "$GITHUB_OUTPUT"
 
       - name: Checkout tap
-        if: ${{ secrets.HOMEBREW_TAP_TOKEN != '' }}
+        if: steps.check.outputs.has_token == 'true'
         uses: actions/checkout@v4
         with:
           repository: ArchPrime-official/homebrew-lovarch
@@ -71,11 +84,10 @@ jobs:
           path: tap
 
       - name: Patch Formula/lovarch-cli.rb
-        if: ${{ secrets.HOMEBREW_TAP_TOKEN != '' }}
+        if: steps.check.outputs.has_token == 'true'
         working-directory: tap
         run: |
           formula="Formula/lovarch-cli.rb"
-          # Replace url + sha256 lines in-place.
           sed -i \
             -e "s|url \".*\"|url \"${{ steps.meta.outputs.url }}\"|" \
             -e "s|sha256 \"[a-f0-9]*\"|sha256 \"${{ steps.meta.outputs.sha }}\"|" \
@@ -83,7 +95,7 @@ jobs:
           git diff "$formula" || true
 
       - name: Open PR on tap
-        if: ${{ secrets.HOMEBREW_TAP_TOKEN != '' }}
+        if: steps.check.outputs.has_token == 'true'
         working-directory: tap
         env:
           GH_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
