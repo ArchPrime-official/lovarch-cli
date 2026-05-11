@@ -100,13 +100,37 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
         run: |
+          # Idempotency: if the formula already points at this SHA, we have
+          # nothing to do. This happens on workflow re-runs and when someone
+          # bumped the tap manually before the automation got a chance.
+          if git diff --quiet Formula/lovarch-cli.rb; then
+            echo "::notice::Formula already at ${{ steps.meta.outputs.tag }} (no diff) — skipping PR creation"
+            exit 0
+          fi
+
           branch="bump/lovarch-cli-${{ steps.meta.outputs.version }}"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git checkout -b "$branch"
           git add Formula/lovarch-cli.rb
           git commit -m "bump: lovarch-cli ${{ steps.meta.outputs.version }}"
-          git push -u origin "$branch"
+          # Use --force in case the branch already exists from a prior
+          # partial run (e.g. push succeeded but PR creation didn't).
+          git push --force --set-upstream origin "$branch"
+
+          # If a PR for this branch already exists, just print its URL and
+          # exit — avoids "duplicate PR" failures on re-runs.
+          existing=$(gh pr list \
+            --head "$branch" \
+            --base main \
+            --state open \
+            --json url \
+            --jq '.[0].url // ""')
+          if [ -n "$existing" ]; then
+            echo "::notice::PR already exists for $branch: $existing"
+            exit 0
+          fi
+
           gh pr create \
             --base main \
             --head "$branch" \
