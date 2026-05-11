@@ -7,7 +7,7 @@
 
 > **AI-powered architectural project execution CLI** — squad di 17 agenti specializzati che esegue audit input, briefing, normativa IT, CAD, BIM/IFC, computo metrico, capitolato, pratiche edilizie (CILA/SCIA), contratto CNAPPC, energy/LCA preliminare, dossier consolidato — in 14 minuti vs 3 settimane di lavoro tradizionale.
 
-> ⚠️ **Status: BETA (v0.1.x)** — installazione da sorgente o GitHub Release. Pubblicazione su PyPI + Homebrew **arriverà con v0.1.0 stable** (prossime settimane). Usato in produzione dagli iscritti al [Corso IA Avanzato per Architetti](https://lovarch.com/corso) (€1.497).
+> ⚠️ **Status: BETA (v0.1.x)** — distribuito via Homebrew tap + pipx-from-git. Usato in produzione dagli iscritti al [Corso IA Avanzato per Architetti](https://lovarch.com/corso) (€1.497). Pubblicazione su PyPI valutata per v0.2+.
 
 🌐 **Lingue:** [🇮🇹 Italiano](README.md) (default) · [🇵🇹 Português](README.pt.md) · [🇬🇧 English](README.en.md) · [🇪🇸 Español](README.es.md)
 
@@ -57,33 +57,49 @@ arch login --premium
 
 ## Installazione
 
-### Da sorgente (BETA — metodo attuale)
+### 🍺 Homebrew (raccomandato — macOS / Linux)
+
+Il modo più semplice. Funziona anche per chi non ha familiarità con Python:
+
+```bash
+brew tap archprime-official/lovarch
+brew install lovarch-cli
+lovarch --version
+```
+
+`brew upgrade lovarch-cli` aggiorna alla nuova release.
+
+### 📦 pipx — install isolato da GitHub
+
+Se preferisci un'install Python isolata senza Homebrew (utile su Linux server,
+WSL, o se hai già pipx configurato):
+
+```bash
+# Ultima release (anche pre-release):
+pipx install git+https://github.com/ArchPrime-official/lovarch-cli.git@v0.1.0-beta.1
+
+# Oppure dal branch main (rolling):
+pipx install git+https://github.com/ArchPrime-official/lovarch-cli.git
+```
+
+`pipx upgrade lovarch-cli` aggiorna alla revisione successiva.
+
+### 🛠️ Da sorgente (per sviluppatori / contributori)
 
 ```bash
 git clone https://github.com/ArchPrime-official/lovarch-cli.git
 cd lovarch-cli
 python3.12 -m venv .venv && source .venv/bin/activate
-pip install -e .
-lovarch --version    # → lovarch-cli 0.1.0-beta.1
+pip install -e ".[dev]"
+pytest tests/      # → 142 passing
+lovarch --version
 ```
 
-### Da PyPI 🚧 *coming soon* (v0.1.0 stable)
+Vedi [CONTRIBUTING.md](./CONTRIBUTING.md) per il workflow di sviluppo.
 
-```bash
-# Disponibile alla pubblicazione su PyPI:
-pipx install lovarch-cli           # raccomandato (isolato)
-# oppure
-pip install lovarch-cli            # globale
-```
-
-### Da Homebrew 🚧 *coming soon* (macOS / Linux)
-
-```bash
-brew tap ArchPrime-official/lovarch
-brew install lovarch-cli
-```
-
-> Backward compatibility: il comando `arch` è alias di `lovarch` per chi ha già muscle memory dalla versione di sviluppo interna.
+> Backward compatibility: il comando `arch` è alias di `lovarch` per chi ha già muscle memory dalla versione interna di sviluppo.
+>
+> PyPI: la pubblicazione su `pip install lovarch-cli` è rimandata a v0.2+ (i metodi qui sopra coprono tutti i casi d'uso senza dipendere dalla burocrazia PyPI token/2FA).
 
 ## Quick start
 

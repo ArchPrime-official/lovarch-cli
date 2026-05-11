@@ -1,32 +1,25 @@
-name: Publish to PyPI
+name: Publish to PyPI (manual)
 
-# Triggered on tag push matching v*.
-# Builds wheel + sdist, verifies the tag matches lovarch_cli/version.py,
-# uploads to PyPI via twine + PYPI_API_TOKEN secret.
+# Status: DORMANT. PyPI publication is deferred — primary distribution is
+# Homebrew + pipx-from-git (see README).
 #
-# Pre-release tags (v0.1.0-beta.1, v0.1.0-rc.1, etc.) build artifacts and
-# attach them to the GitHub Release (via softprops/action-gh-release in
-# release.yml) but DO NOT upload to PyPI.
+# This workflow is kept for the day we activate PyPI. It does NOT run on
+# tag push to avoid red CI runs when PYPI_API_TOKEN is unset. To activate:
 #
-# Setup steps (one-time, done by Pablo):
-#   1. Create PyPI account at https://pypi.org if not already.
-#   2. Reserve the project name by manually uploading the first release once,
-#      OR set up Trusted Publishing at
-#      https://pypi.org/manage/account/publishing/ (recommended — no token
-#      management needed).
-#   3. If using a token: create one scoped to lovarch-cli at
-#      https://pypi.org/manage/account/token/, then add to repo:
-#        gh secret set PYPI_API_TOKEN --repo ArchPrime-official/lovarch-cli
-#   4. Cut a release:
-#        # bump version in lovarch_cli/version.py (e.g. "0.1.0")
-#        git commit -am "chore: bump v0.1.0"
-#        git tag v0.1.0 && git push origin main v0.1.0
-#        # → workflow triggers → wheel uploads to PyPI
+#   1. Create PyPI account + project-scoped token at
+#      https://pypi.org/manage/account/token/
+#   2. gh secret set PYPI_API_TOKEN --repo ArchPrime-official/lovarch-cli
+#   3. (Optional) revert the `on:` trigger below to push/tags/v* to make
+#      releases automatic, OR keep workflow_dispatch and invoke manually
+#      with `gh workflow run publish-pypi.yml --ref v0.1.0`.
 
 on:
-  push:
-    tags:
-      - "v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag to publish (e.g. v0.1.0). Must exist on remote."
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -41,6 +34,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag }}
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -57,7 +52,7 @@ jobs:
         run: |
           version=$(python -c "import re,sys; m=re.search(r'__version__\s*=\s*[\"'\''](.*?)[\"'\'']', open('lovarch_cli/version.py').read()); sys.stdout.write(m.group(1))")
           echo "version=$version" >> "$GITHUB_OUTPUT"
-          if echo "$GITHUB_REF" | grep -qE 'refs/tags/v[0-9]+\.[0-9]+\.[0-9]+-'; then
+          if echo "${{ inputs.tag }}" | grep -qE '^v[0-9]+\.[0-9]+\.[0-9]+-'; then
             echo "is_prerelease=true" >> "$GITHUB_OUTPUT"
           else
             echo "is_prerelease=false" >> "$GITHUB_OUTPUT"
@@ -66,10 +61,11 @@ jobs:
 
       - name: Verify tag matches declared version
         run: |
-          tag="${GITHUB_REF#refs/tags/v}"
+          tag="${{ inputs.tag }}"
+          tag="${tag#v}"
           declared="${{ steps.read-version.outputs.version }}"
           if [ "$tag" != "$declared" ]; then
-            echo "::error::Tag $tag does not match lovarch_cli/version.py ($declared)" >&2
+            echo "::error::Input tag $tag does not match lovarch_cli/version.py ($declared)" >&2
             exit 1
           fi
 
