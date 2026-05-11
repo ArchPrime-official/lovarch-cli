@@ -1,6 +1,7 @@
 # Release process
 
-> Status: Active since 2026-05-10. Required reading before cutting any release.
+> Status: Active since 2026-05-10 (updated 2026-05-11 to reflect PyPI-deferred
+> distribution strategy). Required reading before cutting any release.
 
 ## TL;DR — cut a release
 
@@ -10,37 +11,50 @@ git checkout main && git pull
 # 1. Bump version
 $EDITOR lovarch_cli/version.py    # e.g. "0.1.0" → "0.1.1"
 git commit -am "chore: bump v0.1.1"
-# 2. Tag + push (semver) — triggers everything
+# 2. Tag + push (semver) — triggers automation
 git tag v0.1.1
 git push origin main v0.1.1
 ```
 
 What happens next is automated by GitHub Actions:
 
-1. **`.github/workflows/publish-pypi.yml`** runs:
-   - Verifies the tag matches `lovarch_cli/version.py`
-   - Runs `python -m build` → wheel + sdist
-   - `twine check dist/*` (sanity)
-   - **If final tag** (e.g. `v0.1.1`): uploads to PyPI via `PYPI_API_TOKEN`
-   - **If pre-release tag** (e.g. `v0.1.1-rc.1`): skips PyPI upload
-
-2. **`.github/workflows/attach-to-release.yml`** runs in parallel:
-   - Builds wheel + sdist again
+1. **`.github/workflows/attach-to-release.yml`** runs on any `v*` tag:
+   - Builds wheel + sdist with `python -m build`
    - Creates or updates the GitHub Release for the tag
    - Attaches `lovarch_cli-X.Y.Z-py3-none-any.whl` and `lovarch_cli-X.Y.Z.tar.gz`
-   - Marks the release as pre-release if the tag has a suffix
+   - Marks the release as pre-release if the tag has a `-beta.X` / `-rc.X`
+     suffix
+
+2. **`.github/workflows/bump-homebrew-formula.yml`** runs on final tags only
+   (skips pre-release suffixes):
+   - Computes the source-tarball SHA256
+   - Opens a PR on `ArchPrime-official/homebrew-lovarch` updating
+     `Formula/lovarch-cli.rb` with the new `url` + `sha256`
+   - Requires `HOMEBREW_TAP_TOKEN` secret (fine-grained PAT scoped to the
+     tap repo). If missing, the job exits with a `::notice::` log entry.
+
+3. **`.github/workflows/publish-pypi.yml`** is **DORMANT** — set to
+   `workflow_dispatch` only (manual trigger). Activate it later by either:
+   - Manually: `gh workflow run publish-pypi.yml --ref v0.1.0 -f tag=v0.1.0`
+   - Permanently: edit the workflow's `on:` to `push: tags: ['v*']`
+
+## Distribution channels
+
+| Channel | Status | Install command |
+|---|---|---|
+| Homebrew tap | ✅ Active | `brew tap archprime-official/lovarch && brew install lovarch-cli` |
+| pipx from git | ✅ Active | `pipx install git+https://github.com/ArchPrime-official/lovarch-cli.git@v0.1.0` |
+| GitHub Release wheel | ✅ Active | `pip install https://github.com/.../releases/download/v0.1.0/lovarch_cli-0.1.0-py3-none-any.whl` |
+| PyPI | 💤 Deferred | `pip install lovarch-cli` — N/A until activated |
 
 ## Tag conventions
 
-| Tag pattern | PyPI upload | GitHub Release | Marked pre-release |
-|---|---|---|---|
-| `v0.1.0` | ✅ Yes | ✅ Yes | No |
-| `v0.1.0-beta.1` | ❌ No | ✅ Yes | Yes |
-| `v0.1.0-rc.2` | ❌ No | ✅ Yes | Yes |
-| `v0.1.0+build42` | ✅ Yes (rare) | ✅ Yes | No |
-| `pinned-sample-v3` | (no match) | (no match) | (no match) |
-
-Only tags matching `v*` trigger the workflows.
+| Tag pattern | GitHub Release | Pre-release flag | Homebrew bump | PyPI |
+|---|---|---|---|---|
+| `v0.1.0` | ✅ Yes | No | ✅ Yes (PR) | 💤 Manual only |
+| `v0.1.0-beta.1` | ✅ Yes | Yes | ❌ No | 💤 Manual only |
+| `v0.1.0-rc.2` | ✅ Yes | Yes | ❌ No | 💤 Manual only |
+| Anything not matching `v*` | (no match) | — | — | — |
 
 ## First-time setup (one-off, done by Pablo)
 

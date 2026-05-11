@@ -9,11 +9,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Planned for v0.1.0 (stable)
 
-- Publish to PyPI (`pip install lovarch-cli`)
-- Submit Homebrew formula auto-bump on tag
-- README polish + status badges
-- Bump `SAMPLE_RELEASE_TAG` to `v0.1.0` after re-uploading the sample asset
+- Bump `lovarch_cli/version.py` to `0.1.0` (drop `-beta.1` suffix)
+- Cut `v0.1.0` tag — Homebrew tap auto-bumps via the `HOMEBREW_TAP_TOKEN`
+  workflow (if configured), GitHub Release is created automatically with
+  wheel + sdist attached
 - First production-ready release usable in the May 2026 IA Avanzato course
+
+### Distribution strategy
+
+`lovarch-cli` ships via three channels — **PyPI is NOT one of them** for v0.1:
+
+1. **Homebrew tap** (`brew install lovarch-cli`) — primary install for
+   macOS/Linux users
+2. **pipx from GitHub** (`pipx install git+https://...`) — for Python-savvy
+   users who prefer isolated venv
+3. **Source clone + pip install -e** — for contributors
+
+PyPI publication (`pip install lovarch-cli`) is deferred to v0.2+ to avoid
+the token/2FA setup overhead. The `publish-pypi.yml` workflow is kept as
+manual `workflow_dispatch` so it can be activated when wanted, without
+running automatically on every tag.
 
 ### Deferred to Q3
 
@@ -21,6 +36,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   runner into modular phases. Currently shelled out via subprocess; works
   but is hard to unit-test independently. Adding `--legacy-runner` flag
   to allow fallback during the migration.
+- **PyPI publication**: re-enable `publish-pypi.yml` on `push: tags: [v*]`
+  trigger once a PyPI account + project-scoped token are configured.
 
 ## [0.1.0-beta.1] — 2026-05-10
 
@@ -120,9 +137,10 @@ CLI-specific history preserved.
 
 ### Known limitations
 
-- `pip install lovarch-cli` does not yet work — PyPI publish gated on
-  Pablo configuring `PYPI_API_TOKEN` secret.
-- `brew install lovarch-cli` requires the `brew tap ArchPrime-official/lovarch`
+- `pip install lovarch-cli` (from PyPI) is intentionally not supported
+  in v0.1 — install via `brew tap` + `brew install` OR `pipx install git+...`
+  (see README). PyPI deferred to v0.2+.
+- `brew install lovarch-cli` requires the `brew tap archprime-official/lovarch`
   step first (no homebrew-core submission yet).
 - `arch run` shells out to the legacy 1821-line `pipeline_runner.py` —
   Story 1.3 refactor deferred to Q3.
