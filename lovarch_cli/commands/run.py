@@ -60,10 +60,9 @@ DEFAULT_REQUIRED_CREDITS = 3_500
 DEFAULT_WORKFLOW = "dal-brief-al-cantiere"
 
 
-def _pipeline_runner_path() -> Path:
-    """Locate the bundled pipeline_runner.py inside the synced squad payload."""
-    pkg_root = Path(__file__).resolve().parent.parent
-    return pkg_root / "squad" / "scripts" / "pipeline_runner.py"
+def _pipeline_runner_path(squad_root: Path) -> Path:
+    """Locate pipeline_runner.py inside the resolved squad root."""
+    return squad_root / "scripts" / "pipeline_runner.py"
 
 
 def _resolve_mode_from_creds() -> ExecutionMode:
@@ -134,6 +133,18 @@ def run_command(
             hidden=True,
         ),
     ] = None,
+    squad_src: Annotated[
+        Path | None,
+        typer.Option(
+            "--squad-src",
+            help=(
+                "Path to a squad-architettura-progetto source dir to use "
+                "instead of the bundled payload. Also reads $LOVARCH_SQUAD_SRC. "
+                "Use for the developer's edit-and-test loop against the "
+                "monorepo Lovarch squad sources."
+            ),
+        ),
+    ] = None,
 ) -> None:
     """Run the squad pipeline against a project."""
     if lang_flag is not None:
@@ -201,13 +212,32 @@ def run_command(
             )
             sys.exit(1)
 
-    # ─── Locate pipeline_runner.py ───────────────────────────────────────
-    runner = _pipeline_runner_path()
+    # ─── Resolve squad payload + locate pipeline_runner.py ──────────────
+    from lovarch_cli.squad_loader import (
+        SquadNotFoundError,
+        resolve_squad_root,
+        squad_source_label,
+    )
+
+    try:
+        squad_root = resolve_squad_root(override=squad_src)
+    except SquadNotFoundError as exc:
+        err_console.print(f"\n[red]✗ {exc}[/red]\n")
+        sys.exit(2)
+
+    runner = _pipeline_runner_path(squad_root)
     if not runner.exists():
         err_console.print(
             f"\n[red]✗ {t('run.no_runner', lang=lang, path=str(runner))}[/red]\n"
         )
         sys.exit(2)
+
+    # Show which squad source is in use (helpful during dev loop).
+    src_label = squad_source_label(squad_root)
+    if src_label != "bundled":
+        console.print(
+            f"[dim cyan]↳ squad: {squad_root} ({src_label})[/dim cyan]"
+        )
 
     # ─── Header panel ────────────────────────────────────────────────────
     mode_label = t(

@@ -7,13 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Planned for v0.1.0 (stable)
+### Planned for v0.1.1
 
-- Bump `lovarch_cli/version.py` to `0.1.0` (drop `-beta.1` suffix)
-- Cut `v0.1.0` tag — Homebrew tap auto-bumps via the `HOMEBREW_TAP_TOKEN`
-  workflow (if configured), GitHub Release is created automatically with
-  wheel + sdist attached
-- First production-ready release usable in the May 2026 IA Avanzato course
+- Squad dev loop: `LOVARCH_SQUAD_SRC` env var + `--squad-src` flag on
+  `lovarch run` and `lovarch init` so the contributor's monorepo edits
+  are picked up without a refresh round-trip
+- `lovarch dev show-squad-root` to inspect which squad payload would be
+  used right now
+- `lovarch dev refresh-squad` to promote monorepo edits into the
+  vendored snapshot in this repo
+- `docs/agent-development.md` documenting the three-environment model
+  (DEV / STAGED / PRODUCTION) and the daily iteration loop
 
 ### Distribution strategy
 

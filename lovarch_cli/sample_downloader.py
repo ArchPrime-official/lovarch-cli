@@ -73,10 +73,24 @@ class SampleDownloadError(RuntimeError):
     """Raised when the sample asset cannot be obtained or verified."""
 
 
-def _bundled_dir() -> Path:
-    """Path the build hook would populate inside the package (if sample bundled)."""
-    pkg_root = Path(__file__).resolve().parent
-    return pkg_root / "squad" / "data" / EXTRACTED_DIR_NAME
+def _bundled_dir(squad_src: Optional[Path] = None) -> Path:
+    """Path the build hook would populate (if sample bundled).
+
+    Honors the same override chain as the runner via squad_loader: an
+    explicit `squad_src` argument > `$LOVARCH_SQUAD_SRC` env var > bundled
+    vendor. Falls back silently to the bundled path if resolution raises
+    (so the lazy-download flow still kicks in instead of crashing).
+    """
+    from lovarch_cli.squad_loader import SquadNotFoundError, resolve_squad_root
+
+    try:
+        root = resolve_squad_root(override=squad_src)
+    except SquadNotFoundError:
+        # Resolution failed (no override, no bundled) — fall through to the
+        # bundled path so downstream cache/download logic handles "not
+        # bundled" naturally.
+        root = Path(__file__).resolve().parent / "squad"
+    return root / "data" / EXTRACTED_DIR_NAME
 
 
 def _cache_root(home: Optional[Path] = None) -> Path:
@@ -198,18 +212,20 @@ def resolve_sample_source(
     lang: Optional[str] = None,
     home: Optional[Path] = None,
     allow_download: bool = True,
+    squad_src: Optional[Path] = None,
 ) -> SampleSource:
     """Return a populated SampleSource, downloading & caching if needed.
 
     Resolution order:
-      1. Bundled inside the wheel/package (lovarch_cli/squad/data/...)
+      1. Bundled inside the resolved squad root (honors --squad-src /
+         $LOVARCH_SQUAD_SRC overrides — see lovarch_cli.squad_loader)
       2. Cached extraction in ~/.lovarch/cache/...
       3. Fresh download from GitHub Releases (if allow_download)
 
     Raises SampleDownloadError on network/integrity/IO failures when neither
     bundled nor cache is usable.
     """
-    bundled = _bundled_dir()
+    bundled = _bundled_dir(squad_src=squad_src)
     if bundled.is_dir() and any(bundled.iterdir()):
         return SampleSource(path=bundled, origin="bundled")
 

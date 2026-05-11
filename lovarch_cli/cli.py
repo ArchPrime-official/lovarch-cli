@@ -200,6 +200,15 @@ app.command(name="status", help="Stato dei progetti e ultime esecuzioni.")(
     status_command
 )
 
+# Squad-dev-loop — developer tooling (squad path resolution, vendor refresh)
+from lovarch_cli.commands.dev import dev_app  # noqa: E402
+
+app.add_typer(
+    dev_app,
+    name="dev",
+    help="Developer tooling for the squad payload (contributors only).",
+)
+
 
 if __name__ == "__main__":
     app()

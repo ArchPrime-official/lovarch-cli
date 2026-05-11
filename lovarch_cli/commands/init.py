@@ -97,6 +97,17 @@ def init_command(
             hidden=True,
         ),
     ] = None,
+    squad_src: Annotated[
+        Path | None,
+        typer.Option(
+            "--squad-src",
+            help=(
+                "Path to a squad-architettura-progetto source dir. Also reads "
+                "$LOVARCH_SQUAD_SRC. When set, --sample reads the villa-"
+                "chianti sample from this path instead of downloading."
+            ),
+        ),
+    ] = None,
 ) -> None:
     """Initialize a new project directory."""
     if lang_flag is not None:
@@ -138,7 +149,12 @@ def init_command(
         )
 
         try:
-            resolved = resolve_sample_source(console=console, lang=lang, home=home)
+            resolved = resolve_sample_source(
+                console=console,
+                lang=lang,
+                home=home,
+                squad_src=squad_src,
+            )
             src = resolved.path
             sample_origin = resolved.origin
         except SampleDownloadError as exc:
