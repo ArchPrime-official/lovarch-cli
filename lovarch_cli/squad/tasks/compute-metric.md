@@ -77,7 +77,7 @@ metrics:
 - **APIs:**
   - DEI PLUS (optional · fallback)
   - EC3 Building Transparency (EPDs)
-  - Gemini 2.5 Pro (semantic mapping descrizione → voce)
+  - Gemini 3.1 Pro (gemini-3.1-pro-preview) (semantic mapping descrizione → voce)
 - **Data:**
   - Prezzario Regione Lombardia 2025 cached JSON
   - quantitativi.json (@bim-engineer)
@@ -90,7 +90,7 @@ metrics:
 ## handoff
 - **From:** @progetto-chief
 - **To:** @progetto-chief → @capitolato-writer (uses computo) + @quality-dati (verifies)
-- **Required announcement:** "Retornando ao @progetto-chief. Computo · {n} voci · totale € {X}."
+- **Required announcement:** "Ritorno al @progetto-chief. Computo · {n} voci · totale € {X}."
 
 ## veto_conditions
 - Totale computo ≠ sum voci > 0.5% → halt

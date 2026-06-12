@@ -30,7 +30,11 @@ Le eccezioni che restano **umane obbligatorie**: firma digitale del professionis
 
 ---
 
-## Architettura · 14 agenti in 4 tier
+## Architettura · 17 agenti in 4 tier
+
+> Composizione: **2** Tier 0 (orchestrator + input gate) + **11** Tier 1 (esecuzione tecnica) + **4** Tier 2 (mind-clone QA · Deming, Juran, English, Dodds). Di cui **7 mind clones di elite minds** (Schumacher, Baldwin, Mazria, Deming, Juran, English, Dodds) e **10 agenti funzionali**.
+>
+> Per la specifica completa di ogni agente (ruolo, DNA, framework, output, ruolo nel workflow) vedi [`data/agents-prd.md`](data/agents-prd.md).
 
 ### Tier 0 · Orchestrazione (2 agenti)
 | Agent | Ruolo |

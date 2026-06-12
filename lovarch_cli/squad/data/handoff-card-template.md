@@ -61,7 +61,7 @@ handoff_card:
   
   return_to: "@progetto-chief"
   return_format: "Inbound Card (see template below)"
-  required_announcement: "Retornando ao @progetto-chief. {trabalho} concluído."
+  required_announcement: "Ritorno al @progetto-chief. {lavoro} concluso."
 ```
 
 ---
@@ -117,7 +117,7 @@ handoff_card:
   errors_encountered: []
   warnings: []
   
-  required_announcement: "Retornando ao @progetto-chief. {trabalho} concluído."
+  required_announcement: "Ritorno al @progetto-chief. {lavoro} concluso."
 ```
 
 ---
@@ -227,5 +227,5 @@ handoff_card:
   
   return_to: "@progetto-chief"
   return_format: "Inbound Card"
-  required_announcement: "Retornando ao @progetto-chief. Pianta-progetto DXF + sezioni completate."
+  required_announcement: "Ritorno al @progetto-chief. Pianta-progetto DXF + sezioni completate."
 ```

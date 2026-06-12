@@ -94,7 +94,7 @@ quantitativi_schema:
 ## handoff
 - **From:** @progetto-chief
 - **To:** @progetto-chief (returns) → @computo-engineer (uses quantitativi) + @quality-misure (verifies)
-- **Required announcement:** "Retornando ao @progetto-chief. IFC4 LOD 300 · {n} elements · viewer ready."
+- **Required announcement:** "Ritorno al @progetto-chief. IFC4 LOD 300 · {n} elements · viewer ready."
 
 ## veto_conditions
 - IFC validate fails → REJECT internal · regenerate

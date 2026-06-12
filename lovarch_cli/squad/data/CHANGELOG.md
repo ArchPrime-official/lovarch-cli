@@ -6,6 +6,65 @@
 
 ---
 
+## [2.2.0] — 2026-06-12 · QA gate fix · pipeline non marca COMPLETED con Tier 2 REJECT
+
+### Critical fix (Fase 1.2 del piano audit 12/06)
+`pipeline_runner.py` Phase D calcolava il verdetto Tier 2 (`_overall`) ma lo
+**ignorava** nel determinare lo stato finale: marcava `completed` finché non
+c'era un crash (`pipeline_error`). Un REJECT del QA (documentato nelle
+esecuzioni `52d9af10` e `6189721b`) veniva quindi marcato COMPLETED — l'aluno
+pagava crediti e riceveva un dossier respinto dal QA stesso. Violava
+`rules.md §1.2` e `config.yaml workflow_config.fail_fast: true`.
+
+**Parte A — guard qa_rejected:**
+- Nuovo stato terminale `qa_rejected` (precedenza: `failed` > `qa_rejected` > `completed`).
+- Quando Tier 2 OVERALL = REJECT → status `qa_rejected`, MAI `completed`.
+  Le 4 verifiche sono deterministiche per un dato set di deliverable, quindi un
+  REJECT vale come "esaurito dopo `QA_RETRY_MAX` (3) tentativi" invece di un
+  loop inutile.
+- Report leggibile per l'aluno (italiano) `QA-REJECT-report.pdf`: elenca quali
+  verifier hanno respinto e perché, + istruzioni e contatto supporto.
+- `escalate_to_pablo` (non eseguibile sulla macchina di un aluno) sostituito da
+  halt + messaggio chiaro + `LOVARCH_SUPPORT_EMAIL` (default info@lovarch.com).
+- Exit code propagato: `0` OK · `3` qa_rejected · `1` errore tecnico. Il CLI
+  `lovarch run` mappa l'exit code → `last_run.status` in project.yaml + pannello
+  dedicato (chiave i18n `run.qa_rejected` in 4 lingue).
+- `pm_squad_executions.metadata` ora include `qa_verdicts`, `qa_overall`,
+  `qa_attempts`, `qa_findings`, `qa_report_url`.
+
+**Parte B — cause reali dei REJECT corrette (decisione presa):**
+Indagine: NON esistono edge function dedicate per i 5 PDF Tier 1 (le ricerche
+in `supabase/functions/` per cila/capitolato/computo/contratto/asseverazione
+danno 0 risultati). La premessa del CHANGELOG ("PDF boilerplate, serve LLM")
+è una diagnosi parziale. Le cause reali dei REJECT sono bug di
+generatore/verifier, non povertà di contenuto:
+- **Q1 (misure) REJECT**: `gen_dxf_pianta_progetto` usava layer `MURI-NUOVI/PORTE/...`
+  mentre `@quality-misure` si aspetta layer ISO `CAD-A-*`; mancavano le room
+  label INGRESSO/SOGGIORNO/LAVANDERIA; il cartiglio era sul layer `TESTI` (non
+  `CAD-A-CART`). **Fix**: rinominati i layer in convenzione ISO `CAD-A-*`,
+  aggiunte tutte e 9 le room label canoniche, cartiglio su `CAD-A-CART` con i 5
+  campi CNAPPC (PROGETTO/CLIENTE/ARCHITETTO/SCALA/DATA). Verificato: Q1 → PASS.
+- **Q2 (normativa) REJECT 0/8**: il verifier leggeva i byte grezzi del PDF in
+  latin-1, ma ReportLab comprime i text stream (FlateDecode) → la regex non
+  trovava nulla anche con riferimenti presenti. **Fix**: estrazione testo reale
+  via `pypdf` quando disponibile, con fallback al raw-byte scan (nessuna nuova
+  dipendenza obbligatoria per il CLI). Verificato: refs DPR 380/UNI 11337/CAM/
+  NTC/D.Lgs 81 rilevati.
+
+L'enrichment LLM dei PDF resta backlog (vedi Fase 6.x): non era la causa del
+REJECT e wire-up speculativo avrebbe aggiunto rischio senza risolvere Q1/Q2.
+
+### File modificati
+- `scripts/pipeline_runner.py` (Phase D qa_rejected guard, report builder,
+  exit codes, Q2 pypdf extraction)
+- `scripts/deliverable_generators.py` (`gen_dxf_pianta_progetto`,
+  `gen_dxf_sezione` → layer ISO `CAD-A-*`)
+- lovarch-cli: `commands/run.py` (exit-code → status + `last_run`),
+  `i18n/translations/{en,it,pt,es}.json` (`run.qa_rejected`), `version.py` v0.1.2,
+  vendored `lovarch_cli/squad/scripts/{pipeline_runner,deliverable_generators}.py`
+
+---
+
 ## Execution Log · 2026-04-25 · Mario Rossi demo (sample-input as-is, no rename)
 
 - **execution_id:** `6189721b-da28-402d-a101-83643976f4f5`

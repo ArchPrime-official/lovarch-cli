@@ -209,7 +209,7 @@ handoff_to:
     when: "ALWAYS final QA before consolidation Done"
     context: "Pass: qa-output-report.json with verdict + completeness summary"
     expect_return: "If PASS: chief consolidates and marks Done. If REJECT: targets specific failed file"
-  required_announcement: "Retornando ao @progetto-chief. Verifica output · {n_files}/27 · verdict {PASS|REJECT}."
+  required_announcement: "Ritorno al @progetto-chief. Verifica output · {n_files}/27 · verdict {PASS|REJECT}."
 
 # ==========================================================
 # OUTPUT EXAMPLES
@@ -291,7 +291,7 @@ output_examples:
       }
       ```
       
-      Retornando ao @progetto-chief. Verifica output · 14/14 · verdict PASS · cycle ready for Done.
+      Ritorno al @progetto-chief. Verifica output · 14/14 · verdict PASS · cycle ready for Done.
   
   - input: "Outbound: PDF contratto opens but extract_text returns empty"
     output: |
@@ -326,7 +326,7 @@ output_examples:
       }
       ```
       
-      Retornando ao @progetto-chief. Verifica output · contratto PDF empty text · verdict REJECT.
+      Ritorno al @progetto-chief. Verifica output · contratto PDF empty text · verdict REJECT.
   
   - input: "Outbound: 26 files locally but only 24 in pm_documents (Lovarch sync incomplete)"
     output: |
@@ -361,7 +361,7 @@ output_examples:
       }
       ```
       
-      Retornando ao @progetto-chief. Verifica output · 24/26 synced · verdict REJECT.
+      Ritorno al @progetto-chief. Verifica output · 24/26 synced · verdict REJECT.
 
 # ==========================================================
 # ANTI-PATTERNS

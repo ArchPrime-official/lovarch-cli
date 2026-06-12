@@ -104,7 +104,7 @@ schema_quotato:
 - **From:** @progetto-chief (outbound card)
 - **To:** @progetto-chief (inbound card with files + schema-quotato.json)
 - **Then via chief:** @bim-engineer (uses schema-quotato) + @quality-misure (verifies)
-- **Required announcement:** "Retornando ao @progetto-chief. Plans generati · {n} entities · cotazioni verificate ±1mm."
+- **Required announcement:** "Ritorno al @progetto-chief. Plans generati · {n} entities · cotazioni verificate ±1mm."
 
 ## veto_conditions
 - DWG sorgente impossibile da leggere → halt
@@ -117,4 +117,4 @@ schema_quotato:
 **90-120 seconds** (DXF entities count + PDF rendering)
 
 ## output_example
-See `@cad-engineer.md` output_examples · 187 entities · 9 layers · 24/24 quote check · 102.3 m² utile · 120.0 lorda · 17.7 muratura.
+See `@cad-engineer.md` output_examples · 187 entities · 9 layers · 24/24 quote check · 115.3 m² utile · 120.0 lorda · 4.7 muratura (pavimento finito 102.3 m²).

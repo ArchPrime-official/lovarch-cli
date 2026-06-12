@@ -41,7 +41,7 @@ Il presente capitolato disciplina l'appalto dei lavori di {{descrizione_interven
 
 ### 1.2 Riferimenti normativi
 - Codice Civile artt. 1655-1677 (appalto);
-- Legge 109/1994 e D.Lgs 36/2023 (Codice Appalti) — per analogia, ove applicabile a privato;
+- D.Lgs 36/2023 (Codice dei Contratti Pubblici) — per analogia, ove applicabile a privato;
 - DPR 380/2001 (TU Edilizia);
 - D.Lgs 81/2008 (sicurezza nei cantieri);
 - DM 17/01/2018 (NTC 2018);
@@ -81,7 +81,7 @@ Il presente capitolato disciplina l'appalto dei lavori di {{descrizione_interven
 | Impianti elettrici | Rifacimento completo impianto elettrico unitamente a domotica leggera |
 | Impianti idro-sanitari | Rifacimento completo, riposizionamento bagni |
 | Impianti termici | Riscaldamento a pavimento + VMC con recupero |
-| Pavimenti | Posa parquet rovere, gres bagni, conservazione seminato |
+| Pavimenti | {{descrizione_pavimenti}} (es. posa parquet, gres bagni; conservazione pavimenti storici ove presenti) |
 | Rivestimenti | Rivestimenti bagni in gres effetto travertino |
 | Serramenti interni | Sostituzione completa porte interne |
 | Falegnameria | Cucina su misura, libreria studio, cabina armadio |
@@ -128,13 +128,13 @@ Il presente capitolato disciplina l'appalto dei lavori di {{descrizione_interven
 - Marca {{marca_vmc}} o equivalente;
 - Bocchette di aspirazione in cucina + bagni;
 - Bocchette di immissione in living + camere;
-- Filtri F7 + ePM1 (allergie cliente).
+- Filtri F7 + ePM1{{#se_esigenze_salute}} ({{esigenze_salute_cliente}}){{/se_esigenze_salute}}.
 
 ### 3.6 Pavimenti
 - Living + camere: parquet rovere chiaro spazzolato sp. 14/3.5 mm — marca {{marca_parquet}};
 - Bagni: gres porcellanato effetto travertino formato 60×120 cm — marca {{marca_gres}};
 - Cucina: continuazione parquet (con trattamento idro-resistente);
-- Conservazione **seminato veneziano esistente** in zona dedicata del soggiorno (intervento di restauro a cura di restauratore qualificato).
+{{#se_pavimenti_storici}}- Conservazione **{{pavimenti_storici}}** in zona dedicata (intervento di restauro a cura di restauratore qualificato).{{/se_pavimenti_storici}}
 
 ### 3.7 Rivestimenti bagni
 - Effetto travertino tonalità calda fino a h. 220 cm;
@@ -154,7 +154,7 @@ c) **CAM-compliant** dove possibile (DM 23/06/2022):
    - Calcestruzzo con riciclato ≥ 15%;
    - Legno **FSC/PEFC** certificato;
    - Isolanti con **DAP/EPD** (Dichiarazione Ambientale di Prodotto);
-d) **Privi di formaldeide** (UNI EN 717) per finiture interne (richiesta esplicita cliente per camera Sofia);
+d) **Privi di formaldeide** (UNI EN 717) per finiture interne{{#se_ambiente_sensibile}} (richiesta esplicita cliente per {{ambiente_sensibile}}){{/se_ambiente_sensibile}};
 e) **Vernici naturali** o ecologiche in classe E1 minimo.
 
 ### 4.1 Lista materiali principali

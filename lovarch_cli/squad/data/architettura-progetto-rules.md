@@ -11,7 +11,7 @@
 ### 1.1 Hub-and-Spoke handoff
 - Specialists **NEVER** route directly to other specialists.
 - Every handoff returns to `@progetto-chief`, who validates and routes next step.
-- Required announcement: `Retornando ao @progetto-chief. {trabalho} concluído.`
+- Required announcement: `Ritorno al @progetto-chief. {lavoro} concluso.`
 - Specialist-to-specialist routing = **VETO** (constitutional violation).
 
 ### 1.2 Tier 2 QA mandatory
@@ -123,9 +123,11 @@ Per Attico Brera (edile + impianti + serramenti) → **CSP/CSE quasi sempre obbl
 
 ### 2.9 L. 49/2023 · Equo Compenso
 
-- Onorari ≥ parametri DM 17/06/2016 obbligatori
+- **Ambito della L.49/2023:** tutela il professionista verso il **contraente forte** (PA, banche, assicurazioni, grandi imprese ≥50 dipendenti o fatturato ≥€10M). **NON si applica al cliente privato consumatore** (es. ristrutturazione di abitazione).
+- DM 17/06/2016 = **metodo di calcolo** del compenso equo (CP = V × G × Q × P), riferimento ORIENTATIVO per il cliente privato. **Non esiste un limite legale del 20% di sconto.**
 - Categoria E.20 residenziale, grado complessità G = 0.95
 - Per ristrutturazione 120 m² @ €1.500/m² = €180.000 valore opera → onorario indicativo €18-22K
+- Uno scostamento marcato dai parametri per cliente privato è una scelta commerciale legittima: segnalarlo come rischio di sostenibilità/qualità (non come illecito) e ridefinire il perimetro coerente.
 
 ### 2.10 L. 105/2024 · Salva-Casa
 
@@ -138,6 +140,8 @@ Per Attico Brera (edile + impianti + serramenti) → **CSP/CSE quasi sempre obbl
 - Informativa privacy obbligatoria nel contratto
 - Titolare: architetto · Finalità: esecuzione incarico
 - Conservazione: 10 anni (compliance antiriciclaggio)
+
+**Subprocessori del pipeline (Art. 28 GDPR — responsabili del trattamento):** il briefing del cliente (incl. CF, indirizzo ed eventuali dati particolari, es. esigenze di salute) viene elaborato da fornitori AI/servizi terzi — tipicamente OpenAI, Google (Gemini), DeepL e Mapbox. L'architetto (titolare) deve: (a) indicare questi subprocessori nell'informativa privacy resa al cliente; (b) avere una base giuridica adeguata; (c) minimizzare i dati inviati (evitare dati particolari non necessari). Il dossier generato NON deve esporre dati personali oltre il necessario.
 
 ---
 
@@ -252,6 +256,13 @@ Documenti che richiedono firma umana devono avere banner esplicito:
 > Verificare e firmare digitalmente con certificato qualificato (eIDAS QES)
 > prima della protocollazione.
 
+I documenti con implicazione legale o economica (contratto, preventivo onorari, pratiche edilizie, asseverazione) devono inoltre riportare il disclaimer:
+
+> **⚠️ Documento generato con AI — verifica professionale obbligatoria**
+> I riferimenti normativi, gli importi e i calcoli possono contenere errori.
+> Verificare con il proprio Ordine professionale e/o commercialista prima dell'uso.
+> Il professionista firmatario è l'unico responsabile dei contenuti.
+
 ---
 
 ## 6. WHAT THE SQUAD DOES NOT DO
@@ -306,7 +317,7 @@ Ogni deliverable che tocca queste aree è **bozza** con banner.
 ### 8.2 API failure
 - Edge function 5xx persistente → halt + log + ask Pablo
 - Mapbox 429 (rate limit) → backoff exponential (1s, 2s, 4s)
-- FLUX timeout >90s → retry su altro modello image (Gemini 3 Pro Image)
+- FLUX timeout >90s → retry su altro modello image (FLUX 2 Pro)
 
 ### 8.3 Storage quota
 - Lovarch storage piena → halt immediato + log + notify Pablo

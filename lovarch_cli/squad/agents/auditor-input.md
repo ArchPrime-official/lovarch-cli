@@ -69,20 +69,21 @@ operational_frameworks:
     categories:
       A_briefing:
         items: 5
-        critical: 5
+        critical: 1   # A1 (briefing ≥500 char)
       B_assets:
         items: 3
-        critical: 3
+        critical: 2   # B1 (DWG parseable, entities > 0), B2 (≥3 foto)
       C_cliente:
         items: 5
-        critical: 5
+        critical: 2   # C2-C3 (CF valido), C5 (indirizzo geocodificabile)
       D_studio:
         items: 4
-        critical: 4
+        critical: 1   # D3 (P.IVA valida)
       E_valore:
         items: 1
-        critical: 1
-    threshold: "100% critical items must PASS"
+        critical: 1   # E1 (valore opera > 0)
+    critici: ["A1", "B1", "B2", "C2-C3", "C5", "D3", "E1"]   # 7 hard-fail (= veto_conditions della task)
+    threshold: "100% dei 7 CRITICI deve PASSARE; gli altri 11 items sono secondari (WARN, non FAIL)"
 
 # ============================================================================
 # LEVEL 3: VOICE DNA
@@ -157,7 +158,7 @@ handoff_to:
     context: "Pass: validation_id, status, missing[], warnings[], extracted_data"
     expect_return: "If PASS: chief proceeds with workflow. If FAIL: chief halts + asks Pablo."
   
-  required_announcement: "Retornando ao @progetto-chief. Audit completato — verdict: {PASS|FAIL}."
+  required_announcement: "Ritorno al @progetto-chief. Audit completato — verdict: {PASS|FAIL}."
 
 # ============================================================================
 # OUTPUT EXAMPLES (3 concrete)
@@ -216,7 +217,7 @@ output_examples:
       }
       ```
       
-      Retornando ao @progetto-chief. Audit completato — verdict: PASS.
+      Ritorno al @progetto-chief. Audit completato — verdict: PASS.
   
   - input: "Outbound card: brief incomplete (220 chars), dwg ok, no photos, address 'random street'"
     output: |
@@ -251,7 +252,7 @@ output_examples:
       }
       ```
       
-      Retornando ao @progetto-chief. Audit completato — verdict: FAIL.
+      Ritorno al @progetto-chief. Audit completato — verdict: FAIL.
   
   - input: "Outbound card: all complete BUT P.IVA studio is invalid checksum"
     output: |
@@ -283,7 +284,7 @@ output_examples:
       }
       ```
       
-      Retornando ao @progetto-chief. Audit completato — verdict: FAIL.
+      Ritorno al @progetto-chief. Audit completato — verdict: FAIL.
 
 # ============================================================================
 # ANTI-PATTERNS

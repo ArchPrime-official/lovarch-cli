@@ -48,7 +48,7 @@ Che i lavori previsti **non riguardano parti strutturali** dell'edificio. In par
 - Non è previsto aumento di carichi sui solai esistenti rispetto al carico previsto dalla destinazione d'uso residenziale;
 - Eventuali tramezzature interne demolite/ricostruite hanno spessore ≤ 12 cm e peso lineare contenuto.
 
-L'intervento si configura pertanto come **opera non strutturale** ai sensi dei punti 8.4.1 e 8.4.2 del DM 17/01/2018 (NTC 2018).
+L'intervento si configura pertanto come **opera non strutturale** ai sensi del punto 8.4.1 del DM 17/01/2018 (NTC 2018) — riparazione o intervento locale, senza miglioramento/adeguamento sismico (punti 8.4.2/8.4.3).
 
 ### D · Conformità tecnica
 
@@ -82,7 +82,7 @@ Che l'immobile **ricade** in:
 [**X**] Zona vincolata · {{vincolo_descrizione}}
 
 Esempio:
-> Zona A1 PGT Milano · Nucleo di Antica Formazione (NAF) Brera · vincolo paesaggistico ai sensi del D.Lgs 42/2004 art. 142, lett. m).
+> Zona A1 PGT Milano · Nucleo di Antica Formazione (NAF) Brera · tutela tramite PGT (NAF); eventuale vincolo paesaggistico, ove sussistente, è ex D.Lgs 42/2004 art. 136 (provvedimento dichiarativo di notevole interesse pubblico) — NON art. 142 lett. m), che riguarda le zone di interesse archeologico.
 
 In relazione a tali vincoli:
 

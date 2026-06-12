@@ -209,7 +209,7 @@ handoff_to:
     when: "Cross-check complete (PASS or REJECT)"
     context: "Pass: qa-dati-report.json with verdict + diffs_log per item"
     expect_return: "If REJECT: chief identifies which agent(s) generated wrong values"
-  required_announcement: "Retornando ao @progetto-chief. Cross-check dati · {n_pass}/{n_total} · verdict {PASS|REJECT}."
+  required_announcement: "Ritorno al @progetto-chief. Cross-check dati · {n_pass}/{n_total} · verdict {PASS|REJECT}."
 
 # ==========================================================
 # OUTPUT EXAMPLES
@@ -286,7 +286,7 @@ output_examples:
       }
       ```
       
-      Retornando ao @progetto-chief. Cross-check · 5/6 critici · verdict REJECT su D-C2.
+      Ritorno al @progetto-chief. Cross-check · 5/6 critici · verdict REJECT su D-C2.
   
   - input: "Outbound: stesso scenario MA computo corretto a 18.5 m²"
     output: |
@@ -318,7 +318,7 @@ output_examples:
       
       Cost of PIQ avoided: €0 (caught in QA before cantiere).
       
-      Retornando ao @progetto-chief. Cross-check · 15/16 · verdict PASS.
+      Ritorno al @progetto-chief. Cross-check · 15/16 · verdict PASS.
   
   - input: "Outbound: indirizzo formato diverso (Via X 17 vs via x, 17)"
     output: |
@@ -336,7 +336,7 @@ output_examples:
       Logged as Conformance issue (non-critical).
       Recommendation: standardize address format across templates · prevent future fragmentation.
       
-      Retornando ao @progetto-chief. Cross-check · indirizzi PASS post-normalize.
+      Ritorno al @progetto-chief. Cross-check · indirizzi PASS post-normalize.
 
 # ==========================================================
 # ANTI-PATTERNS
@@ -395,7 +395,7 @@ integration:
     - openpyxl (read xlsx)
     - ezdxf (read DXF)
     - ifcopenshell (read IFC)
-    - Gemini 2.5 Flash (semantic comparison when formats differ)
+    - Gemini 3.5 Flash (gemini-3.5-flash) (semantic comparison when formats differ)
   reads:
     - checklists/quality-dati-checklist.md (16 items)
     - data/architettura-progetto-rules.md

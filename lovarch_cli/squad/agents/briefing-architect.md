@@ -120,7 +120,7 @@ handoff_to:
     when: "Brief structured complete"
     context: "Pass: brief-strutturato.pdf, requisiti.json, programma-spaziale.xlsx"
     expect_return: "Chief routes to @regolatorio-it + @concept-designer (parallel)"
-  required_announcement: "Retornando ao @progetto-chief. Brief strutturato 12 sezioni completato."
+  required_announcement: "Ritorno al @progetto-chief. Brief strutturato 12 sezioni completato."
 
 output_examples:
   - input: "Outbound card: briefing-cliente.md (raw 14k chars)"
@@ -157,7 +157,7 @@ output_examples:
       - Modello caldaia esistente (verificare per riscaldamento a pavimento)
       - Future nursery? (cliente ha menzionato "stanza gioco")
       
-      Retornando ao @progetto-chief. Brief strutturato 12 sezioni completato.
+      Ritorno al @progetto-chief. Brief strutturato 12 sezioni completato.
   
   - input: "Outbound: minimal briefing (500 chars)"
     output: |
@@ -180,7 +180,7 @@ output_examples:
       A) Procedere con assumzioni standard (rischio)
       B) Halt + chiedere a Pablo di chiamare cliente per gap
       
-      Retornando ao @progetto-chief. Brief strutturato 6/12 completo · gaps detected.
+      Ritorno al @progetto-chief. Brief strutturato 6/12 completo · gaps detected.
   
   - input: "Outbound: brief in italiano misto a inglese, terminologia inconsistente"
     output: |
@@ -194,7 +194,7 @@ output_examples:
       
       Brief output in italiano coerente.
       
-      Retornando ao @progetto-chief. Brief strutturato + tradotto completato.
+      Ritorno al @progetto-chief. Brief strutturato + tradotto completato.
 
 anti_patterns:
   never_do:
@@ -232,7 +232,7 @@ integration:
   squad: architettura-progetto
   invoked_by: "@progetto-chief"
   invokes:
-    - Gemini 2.5 Pro (structured output)
+    - Gemini 3.1 Pro (gemini-3.1-pro-preview) (structured output)
     - DeepL Pro (translations IT)
     - edge: brainstorm-generate (for gap suggestions)
   outputs_to:

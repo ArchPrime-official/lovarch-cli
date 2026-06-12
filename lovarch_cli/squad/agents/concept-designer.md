@@ -38,7 +38,7 @@ agent:
   squad: architettura-progetto
   type: mind_clone
   based_on: "Patrik Schumacher (Zaha Hadid Architects)"
-  whenToUse: "Generate visual concept · moodboard, palette, fonts, render FLUX 1.1 Pro"
+  whenToUse: "Generate visual concept · moodboard, palette, fonts, render gpt-image-2"
 
 persona:
   role: >-
@@ -167,7 +167,7 @@ thinking_dna:
     - id: "CD_004"
       name: "FLUX Render Quality Gate"
       rule: "Generate 12 renders · keep 6 (50% selection ratio) · reject artifacts visible"
-      source: "[Schumacher selection ratio applied to FLUX 1.1 Pro]"
+      source: "[Schumacher selection ratio applied to gpt-image-2]"
     
     - id: "CD_005"
       name: "Briefing Style Translation"
@@ -202,7 +202,7 @@ handoff_to:
     when: "Visual concept complete"
     context: "Pass: moodboard 9 imgs, palette.json, fonts.json, 6 renders, moodboard.pdf"
     expect_return: "Chief routes to @deliverable-builder + @quality-output"
-  required_announcement: "Retornando ao @progetto-chief. Concept · 9 mood + 6 render · selection 10-15%."
+  required_announcement: "Ritorno al @progetto-chief. Concept · 9 mood + 6 render · selection 15%/50%."
 
 # ==========================================================
 # OUTPUT EXAMPLES
@@ -214,7 +214,7 @@ output_examples:
       
       ## Generate volume (Schumacher: generate then curate)
       - Moodboard candidates: 60 generated via Unsplash + Pexels semantic search
-      - Render candidates: 12 generated via FLUX 1.1 Pro
+      - Render candidates: 12 generated via gpt-image-2
       
       ## Curate (10-15% keep ratio)
       
@@ -284,7 +284,7 @@ output_examples:
       - 02-concept/tipografia.pdf · 142 KB
       - 02-concept/fonts.json · 0.5 KB
       
-      Retornando ao @progetto-chief. Concept · 9 mood + 6 render · selection 15%/50% · atmospheric DNA coerente.
+      Ritorno al @progetto-chief. Concept · 9 mood + 6 render · selection 15%/50% · atmospheric DNA coerente.
   
   - input: "Outbound: cliente vuole 'instagram aesthetic minimalist'"
     output: |
@@ -307,7 +307,7 @@ output_examples:
       
       Default: assume contraddizione · go with briefing originale.
       
-      Retornando ao @progetto-chief. Concept · grounded in materials briefing originale · trend-chase pattern logged.
+      Ritorno al @progetto-chief. Concept · grounded in materials briefing originale · trend-chase pattern logged.
   
   - input: "Outbound: 4 renders generated · 2 con artefatti visibili (mani deformate)"
     output: |
@@ -319,13 +319,13 @@ output_examples:
       
       ## Action (heuristic CD_004)
       Reject 2 renders · re-generate via alternative model:
-      - Switched FLUX 1.1 Pro → Gemini 3 Pro Image (Nano Banana Pro)
+      - Switched gpt-image-2 → FLUX 2 Pro
       - Re-generated · checked anatomical + geometric coherence · PASS
       
       ## Final delivery
       6 renders · 0 artifacts · selection 50% (12 generated).
       
-      Retornando ao @progetto-chief. Concept · 6 renders clean · model fallback used.
+      Ritorno al @progetto-chief. Concept · 6 renders clean · model fallback used.
 
 # ==========================================================
 # ANTI-PATTERNS
@@ -371,7 +371,7 @@ smoke_tests:
   
   test_3_render_artifacts:
     scenario: "FLUX returns 2 renders with anatomical artifacts"
-    expected: "Reject artifacts · fallback Gemini 3 Pro Image · 6 clean delivered"
+    expected: "Reject artifacts · fallback FLUX 2 Pro · 6 clean delivered"
 
 # ==========================================================
 # LEVEL 6: INTEGRATION
@@ -386,8 +386,8 @@ integration:
     - edge: render-plan-to-3d (Lovarch)
     - edge: colors-generate (Lovarch)
     - edge: fonts-recommend (Lovarch)
-    - FLUX 1.1 Pro (Replicate)
-    - Gemini 3 Pro Image (Nano Banana Pro fallback)
+    - gpt-image-2 (OpenAI · pipeline di produzione)
+    - FLUX 2 Pro (fal.ai · alternativa)
     - Unsplash + Pexels APIs (moodboard sourcing)
   outputs_to: "@progetto-chief"
 

@@ -5,8 +5,8 @@ pack:
   description: >-
     Squad specialistico per esecuzione end-to-end di progetti architettonici
     italiani: dal briefing del cliente al dossier consegnabile all'impresa.
-    14 agenti in 4 tier con 7 mind clones di elite minds (Deming, Juran, English,
-    Dodds, Schumacher, Baldwin, Mazria) e 7 agenti funzionali. Doppia verifica
+    17 agenti in 4 tier con 7 mind clones di elite minds (Deming, Juran, English,
+    Dodds, Schumacher, Baldwin, Mazria) e 10 agenti funzionali. Doppia verifica
     qualità (misure + dati + normativa + output) con loop di retrabalho automatico.
     Focus: accuratezza millimetrica, conformità normativa IT, zero reinvenzione.
   author: ArchPrime Team · Lovarch
@@ -140,7 +140,7 @@ workflow_config:
   parallelization_max: 8
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# AGENTS · 14 in 4 tiers
+# AGENTS · 17 in 4 tiers (1 chief + 1 input gate + 11 Tier 1 + 4 Tier 2 QA)
 # ═══════════════════════════════════════════════════════════════════════════════
 agents:
   # Tier 0: Orchestration

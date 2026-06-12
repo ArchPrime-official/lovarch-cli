@@ -74,8 +74,8 @@ Documenti finanziari includono IVA al 10% (non 22%) per opere di ristrutturazion
 ### N-S6 · Privacy GDPR clausole presenti
 Informativa privacy include: titolare, finalità, base giuridica, conservazione, diritti, DPO se applicabile.
 
-### N-S7 · Antiriciclaggio L.231 menzione obbligatoria
-Contratto include clausola antiriciclaggio (L. 197/2014).
+### N-S7 · Antiriciclaggio D.Lgs 231/2007 menzione obbligatoria
+Contratto include clausola antiriciclaggio (D.Lgs 231/2007).
 
 ---
 
@@ -111,7 +111,7 @@ Documenti regolatori hanno banner "Ultimo aggiornamento DD/MM/2026".
       "severity": "CRITICO",
       "result": false,
       "issue": "DPR 380 art. 88 cited but article does not exist",
-      "verified_against": "Normattiva XML 2024-12-01",
+      "verified_against": "Normattiva XML 2026-06-01",
       "file": "analisi-regolamentare.pdf",
       "page": 3
     }
