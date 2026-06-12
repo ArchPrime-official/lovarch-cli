@@ -75,6 +75,7 @@
     "dry_run_note": "[dim]Runs reales disponibles tras [cyan]lovarch login --premium[/cyan].[/dim]",
     "completed": "[green]✓[/green] Pipeline completado para [bold]{project}[/bold].",
     "failed": "[red]✗[/red] Pipeline falló para [bold]{project}[/bold]. Ver log arriba.",
+    "qa_rejected": "[yellow]⚠[/yellow] El control de calidad (Tier 2) rechazó el dossier de [bold]{project}[/bold]. Los entregables se generaron pero NO están validados para uso profesional. Consulta el informe de QA y el log de arriba; revisa los archivos de entrada del proyecto y vuelve a ejecutar. Soporte: info@lovarch.com",
     "next_steps": "Próximos pasos:\n 1. [cyan]lovarch status[/cyan] — inspecciona la ejecución\n 2. [cyan]lovarch consolidate {project}[/cyan] — genera DOSSIER.zip",
     "subprocess_failed": "✗ Lanzamiento de subprocess falló: {message}",
     "interrupted": "Interrupción del usuario · pipeline cancelado."
