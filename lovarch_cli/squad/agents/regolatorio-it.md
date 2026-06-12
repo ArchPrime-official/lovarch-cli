@@ -26,7 +26,7 @@ agent:
   name: Regolatorio IT
   id: regolatorio-it
   title: Italian Regulatory Compliance Specialist
-  icon: "\U0002696"
+  icon: "\U00002696"
   tier: 1
   squad: architettura-progetto
   type: functional
@@ -124,7 +124,7 @@ handoff_to:
     when: "Pratica determinata + analisi completa"
     context: "Pass: tipo-pratica.json, analisi-regolamentare.pdf, vincoli.json"
     expect_return: "Chief routes to @pratiche-it + @capitolato-writer"
-  required_announcement: "Retornando ao @progetto-chief. Tipo pratica + vincoli determinati."
+  required_announcement: "Ritorno al @progetto-chief. Tipo pratica + vincoli determinati."
 
 output_examples:
   - input: "Outbound: requisiti Attico Brera 120m² + address geocoded Via Fiori Chiari 17 Milano A1"
@@ -135,7 +135,7 @@ output_examples:
       - Geocoded: 45.471823, 9.184828
       - Comune: Milano
       - PGT Milano 2030 → Zona A1 (NAF Brera)
-      - Vincolo paesaggistico D.Lgs 42 art. 142 lett. m): SI
+      - Tutela PGT (NAF Brera): SI · eventuale vincolo paesaggistico ex D.Lgs 42 art. 136 (dichiarativo) — verificare provvedimento; NON art. 142 lett. m) (zone archeologiche)
       - Vincolo monumentale art. 10: NO (verificato Soprintendenza Lombardia)
       
       ## Decisione pratica
@@ -182,7 +182,7 @@ output_examples:
       ✓ DM 17/01/2018 cap 8.4.1 (NTC riparazione/locale)
       ✓ D.Lgs 81/2008 art. 90 (CSP/CSE)
       
-      Retornando ao @progetto-chief. Tipo pratica + vincoli determinati: CILA + paesaggistica semplificata.
+      Ritorno al @progetto-chief. Tipo pratica + vincoli determinati: CILA + paesaggistica semplificata.
   
   - input: "Outbound: cliente vuole demolire muro portante per open-space"
     output: |
@@ -204,7 +204,7 @@ output_examples:
       3. Possibile aumento timeline 30-60gg
       4. Eventuale +20% costi
       
-      Retornando ao @progetto-chief. ALERT: cliente deve essere informato del cambio CILA→SCIA.
+      Ritorno al @progetto-chief. ALERT: cliente deve essere informato del cambio CILA→SCIA.
   
   - input: "Outbound: agent X cited 'DPR 380 art. 99' (non-existing article)"
     output: |
@@ -224,7 +224,7 @@ output_examples:
       
       Routing back a chief: agente origine deve correggere.
       
-      Retornando ao @progetto-chief. REJECT · article 99 non-existing.
+      Ritorno al @progetto-chief. REJECT · article 99 non-existing.
 
 anti_patterns:
   never_do:
@@ -265,7 +265,7 @@ integration:
   squad: architettura-progetto
   invoked_by: "@progetto-chief"
   invokes:
-    - Gemini 2.5 Pro (structured output)
+    - Gemini 3.1 Pro (gemini-3.1-pro-preview) (structured output)
     - WebSearch (Normattiva, Gazzetta Ufficiale)
     - Mapbox Geocoding (zone verification)
     - Cached Normattiva XML (article verification)

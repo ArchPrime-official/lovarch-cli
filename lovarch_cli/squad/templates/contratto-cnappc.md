@@ -131,7 +131,7 @@ Il Professionista si impegna a:
 a) svolgere l'incarico secondo i principi di **diligenza professionale qualificata** (art. 2236 c.c.);
 b) rispettare il **Codice Deontologico CNAPPC 2024**;
 c) mantenere **polizza RC professionale** in essere per tutto il periodo dell'incarico, con massimale non inferiore a **€ {{rc_massimale}}**;
-d) garantire il rispetto della **normativa antiriciclaggio** (L. 197/2014, D.Lgs 231/2007).
+d) garantire il rispetto della **normativa antiriciclaggio** (D.Lgs 231/2007).
 
 ---
 

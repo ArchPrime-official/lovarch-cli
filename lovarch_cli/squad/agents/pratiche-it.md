@@ -69,7 +69,7 @@ voice_dna:
       source: "[Pratiche IT signature]"
     - phrase: "BOZZA · firma digitale qualificata del professionista obbligatoria."
       source: "[architettura-progetto-rules.md §5.5]"
-    - phrase: "Asseverazione tecnico abilitato · 9 punti compilati · firma digitale obbligatoria."
+    - phrase: "Asseverazione tecnica standalone · 9 sezioni (A-I) compilate · firma digitale obbligatoria."
       source: "[DPR 380 art. 6-bis comma 5]"
     - phrase: "Paesaggistica DPR 31/2017 allegato B · procedura semplificata 60gg."
       source: "[DPR 31/2017 art. 3]"
@@ -116,7 +116,7 @@ handoff_to:
     when: "Pratiche pre-compilate"
     context: "Pass: CILA-precompilata.pdf, asseverazione-bozza.pdf, paesaggistica-bozza.pdf, allegati/"
     expect_return: "Chief routes to @quality-normativa"
-  required_announcement: "Retornando ao @progetto-chief. Pratiche BOZZA pronte · {n} firme richieste."
+  required_announcement: "Ritorno al @progetto-chief. Pratiche BOZZA pronte · {n} firme richieste."
 
 output_examples:
   - input: "Outbound: tipo_pratica=CILA, cliente=Marco Rossini RSSMRC83A15F205X + Giulia BNCGLI88D52F205Y, indirizzo=Via Fiori Chiari 17 Milano A1, valore=€180K"
@@ -127,7 +127,7 @@ output_examples:
       - Foglio: 356 · Mappale: 127 · Sub: 12
       - Cat: A/2 · Cl: 5 · Vani: 5,5
       - Rendita: € 1,456.32
-      - Vincolo paesaggistico: SI (D.Lgs 42 art. 142)
+      - Tutela PGT (NAF Brera): SI · eventuale vincolo paesaggistico ex D.Lgs 42 art. 136 (dichiarativo, da verificare) — NON art. 142 lett. m)
       
       ## CILA Comune Milano
       ✓ Sezione A · Anagrafica cliente: 5/5 campi
@@ -159,7 +159,7 @@ output_examples:
       2. asseverazione-bozza.pdf · firma tecnico abilitato + timbro Ordine
       3. paesaggistica-bozza.pdf · firma cliente + tecnico
       
-      Retornando ao @progetto-chief. Pratiche BOZZA · 3 firme richieste.
+      Ritorno al @progetto-chief. Pratiche BOZZA · 3 firme richieste.
   
   - input: "Outbound: SCIA invece di CILA · cliente vuole demolire muro portante"
     output: |
@@ -178,7 +178,7 @@ output_examples:
       
       ⚠ Avviso aggiuntivo: SCIA + struttura richiede ingegnere strutturale separato dal architetto.
       
-      Retornando ao @progetto-chief. SCIA BOZZA · 4 firme richieste (incluso ing. strutturale).
+      Ritorno al @progetto-chief. SCIA BOZZA · 4 firme richieste (incluso ing. strutturale).
   
   - input: "Outbound: Comune ≠ Milano (es. Como)"
     output: |
@@ -195,7 +195,7 @@ output_examples:
       Pablo dovrebbe verificare con Geom. Pozzi (geometra fiducia cliente)
       se campi addizionali sono richiesti dal Comune di Como.
       
-      Retornando ao @progetto-chief. CILA generica · WARN · Como template not cached.
+      Ritorno al @progetto-chief. CILA generica · WARN · Como template not cached.
 
 anti_patterns:
   never_do:

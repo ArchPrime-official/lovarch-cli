@@ -45,8 +45,8 @@ core_principles:
     application: "Always cite codice voce + fonte"
   
   2_iva_10_ristrutturazione:
-    description: "Ristrutturazione interna = IVA 10% (DPR 633/72 art. 7)"
-    application: "Always apply 10% (NOT 22%)"
+    description: "Ristrutturazione interna = IVA 10% (DPR 633/72 Tabella A parte III nn. 127-duodecies/terdecies)"
+    application: "Applicare 10% per manutenzione/recupero edilizio (NOT 22%); attenzione ai beni significativi"
   
   3_sum_match_or_die:
     description: "Sum quantitativi IFC must equal sum computo. ±2% max."
@@ -121,7 +121,7 @@ handoff_to:
     when: "Computo complete"
     context: "Pass: computo-metrico.xlsx, computo-metrico.pdf, quadro-economico.pdf, lista-materiali-EPDs.xlsx"
     expect_return: "Chief routes to @capitolato-writer + @quality-dati"
-  required_announcement: "Retornando ao @progetto-chief. Computo · {n} voci · totale € {X}."
+  required_announcement: "Ritorno al @progetto-chief. Computo · {n} voci · totale € {X}."
 
 output_examples:
   - input: "Outbound: quantitativi.json (muratura demo 18.5m², parquet 102m², impianti elettrici 12 punti)"
@@ -175,7 +175,7 @@ output_examples:
       - 05-impresa/quadro-economico.pdf · 142 KB
       - 05-impresa/lista-materiali-EPDs.xlsx · 98 KB
       
-      Retornando ao @progetto-chief. Computo · 124 voci · totale € 162,327 IVA inclusa.
+      Ritorno al @progetto-chief. Computo · 124 voci · totale € 162,327 IVA inclusa.
   
   - input: "Outbound: quantitativi muratura 18.5m² ma cliente ha indicato budget €180K · sopra disponibilità"
     output: |
@@ -188,7 +188,7 @@ output_examples:
       Margine 9.8% buffer · safe.
       Possibile alocare in upgrade finiture (gres 60×120 fascia alta invece di media).
       
-      Retornando ao @progetto-chief. Computo entro budget · margine €17,673.
+      Ritorno al @progetto-chief. Computo entro budget · margine €17,673.
   
   - input: "Outbound: voce 'parquet rovere certificato Stark Premium' non in Prezzario Lombardia"
     output: |
@@ -201,7 +201,7 @@ output_examples:
       Marcato come [VERIFY] per validazione manuale.
       ⚠ Cliente deve approvare prezzo specifico fornitore.
       
-      Retornando ao @progetto-chief. Computo con 1 voce custom · approvazione cliente richiesta.
+      Ritorno al @progetto-chief. Computo con 1 voce custom · approvazione cliente richiesta.
 
 anti_patterns:
   never_do:
@@ -247,7 +247,7 @@ integration:
     - xlsxwriter (Python · Excel)
     - openpyxl (Python · template editing)
     - pdfplumber (Python · parse Prezzario PDF)
-    - Gemini 2.5 Pro (semantic mapping)
+    - Gemini 3.1 Pro (gemini-3.1-pro-preview) (semantic mapping)
     - Cached Prezzario Lombardia 2025 JSON
     - EC3 Building Transparency (EPDs · for CAM tracking)
 

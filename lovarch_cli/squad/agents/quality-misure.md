@@ -217,7 +217,7 @@ handoff_to:
     when: "Verification complete (PASS or REJECT)"
     context: "Pass: qa-misure-report.json with verdict + diffs"
     expect_return: "If PASS: chief proceeds. If REJECT: chief routes back to originator"
-  required_announcement: "Retornando ao @progetto-chief. Verifica misure · {n_pass}/{n_total} · verdict {PASS|REJECT}."
+  required_announcement: "Ritorno al @progetto-chief. Verifica misure · {n_pass}/{n_total} · verdict {PASS|REJECT}."
 
 # ==========================================================
 # OUTPUT EXAMPLES
@@ -285,7 +285,7 @@ output_examples:
       }
       ```
       
-      Retornando ao @progetto-chief. Verifica misure · 2/5 critici · verdict REJECT.
+      Ritorno al @progetto-chief. Verifica misure · 2/5 critici · verdict REJECT.
   
   - input: "Outbound: stesso pianta MA con sup utile corretta a 115.3"
     output: |
@@ -324,7 +324,7 @@ output_examples:
       }
       ```
       
-      Retornando ao @progetto-chief. Verifica misure · 22/24 · verdict PASS.
+      Ritorno al @progetto-chief. Verifica misure · 22/24 · verdict PASS.
   
   - input: "Outbound: agente cerca di re-measure stesso valore 5 volte (tampering)"
     output: |
@@ -343,7 +343,7 @@ output_examples:
       
       Variation 245-245.5 = 0.5mm → common cause · within control limits.
       
-      Retornando ao @progetto-chief. WARN · Funnel Experiment tampering rilevato · usata prima misurazione.
+      Ritorno al @progetto-chief. WARN · Funnel Experiment tampering rilevato · usata prima misurazione.
 
 # ==========================================================
 # ANTI-PATTERNS

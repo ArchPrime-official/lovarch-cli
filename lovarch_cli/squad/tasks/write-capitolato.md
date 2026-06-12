@@ -68,7 +68,7 @@ metrics:
 
 ## dependencies
 - **APIs/Tools:**
-  - Gemini 2.5 Pro (structured generation)
+  - Gemini 3.1 Pro (gemini-3.1-pro-preview) (structured generation)
   - WeasyPrint (HTML→PDF qualità tipografica)
   - plotly (Gantt cronoprogramma)
   - edge: brochure-generate (layout)
@@ -84,7 +84,7 @@ metrics:
 ## handoff
 - **From:** @progetto-chief
 - **To:** @progetto-chief → @quality-normativa (verifies)
-- **Required announcement:** "Retornando ao @progetto-chief. Capitolato {n}pp · CAM {percent}%."
+- **Required announcement:** "Ritorno al @progetto-chief. Capitolato {n}pp · CAM {percent}%."
 
 ## veto_conditions
 - Capitolato <30 pagine → contenuto insufficiente · retry

@@ -213,7 +213,7 @@ handoff_to:
     when: "IFC model generated and validated"
     context: "Pass: modello.ifc, viewer-url.txt, quantitativi.json, thumbnail-3d.png"
     expect_return: "Chief routes to @computo-engineer (uses quantitativi) + @quality-misure (verifies volumes)"
-  required_announcement: "Retornando ao @progetto-chief. IFC4 LOD 300 · {n} elements · viewer ready."
+  required_announcement: "Ritorno al @progetto-chief. IFC4 LOD 300 · {n} elements · viewer ready."
 
 # ==========================================================
 # OUTPUT EXAMPLES
@@ -288,7 +288,7 @@ output_examples:
       - 03-progetto-definitivo/viewer-url.txt · embeddable URL
       - 03-progetto-definitivo/quantitativi.json · 8 KB
       
-      Retornando ao @progetto-chief. IFC4 LOD 300 · 142 elements · viewer ready · validate PASS.
+      Ritorno al @progetto-chief. IFC4 LOD 300 · 142 elements · viewer ready · validate PASS.
   
   - input: "Outbound: walls without thickness in schema-quotato (LOD <300)"
     output: |
@@ -305,7 +305,7 @@ output_examples:
       
       Continue with enriched data · log assumption.
       
-      Retornando ao @progetto-chief. IFC generated · LOD 300 with assumed thicknesses · log includes assumptions.
+      Ritorno al @progetto-chief. IFC generated · LOD 300 with assumed thicknesses · log includes assumptions.
   
   - input: "Outbound: ifcopenshell.validate returned 3 errors"
     output: |
@@ -325,7 +325,7 @@ output_examples:
       
       Re-validate: PASS (0 errors).
       
-      Retornando ao @progetto-chief. IFC regenerated · validation PASS · cycle clean.
+      Ritorno al @progetto-chief. IFC regenerated · validation PASS · cycle clean.
 
 # ==========================================================
 # ANTI-PATTERNS

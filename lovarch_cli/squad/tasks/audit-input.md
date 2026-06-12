@@ -85,7 +85,7 @@ schema:
 
 ## acceptance_criteria
 - [ ] All 18 items checked (no skipping)
-- [ ] If 5/5 critici (A1, A2, B1, C2, C5) PASS → status=PASS
+- [ ] If 7/7 critici (A1, B1, B2, C2-C3, C5, D3, E1) PASS → status=PASS
 - [ ] If ANY critico FAIL → status=FAIL · workflow halts
 - [ ] JSON output valid against schema
 - [ ] If PASS · extracted_data populated for downstream
@@ -107,13 +107,13 @@ schema:
 
 ## quality_gate
 - **Gate:** QG-AP-1.1 (Input Validation Gate)
-- **Threshold:** 5/5 CRITICI must PASS
+- **Threshold:** 7/7 CRITICI must PASS (A1, B1, B2, C2-C3, C5, D3, E1)
 - **Reviewer:** @progetto-chief on receipt
 
 ## handoff
 - **From:** @progetto-chief (outbound card)
 - **To:** @progetto-chief (inbound card with validation_id + verdict)
-- **Required announcement:** "Retornando ao @progetto-chief. Audit completato — verdict: {PASS|FAIL}."
+- **Required announcement:** "Ritorno al @progetto-chief. Audit completato — verdict: {PASS|FAIL}."
 
 ## veto_conditions
 - Briefing < 500 chars → FAIL (A1)

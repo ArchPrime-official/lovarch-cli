@@ -9,7 +9,7 @@
 **Sportello Unico per l'Edilizia** · Direzione Urbanistica
 Via Giovanni Pirelli 39 · 20124 Milano
 
-## COMUNICAZIONE DI INIZIO LAVORI ASSESERATA (CILA)
+## COMUNICAZIONE DI INIZIO LAVORI ASSEVERATA (CILA)
 
 ai sensi dell'art. 6-bis del DPR 6 giugno 2001 n. 380 (TU Edilizia)
 e ai sensi della L.R. Lombardia 11 marzo 2005 n. 12
@@ -150,7 +150,7 @@ Documenti allegati alla presente CILA:
 
 ### J · Importo lavori
 
-Importo totale lavori: **€ {{importo_lavori}}** (IVA 10% inclusa, art. 7 DPR 633/72)
+Importo totale lavori: **€ {{importo_lavori}}** (IVA 10% inclusa, DPR 633/72 Tabella A parte III nn. 127-duodecies/terdecies)
 
 ### K · Firme
 
@@ -172,6 +172,6 @@ Data firma: ___ / ___ / 2026
 
 > **Note:**
 > - La presente CILA è auto-asseverativa: i lavori possono iniziare contestualmente alla protocollazione.
-> - Il Comune si riserva 30 giorni per controlli di conformità (DPR 380 art. 6-bis c. 4).
+> - Il Comune può effettuare controlli di conformità sull'intervento (DPR 380 art. 6-bis); per la CILA non è previsto un termine di attesa preventivo come per la SCIA.
 > - Eventuali variazioni in corso d'opera richiedono CILA in variante.
 > - Il documento deve essere firmato digitalmente con certificato qualificato (eIDAS QES).

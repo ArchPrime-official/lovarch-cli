@@ -15,7 +15,7 @@ These enforce the hub-and-spoke rule. Failure = protocol violation.
 
 | # | Check | Pass Criteria | Fail Action |
 |---|-------|---------------|-------------|
-| **P1** | **Announcement received** | Inbound card contains literally `"Retornando ao @progetto-chief. {trabalho} concluído."` | REJECT — return to specialist demanding announcement |
+| **P1** | **Announcement received** | Inbound card contains literally `"Ritorno al @progetto-chief. {lavoro} concluso."` | REJECT — return to specialist demanding announcement |
 | **P2** | **No direct chaining** | Specialist did NOT route work directly to another specialist; output came back to hub | ESCALATE — log AP-VIOLATION-001, force re-routing |
 | **P3** | **Cycle ID matches** | Inbound card's `cycle_id` matches outbound card's `cycle_id` | REJECT — request resubmission with correct ID |
 | **P4** | **Specialist identity** | `from:` in inbound matches the specialist routed | ESCALATE — possible identity confusion, halt |
@@ -51,7 +51,7 @@ Run only conventions flagged in outbound card. Box marked applicable but not res
 | **C2** | UNI ISO 128-1 line weights | Spessori 0.13/0.18/0.25/0.35/0.50/0.70 mm | rules.md §3.2 |
 | **C3** | Layer ISO standard | DXF has CAD-A-WALL, CAD-A-DIM, etc. | rules.md §3.3 |
 | **C4** | Tolerance ±1mm | All quotes verifiable to ±1mm | rules.md §3.5 |
-| **C5** | UNI 11337-7 capitolato | Capitolato follows part 7 structure | rules.md §2.5 |
+| **C5** | Capitolato 12 sezioni + BIM | Struttura 12 sezioni (DM 145/2000 / D.Lgs 36/2023) · qualificazione figure BIM ex UNI 11337-7 nella sezione ruoli | rules.md §2.5 |
 | **C6** | CAM 2025 ≥80% | Materials list ≥80% CAM-compliant | rules.md §2.6 |
 | **C7** | DPR 380 article exists | Cited articles exist on Normattiva | rules.md §2.1 |
 | **C8** | NTC 2018 cap 8.x correct | Classification matches intervention | rules.md §2.3 |

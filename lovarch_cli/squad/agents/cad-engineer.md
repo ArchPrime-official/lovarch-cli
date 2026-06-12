@@ -133,7 +133,7 @@ handoff_to:
     when: "Plans generated"
     context: "Pass: pianta-progetto.dxf, pianta-progetto.pdf, sezioni, schema-quotato.json"
     expect_return: "Chief routes to @bim-engineer (uses schema) + @quality-misure (verifies)"
-  required_announcement: "Retornando ao @progetto-chief. Plans generati · {n} entities · cotazioni verificate."
+  required_announcement: "Ritorno al @progetto-chief. Plans generati · {n} entities · cotazioni verificate."
 
 output_examples:
   - input: "Outbound: stato-attuale.dxf 78KB + programma-spaziale.xlsx con 9 ambienti target 102m² utili"
@@ -149,9 +149,9 @@ output_examples:
       - 03-progetto-definitivo/schema-quotato.json · 5 KB
       
       ## Verifica dimensionale
-      - Sup utile totale: 102.3 m² (target 102 ± 0.5%)
+      - Sup utile totale: 115.3 m² (somma 9 ambienti · target ~115 ± 0.5%)
       - Sup lorda: 120.0 m² · matches perimeter 12000 × 10000 mm
-      - Muratura: 17.7 m² · diff = 102.3 + 17.7 = 120.0 ✓
+      - Muratura: 4.7 m² · check = 115.3 utile + 4.7 muratura = 120.0 lorda ✓
       - 24 quote totali · sum check 24/24 PASS · tolleranza ±1mm
       
       ## Layer ISO
@@ -184,7 +184,7 @@ output_examples:
       }
       ```
       
-      Retornando ao @progetto-chief. Plans generati · 187 entities · cotazioni verificate ±1mm.
+      Ritorno al @progetto-chief. Plans generati · 187 entities · cotazioni verificate ±1mm.
   
   - input: "Outbound: cliente camera Sofia target 8 m² (sotto minimo)"
     output: |
@@ -200,7 +200,7 @@ output_examples:
       
       Default: Opzione A (più sicura). Generata pianta con Sofia 9 m².
       
-      Retornando ao @progetto-chief. Plans generati con WARN · sup Sofia incrementata 8→9 m².
+      Ritorno al @progetto-chief. Plans generati con WARN · sup Sofia incrementata 8→9 m².
   
   - input: "Outbound: regenerate pianta dopo QA REJECT su Q12"
     output: |
@@ -218,7 +218,7 @@ output_examples:
       - pianta-progetto.pdf · 388 KB
       - schema-quotato.json · Q12 ora 245cm
       
-      Retornando ao @progetto-chief. Retry 1/3 completato · Q12 fixed.
+      Ritorno al @progetto-chief. Retry 1/3 completato · Q12 fixed.
 
 anti_patterns:
   never_do:

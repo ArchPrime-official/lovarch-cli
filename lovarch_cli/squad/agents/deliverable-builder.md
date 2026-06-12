@@ -124,7 +124,7 @@ handoff_to:
     when: "All deliverables built"
     context: "Pass: presentazione.html, portale URL, DOSSIER.zip, social.json, scheda.json, cash-flow.xlsx, task-list.json"
     expect_return: "Chief routes to @quality-output (final QA)"
-  required_announcement: "Retornando ao @progetto-chief. Deliverables · {n} files · DS V8 compliant."
+  required_announcement: "Ritorno al @progetto-chief. Deliverables · {n} files · DS V8 compliant."
 
 output_examples:
   - input: "Outbound: tutti gli output Tier 1 (renders + plans + capitolato + computo + contratto + APE)"
@@ -167,7 +167,7 @@ output_examples:
       ✓ Zero blue (#2563EB, sky-*, blue-* not present)
       ✓ Mobile 375px tested · no overflow
       
-      Retornando ao @progetto-chief. Deliverables 27 files · DS V8 compliant.
+      Ritorno al @progetto-chief. Deliverables 27 files · DS V8 compliant.
   
   - input: "Outbound: render con artefatti visibili (mani deformate)"
     output: |
@@ -179,7 +179,7 @@ output_examples:
       2. Use 5 render senza artefatti (anche se 6 erano target)
       3. Flag in ticket per @concept-designer per regeneration prossima esecuzione
       
-      Retornando ao @progetto-chief. Deliverables 26 files · 1 render skipped (quality).
+      Ritorno al @progetto-chief. Deliverables 26 files · 1 render skipped (quality).
   
   - input: "Outbound: cliente vuole presentazione bilingue IT+EN"
     output: |
@@ -195,7 +195,7 @@ output_examples:
       Both versions use same DS V8 design system.
       Toggle button TOP-RIGHT per language switch.
       
-      Retornando ao @progetto-chief. Deliverables · 28 files (incluso EN version).
+      Ritorno al @progetto-chief. Deliverables · 28 files (incluso EN version).
 
 anti_patterns:
   never_do:
