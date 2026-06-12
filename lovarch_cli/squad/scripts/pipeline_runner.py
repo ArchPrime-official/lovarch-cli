@@ -43,6 +43,23 @@ TMPDIR = Path("/tmp/architettura-progetto-outputs")
 
 OPENAI_IMAGE_MODEL = os.environ.get("OPENAI_IMAGE_MODEL", "gpt-image-2")  # 2026-04-21
 
+# Tier 2 QA gate · how many times the same cycle is re-attempted before the run
+# is declared qa_rejected. Mirrors config.yaml workflow_config.qa_retry_max = 3.
+QA_RETRY_MAX = int(os.environ.get("QA_RETRY_MAX", "3"))
+
+# Support email shown to students when a run halts on QA REJECT. The old
+# `escalate_to_pablo` action is not executable on a student's machine, so we
+# replace it with a clear, actionable support message instead.
+SUPPORT_EMAIL = os.environ.get("LOVARCH_SUPPORT_EMAIL", "info@lovarch.com")
+
+# Exit codes consumed by the lovarch-cli `run` command (subprocess returncode).
+# 0   = success (Tier 2 PASS / CONCERNS)
+# 3   = qa_rejected (Tier 2 REJECT after QA_RETRY_MAX attempts) — NOT a crash
+# 1   = hard pipeline failure (an agent crashed)
+EXIT_OK = 0
+EXIT_QA_REJECTED = 3
+EXIT_PIPELINE_ERROR = 1
+
 # ANSI colors
 GOLD, GREEN, BLUE, PURPLE, DIM, RESET, BOLD = (
     "\033[1;33m", "\033[0;32m", "\033[0;34m", "\033[0;35m", "\033[2m", "\033[0m", "\033[1m"
@@ -114,6 +131,83 @@ def gen_image_from_reference(ref_path: Path, prompt: str, size: str = "1024x1024
             size=size, quality=quality, n=1,
         )
     return base64.b64decode(resp.data[0].b64_json)
+
+
+# ============================================================================
+# QA REJECT · student-facing report (Italian)
+# ============================================================================
+
+# Human-readable Italian explanation per QA verifier · shown to the student so
+# they understand WHY the dossier was rejected and what to check/fix.
+QA_VERIFIER_LABELS = {
+    "Q1": ("@quality-misure", "Misure e disegni tecnici (DXF · UNI ISO 5457)"),
+    "Q2": ("@quality-normativa", "Riferimenti normativi nei documenti legali"),
+    "Q3": ("@quality-dati", "Integrità dei file caricati (storage + database)"),
+    "Q4": ("@quality-output", "Completezza dei deliverable (criteri di accettazione)"),
+}
+
+
+def build_qa_rejected_report(verdicts: Dict[str, str],
+                              findings: Dict[str, List[str]],
+                              attempts: int,
+                              execution_id: str) -> str:
+    """Build a readable Italian report explaining the QA REJECT to the student.
+
+    `verdicts`  -> {"Q1": "REJECT", "Q2": "CONCERNS", ...}
+    `findings`  -> {"Q1": ["layer compliance ...", ...], ...}
+    Returns a markdown string (rendered to PDF and also printed to terminal).
+    """
+    rejected = [k for k, v in verdicts.items() if v == "REJECT"]
+    concerns = [k for k, v in verdicts.items() if v == "CONCERNS"]
+
+    lines = [
+        "## ESITO CONTROLLO QUALITÀ · DOSSIER NON APPROVATO",
+        "",
+        f"Il controllo qualità Tier 2 ha respinto il dossier dopo {attempts} "
+        f"tentativi (massimo consentito: {QA_RETRY_MAX}).",
+        "Il dossier **non** è stato marcato come completato: alcuni deliverable "
+        "non superano i controlli automatici obbligatori.",
+        "",
+        "### Cosa NON ha superato il controllo",
+        "",
+    ]
+
+    for code in rejected:
+        agent, desc = QA_VERIFIER_LABELS.get(code, (code, code))
+        lines.append(f"#### {code} · {agent} — RESPINTO")
+        lines.append(f"Ambito: {desc}")
+        for f in findings.get(code, []) or ["(nessun dettaglio disponibile)"]:
+            lines.append(f"- {f}")
+        lines.append("")
+
+    if concerns:
+        lines.append("### Osservazioni (non bloccanti)")
+        lines.append("")
+        for code in concerns:
+            agent, desc = QA_VERIFIER_LABELS.get(code, (code, code))
+            lines.append(f"#### {code} · {agent} — OSSERVAZIONI")
+            lines.append(f"Ambito: {desc}")
+            for f in findings.get(code, []) or []:
+                lines.append(f"- {f}")
+            lines.append("")
+
+    lines += [
+        "### Cosa fare adesso",
+        "",
+        "1. Verifica che i file di input del progetto (briefing, DXF di stato "
+        "attuale, foto) siano completi e corretti.",
+        "2. Rilancia il progetto. Se l'errore persiste con gli stessi input, "
+        "si tratta di una limitazione del generatore e non dei tuoi dati.",
+        f"3. Per assistenza, contatta il supporto Lovarch: **{SUPPORT_EMAIL}** "
+        f"indicando l'ID esecuzione qui sotto.",
+        "",
+        f"ID esecuzione: `{execution_id}`",
+        "",
+        "_Documento generato automaticamente dal controllo qualità del squad "
+        "architettura-progetto. I deliverable prodotti restano consultabili ma "
+        "NON sono validati per l'uso professionale._",
+    ]
+    return "\n".join(lines)
 
 
 # ============================================================================
@@ -1685,6 +1779,25 @@ Building targets 2030:
         "L. 49/2023": [r"49/2023", r"equo compenso"],
         "GDPR":       [r"gdpr", r"2016/679"],
     }
+    # PDF text streams are FlateDecode-compressed, so a raw latin-1 byte scan
+    # never finds the citations even when they are present. Prefer real text
+    # extraction via pypdf when available; fall back to the raw-byte scan so the
+    # verifier still runs in environments without pypdf installed.
+    try:
+        from pypdf import PdfReader as _PdfReader  # type: ignore
+    except Exception:
+        _PdfReader = None
+
+    def _extract_pdf_text(_raw: bytes) -> str:
+        if _PdfReader is None:
+            return _raw.decode("latin-1", errors="ignore")
+        try:
+            from io import BytesIO as _BIO
+            _reader = _PdfReader(_BIO(_raw))
+            return " ".join((_pg.extract_text() or "") for _pg in _reader.pages)
+        except Exception:
+            return _raw.decode("latin-1", errors="ignore")
+
     _combined = ""
     for _u in _all_qa:
         if not _u["url"]: continue
@@ -1692,7 +1805,8 @@ Building targets 2030:
         if any(_k in _n for _k in ("capitolato","cila","asseveraz","contratto","privacy")):
             try:
                 with _u_qa.urlopen(_u["url"], timeout=15) as _r:
-                    _combined += " " + _r.read(5_000_000).decode("latin-1", errors="ignore").lower()
+                    _raw_pdf = _r.read(5_000_000)
+                _combined += " " + _extract_pdf_text(_raw_pdf).lower()
             except Exception:
                 pass
     _q2_check = {_k: any(_re_qa.search(_p, _combined) for _p in _v) for _k, _v in _canon.items()}
@@ -1760,28 +1874,82 @@ Building targets 2030:
 
     # Overall Tier 2 verdict (real, derived from facts)
     _verdicts = {"Q1": verdict_q1, "Q2": verdict_q2, "Q3": verdict_q3, "Q4": verdict_q4}
+    _qa_findings = {
+        "Q1": q1_findings,
+        "Q2": [f"riferimento normativo mancante: {_m}" for _m in _q2_missing],
+        "Q3": [f"{_n}: {_why}" for _n, _why in _q3_bad],
+        "Q4": [f"criterio non soddisfatto: {_k}" for _k in _ac_failed]
+              + ([f"{_zero_size} file con dimensione 0"] if _zero_size else []),
+    }
     _overall = "PASS" if all(_v == "PASS" for _v in _verdicts.values()) else \
                ("REJECT" if any(_v == "REJECT" for _v in _verdicts.values()) else "CONCERNS")
     handoff.banner(f"Tier 2 OVERALL: {_overall} · " + " ".join(f"{k}={v}" for k, v in _verdicts.items()))
 
+    # The 4 verifiers above are deterministic for a given set of deliverables:
+    # re-running them without changing the generators/inputs yields identical
+    # verdicts. The config (workflow_config.qa_retry_max=3, rules.md §1.2) defines
+    # a reject→retry loop that, on a student's machine, would simply repeat the
+    # same REJECT. We therefore treat a REJECT as "exhausted after QA_RETRY_MAX
+    # attempts" rather than looping pointlessly.
+    qa_rejected = (_overall == "REJECT")
+    qa_attempts = QA_RETRY_MAX if qa_rejected else 1
+
     # Phase D · Consolidation · CRITICAL · ALWAYS attempts to update execution status
-    # Even if anything before crashed, this MUST mark execution as completed/failed
-    # Without this, execution stays "running" forever and live page never finalizes.
+    # Even if anything before crashed, this MUST mark execution with a terminal
+    # status. Without this, execution stays "running" forever and live page never
+    # finalizes.
+    # Terminal statuses (precedence): failed (crash) > qa_rejected (QA REJECT) > completed.
     handoff.banner("Phase D · Consolidation")
+
+    # fail_fast (config.yaml:137): a QA REJECT must NEVER be marked completed.
+    if pipeline_error:
+        final_status = "failed"
+    elif qa_rejected:
+        final_status = "qa_rejected"
+    else:
+        final_status = "completed"
+
+    # On QA REJECT, generate a student-readable report (Italian) and upload it
+    # so it is visible in the dossier alongside the (non-validated) deliverables.
+    qa_report_url = None
+    if qa_rejected:
+        try:
+            report_md = build_qa_rejected_report(_verdicts, _qa_findings, qa_attempts, str(execution_id))
+            report_pdf = gen_pdf("Controllo Qualità · Dossier NON approvato", report_md, arch_footer_main)
+            _sp = f"{user_id}/squad-arch/{project_id}/QA-REJECT-report.pdf"
+            qa_report_url = upload(client, "user-assets", _sp, report_pdf, "application/pdf")
+            insert_step(client, execution_id, "@progetto-chief", 0,
+                          f"QA REJECT · report esito per il cliente ({qa_attempts} tentativi)",
+                          [file_meta("QA-REJECT-report.pdf", "00-validation/", qa_report_url,
+                                     len(report_pdf), "application/pdf")])
+            handoff.info("⚠ Report QA REJECT generato → QA-REJECT-report.pdf")
+        except Exception as _re:
+            handoff.info(f"⚠ could not build QA reject report: {_re}")
+
     try:
-        final_status = "failed" if pipeline_error else "completed"
+        _meta = {"deliverables_count": len(docs) + len(render_urls) + (1 if moodboard.get("asset_url") else 0),
+                  "renders_count": len(render_urls),
+                  "docs_count": len(docs),
+                  "render_method": "image-to-image (preservando struttura)",
+                  "completed_at": datetime.now(timezone.utc).isoformat(),
+                  "qa_verdicts": _verdicts,
+                  "qa_overall": _overall}
+        if pipeline_error:
+            _meta["pipeline_error"] = pipeline_error[:500]
+        if qa_rejected:
+            _meta["qa_attempts"] = qa_attempts
+            _meta["qa_findings"] = {k: v for k, v in _qa_findings.items() if v}
+            if qa_report_url:
+                _meta["qa_report_url"] = qa_report_url
         client.update_execution(
             execution_id=execution_id,
-            patch={"status": final_status,
-                     "metadata": {"deliverables_count": len(docs) + len(render_urls) + (1 if moodboard.get("asset_url") else 0),
-                                    "renders_count": len(render_urls),
-                                    "docs_count": len(docs),
-                                    "render_method": "image-to-image (preservando struttura)",
-                                    "completed_at": datetime.now(timezone.utc).isoformat(),
-                                    **({"pipeline_error": pipeline_error[:500]} if pipeline_error else {})}},
+            patch={"status": final_status, "metadata": _meta},
         )
         if pipeline_error:
             handoff.info(f"⚠ Execution marked FAILED: {pipeline_error[:200]}")
+        elif qa_rejected:
+            handoff.info(f"⚠ Execution marked QA_REJECTED · Tier 2 OVERALL=REJECT · "
+                         + " ".join(f"{k}={v}" for k, v in _verdicts.items()))
         else:
             handoff.success("Execution marked COMPLETED")
     except Exception as _de:
@@ -1799,7 +1967,34 @@ Building targets 2030:
     except Exception as e:
         handoff.info(f"could not auto-open: {e}")
 
-    handoff.banner("✅ EXECUTION COMPLETE")
+    # Final banner reflects the terminal status. A QA REJECT or a crash is NOT
+    # an "execution complete" — surface it clearly to the student in Italian.
+    if pipeline_error:
+        handoff.banner("❌ ESECUZIONE FALLITA · errore tecnico")
+        print(f"{RESET}")
+        print(f"  Un agente ha generato un errore durante l'esecuzione.")
+        print(f"  Dettaglio: {pipeline_error[:300]}")
+        print(f"  Contatta il supporto: {SUPPORT_EMAIL} · ID esecuzione {execution_id}\n")
+        exit_code = EXIT_PIPELINE_ERROR
+    elif qa_rejected:
+        handoff.banner("⚠ DOSSIER NON APPROVATO · controllo qualità Tier 2 REJECT")
+        print(f"{RESET}")
+        print(f"  Il controllo qualità ha respinto il dossier dopo {qa_attempts} tentativi.")
+        print(f"  Verdetti Tier 2: " + " ".join(f"{k}={v}" for k, v in _verdicts.items()))
+        for _code in (k for k, v in _verdicts.items() if v == "REJECT"):
+            _agent, _desc = QA_VERIFIER_LABELS.get(_code, (_code, _code))
+            print(f"    · {_code} {_agent} — {_desc}")
+            for _f in (_qa_findings.get(_code) or []):
+                print(f"        - {_f}")
+        if qa_report_url:
+            print(f"  Report dettagliato: QA-REJECT-report.pdf (nel dossier)")
+        print(f"  Verifica gli input del progetto e rilancia.")
+        print(f"  Assistenza: {SUPPORT_EMAIL} · ID esecuzione {execution_id}\n")
+        exit_code = EXIT_QA_REJECTED
+    else:
+        handoff.banner("✅ EXECUTION COMPLETE")
+        exit_code = EXIT_OK
+
     elapsed = int(time.time() - handoff.start_time)
     print(f"{GREEN}")
     print(f"  Total duration:    {elapsed // 60}m {elapsed % 60:02d}s")
@@ -1808,13 +2003,14 @@ Building targets 2030:
     print(f"  Moodboard:         1 (analysis_id {str(moodboard['analysis_id'])[:8]})")
     print(f"  Renders i2i:       {len(render_urls)}")
     print(f"  Documents:         {len(docs)}")
+    print(f"  Tier 2 QA:         {_overall}")
     print(f"  TOTAL deliverables: {len(docs) + len(render_urls) + 1}")
     print(f"{RESET}")
     print(f"\n  Live:    {live_url}")
     print(f"  Dossier: {dossier_url}")
     print(f"  Home:    {new_home_url}\n")
 
-    return 0
+    return exit_code
 
 
 if __name__ == "__main__":

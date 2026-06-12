@@ -75,6 +75,7 @@
     "dry_run_note": "[dim]Runs reais disponíveis após [cyan]lovarch login --premium[/cyan].[/dim]",
     "completed": "[green]✓[/green] Pipeline concluído para [bold]{project}[/bold].",
     "failed": "[red]✗[/red] Pipeline falhou para [bold]{project}[/bold]. Veja log acima.",
+    "qa_rejected": "[yellow]⚠[/yellow] O controle de qualidade (Tier 2) reprovou o dossiê de [bold]{project}[/bold]. Os entregáveis foram gerados mas NÃO estão validados para uso profissional. Veja o relatório de QA e o log acima; verifique os arquivos de entrada do projeto e rode novamente. Suporte: info@lovarch.com",
     "next_steps": "Próximos passos:\n 1. [cyan]lovarch status[/cyan] — inspeciona a execução\n 2. [cyan]lovarch consolidate {project}[/cyan] — gera DOSSIER.zip",
     "subprocess_failed": "✗ Falha ao iniciar subprocess: {message}",
     "interrupted": "Interrupção do usuário · pipeline cancelado."

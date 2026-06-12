@@ -32,6 +32,7 @@ import asyncio
 import os
 import subprocess
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Annotated
 
@@ -85,6 +86,43 @@ def _read_audit_verdict(project_dir: Path) -> str | None:
         return None
     last = meta.get("last_audit") or {}
     return last.get("verdict")
+
+
+# Map pipeline_runner.py exit codes to a terminal run status. Kept in sync with
+# the EXIT_* constants in squads/architettura-progetto/scripts/pipeline_runner.py.
+_RUN_EXIT_STATUS = {
+    0: "completed",
+    3: "qa_rejected",  # Tier 2 QA REJECT — NOT a crash, NOT a success
+}
+
+
+def _status_from_returncode(returncode: int) -> str:
+    """Translate the runner's exit code into a terminal run status."""
+    return _RUN_EXIT_STATUS.get(returncode, "failed")
+
+
+def _write_last_run(project_dir: Path, status: str, returncode: int) -> None:
+    """Persist the terminal run status into project.yaml `last_run`.
+
+    Best-effort: a write failure must never change the run's exit code.
+    """
+    yaml_path = project_dir / "project.yaml"
+    try:
+        meta = yaml.safe_load(yaml_path.read_text(encoding="utf-8")) or {}
+    except (OSError, yaml.YAMLError):
+        meta = {}
+    meta["last_run"] = {
+        "status": status,
+        "exit_code": returncode,
+        "at": datetime.now(timezone.utc).isoformat(),
+    }
+    try:
+        yaml_path.write_text(
+            yaml.safe_dump(meta, sort_keys=False, allow_unicode=True),
+            encoding="utf-8",
+        )
+    except OSError:
+        pass
 
 
 def run_command(
@@ -292,9 +330,18 @@ def run_command(
         sys.exit(130)
 
     # ─── Result panel ────────────────────────────────────────────────────
-    success = result.returncode == 0
-    summary_key = "run.completed" if success else "run.failed"
-    border = "green" if success else "red"
+    # Terminal status is derived from the runner's exit code:
+    #   0 → completed · 3 → qa_rejected (Tier 2 QA REJECT) · other → failed
+    run_status = _status_from_returncode(result.returncode)
+    _write_last_run(proj_dir, run_status, result.returncode)
+
+    if run_status == "completed":
+        summary_key, border = "run.completed", "green"
+    elif run_status == "qa_rejected":
+        summary_key, border = "run.qa_rejected", "yellow"
+    else:
+        summary_key, border = "run.failed", "red"
+
     console.print()
     console.print(
         Panel(
