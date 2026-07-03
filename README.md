@@ -76,7 +76,7 @@ WSL, o se hai già pipx configurato):
 
 ```bash
 # Ultima release (anche pre-release):
-pipx install git+https://github.com/ArchPrime-official/lovarch-cli.git@v0.1.2
+pipx install git+https://github.com/ArchPrime-official/lovarch-cli.git@v0.2.1
 
 # Oppure dal branch main (rolling):
 pipx install git+https://github.com/ArchPrime-official/lovarch-cli.git
@@ -91,7 +91,7 @@ git clone https://github.com/ArchPrime-official/lovarch-cli.git
 cd lovarch-cli
 python3.12 -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"
-pytest tests/      # → 142 passing
+pytest tests/      # → 198 passing
 lovarch --version
 ```
 
@@ -105,7 +105,7 @@ Vedi [CONTRIBUTING.md](./CONTRIBUTING.md) per il workflow di sviluppo.
 
 ```bash
 # Verifica installazione
-lovarch --version    # → lovarch-cli 0.1.2
+lovarch --version    # → lovarch-cli 0.2.1
 
 # Primo login (interattivo: Free o Premium)
 lovarch login
@@ -132,7 +132,7 @@ lovarch status
 |---------|-------------|
 | `arch login` | Login Free o Premium |
 | `arch signup` | Cadastro Free interattivo |
-| `arch config` | Configurazione (API keys, lingua, storage path) — _in arrivo (v0.2)_ |
+| `arch config` | Configurazione (API keys, lingua, storage path) |
 | `arch init <progetto>` | Crea nuovo progetto con struttura sample-input |
 | `arch audit <progetto>` | Esegue audit input (gate di ingresso) |
 | `arch run <workflow>` | Esegue workflow completo |
@@ -140,8 +140,27 @@ lovarch status
 | `arch status <id>` | Stato di una esecuzione |
 | `arch upgrade` | CTA per passare da Free a Premium |
 | `arch account delete` | Right-to-erasure GDPR |
+| `arch context show` | Contesto di personalizzazione usato dagli agenti AI (premium) |
+| `arch do render\|colors\|copy` | Workflow della piattaforma dal terminale (premium) |
+| `arch verifica misure <dxf>` | Verifica DXF: layer ISO, ambienti, cartiglio (gratis) |
+| `arch verifica normativa\|contratto <doc>` | Verifica adversariale 2 modelli (premium) |
+| `arch verifica dossier <cartella>` | QA completo standalone su una cartella (premium) |
+| `arch jobs list\|status` | Job asincroni (video, export, upscale) |
+| `arch mcp serve` | Server MCP per Claude Code / IDE |
 
 Vedi `arch --help` per dettagli completi.
+
+## Server MCP (Claude Code / Claude / IDE)
+
+Il CLI espone le sue capacità come server **MCP** — 15 tools (render, verifica,
+crediti, contesto, testo multi-modello...). Registrazione in Claude Code:
+
+```bash
+claude mcp add lovarch -- lovarch mcp serve
+```
+
+Ogni tool-call addebita i crediti Lovarch dell'utente esattamente come il CLI
+(i costi sono SEMPRE espressi in crediti).
 
 ## Limiti dichiarati
 
