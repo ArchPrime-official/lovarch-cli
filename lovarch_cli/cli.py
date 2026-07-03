@@ -249,6 +249,14 @@ app.add_typer(
     help="Job asincroni (video, export, upscale) — stato e output.",
 )
 
+from lovarch_cli.commands.agent_cmd import agent_app  # noqa: E402
+
+app.add_typer(
+    agent_app,
+    name="agent",
+    help="Agenti architetto/interior/cantiere (interior-designer, direzione-lavori...).",
+)
+
 from lovarch_cli.commands.config_cmd import config_app  # noqa: E402
 
 app.add_typer(

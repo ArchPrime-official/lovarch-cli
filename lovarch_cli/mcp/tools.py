@@ -411,3 +411,25 @@ async def tool_site(workflows: Any, *, prompt: str, output_path: str, language: 
     p.write_text(html, encoding="utf-8")
     return {"ok": True, "saved_to": str(p), "bytes": len(html)}
 
+
+
+async def tool_agent(gateway: Any, *, agent_id: str, brief: str,
+                     language: str = "it", lead_id: str | None = None) -> dict:
+    """Run a curated architecture/interior/construction agent via the platform."""
+    if gateway is None:
+        return {"error": "not_authenticated", "hint": "Esegui `lovarch login --premium`."}
+    from lovarch_cli.agents import AGENTS, run_agent
+    from lovarch_cli.ai import InsufficientCreditsError
+
+    if agent_id not in AGENTS:
+        return {"ok": False, "error": f"unknown_agent: {agent_id}",
+                "available": list(AGENTS)}
+    try:
+        r = await run_agent(gateway, agent_id, brief, language=language, lead_id=lead_id)
+    except InsufficientCreditsError as exc:
+        return {"ok": False, "error": "insufficient_credits",
+                "credits_available": exc.available, "credits_needed": exc.needed}
+    except AiGatewayError as exc:
+        return {"ok": False, "error": str(exc)}
+    return {"ok": True, "agent": r.agent_id, "text": r.text,
+            "model": r.model, "credits_charged": r.credits_charged}
