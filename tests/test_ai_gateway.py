@@ -42,7 +42,6 @@ async def test_generate_image_success_decodes_and_reports_debit():
         "revised_prompt": "a grey square",
         "credits_charged": 6,
         "balance": 994,
-        "cost_usd": 0.006,
         "is_admin": False,
     }))
     gw = LovarchAiGateway(session)  # type: ignore[arg-type]
@@ -53,7 +52,6 @@ async def test_generate_image_success_decodes_and_reports_debit():
     assert result.content_type == "image/png"
     assert result.credits_charged == 6
     assert result.balance == 994
-    assert result.cost_usd == 0.006
     assert result.is_admin is False
     # request went to the gateway EF with the expected body
     assert session.last_call["path"] == "/functions/v1/cli-ai-generate"
@@ -88,7 +86,7 @@ async def test_generation_failure_raises_gateway_error():
 async def test_edit_mode_sends_image_urls():
     session = _FakeSession(_resp(200, {
         "ok": True, "image_base64": _DATA_URL, "credits_charged": 6,
-        "balance": 100, "cost_usd": 0.006, "is_admin": False,
+        "balance": 100, "is_admin": False,
     }))
     gw = LovarchAiGateway(session)  # type: ignore[arg-type]
 
