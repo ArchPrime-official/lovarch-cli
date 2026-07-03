@@ -209,6 +209,46 @@ app.add_typer(
     help="Developer tooling for the squad payload (contributors only).",
 )
 
+from lovarch_cli.commands.mcp_cmd import mcp_app  # noqa: E402
+
+app.add_typer(
+    mcp_app,
+    name="mcp",
+    help="Server MCP (Claude Code / IDE). Richiede l'extra [mcp].",
+)
+
+from lovarch_cli.commands.context_cmd import context_app  # noqa: E402
+
+app.add_typer(
+    context_app,
+    name="context",
+    help="Contesto di personalizzazione usato dagli agenti AI (premium).",
+)
+
+from lovarch_cli.commands.do_cmd import do_app  # noqa: E402
+
+app.add_typer(
+    do_app,
+    name="do",
+    help="Workflow della piattaforma: render, colors, copy (premium).",
+)
+
+from lovarch_cli.commands.verifica_cmd import verifica_app  # noqa: E402
+
+app.add_typer(
+    verifica_app,
+    name="verifica",
+    help="Verifica dati: misure DXF (gratis) · normativa adversarial (premium).",
+)
+
+from lovarch_cli.commands.jobs_cmd import jobs_app  # noqa: E402
+
+app.add_typer(
+    jobs_app,
+    name="jobs",
+    help="Job asincroni (video, export, upscale) — stato e output.",
+)
+
 
 if __name__ == "__main__":
     app()
