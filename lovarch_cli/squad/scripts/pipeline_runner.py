@@ -2087,14 +2087,34 @@ def main():
                ("REJECT" if any(_v == "REJECT" for _v in _verdicts.values()) else "CONCERNS")
     handoff.banner(f"Tier 2 OVERALL: {_overall} · " + " ".join(f"{k}={v}" for k, v in _verdicts.items()))
 
-    # The 4 verifiers above are deterministic for a given set of deliverables:
-    # re-running them without changing the generators/inputs yields identical
-    # verdicts. The config (workflow_config.qa_retry_max=3, rules.md §1.2) defines
-    # a reject→retry loop that, on a student's machine, would simply repeat the
-    # same REJECT. We therefore treat a REJECT as "exhausted after QA_RETRY_MAX
-    # attempts" rather than looping pointlessly.
+    # The 4 verifiers are deterministic for a GIVEN set of deliverables. A full
+    # regenerate→re-verify loop (config qa_retry_max=3) requires the modular
+    # runner refactor; until then we report the TRUE attempt count (1) instead
+    # of pretending we retried 3 times.
     qa_rejected = (_overall == "REJECT")
-    qa_attempts = QA_RETRY_MAX if qa_rejected else 1
+    qa_attempts = 1
+
+    # Chief REAL action on REJECT (premium): @progetto-chief (Opus 4.8) analyzes
+    # the QA findings and produces an ACTIONABLE revision plan — what to fix and
+    # how — instead of just rubber-stamping the reject. Debits the user's
+    # credits. This is the hub acting on the QA verdict.
+    chief_review = None
+    if qa_rejected:
+        _findings_txt = "\n".join(
+            f"- {k} ({_verdicts[k]}): " + "; ".join(v)
+            for k, v in _qa_findings.items() if v
+        )
+        chief_review = _gateway_text(
+            "Sei @progetto-chief, orchestratore del squad architettura. Il Tier 2 "
+            "QA ha dato REJECT. Analizza i findings e produci un PIANO DI REVISIONE "
+            "conciso e AZIONABILE in markdown: per ogni problema, quale agente "
+            "deve correggere cosa e come. Niente riempitivi.",
+            f"Progetto: {project_input.project_data['name']}.\n"
+            f"Verdetti: {', '.join(f'{k}={v}' for k, v in _verdicts.items())}.\n"
+            f"Findings:\n{_findings_txt}\n\nProduci il piano di revisione.",
+            role="chief", max_tokens=1500, operation="progetto-chief:qa-review")
+        if chief_review:
+            handoff.info("@progetto-chief ha analizzato il REJECT (piano di revisione LLM)")
 
     # Phase D · Consolidation · CRITICAL · ALWAYS attempts to update execution status
     # Even if anything before crashed, this MUST mark execution with a terminal
@@ -2117,6 +2137,9 @@ def main():
     if qa_rejected:
         try:
             report_md = build_qa_rejected_report(_verdicts, _qa_findings, qa_attempts, str(execution_id))
+            if chief_review:
+                report_md += ("\n\n---\n\n## PIANO DI REVISIONE · @progetto-chief\n\n"
+                              + chief_review)
             report_pdf = gen_pdf("Controllo Qualità · Dossier NON approvato", report_md, arch_footer_main)
             _sp = f"{user_id}/squad-arch/{project_id}/QA-REJECT-report.pdf"
             qa_report_url = upload(client, "user-assets", _sp, report_pdf, "application/pdf")
