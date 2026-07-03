@@ -209,6 +209,14 @@ app.add_typer(
     help="Developer tooling for the squad payload (contributors only).",
 )
 
+from lovarch_cli.commands.mcp_cmd import mcp_app  # noqa: E402
+
+app.add_typer(
+    mcp_app,
+    name="mcp",
+    help="Server MCP (Claude Code / IDE). Richiede l'extra [mcp].",
+)
+
 
 if __name__ == "__main__":
     app()
