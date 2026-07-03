@@ -125,6 +125,58 @@ def _write_last_run(project_dir: Path, status: str, returncode: int) -> None:
         pass
 
 
+_DELIVERABLE_LABELS = {
+    "briefing": "Briefing strutturato (12 sezioni UNI 11337)",
+    "regolatorio": "Analisi regolamentare (DPR 380, vincoli)",
+    "energia": "APE preliminare + LCA",
+    "moodboard": "Moodboard (4 immagini · crediti)",
+    "renders": "Render fotorealistici (5 immagini · crediti)",
+    "documenti": "Documenti (CAD/BIM/computo/capitolato/pratiche/contratto)",
+}
+_ALL_DELIVERABLE_GROUPS = list(_DELIVERABLE_LABELS.keys())
+
+
+def _resolve_deliverables(
+    flag: str | None, want_all: bool, is_dry_run: bool, lang: str
+) -> str:
+    """Resolve which deliverable groups to generate.
+
+    Priority: explicit --deliverables > --all > interactive prompt (TTY) >
+    all (non-interactive / dry-run). Phased runs let the user pick exactly
+    what to spend credits on.
+    """
+    valid = set(_ALL_DELIVERABLE_GROUPS)
+    if flag:
+        picked = [g.strip().lower() for g in flag.split(",") if g.strip()]
+        bad = [g for g in picked if g not in valid]
+        if bad:
+            err_console.print(
+                f"[red]\u2717 Gruppi non validi: {', '.join(bad)}. "
+                f"Validi: {', '.join(_ALL_DELIVERABLE_GROUPS)}[/red]"
+            )
+            raise typer.Exit(2)
+        return ",".join(picked)
+    if want_all or is_dry_run or not sys.stdin.isatty():
+        return ",".join(_ALL_DELIVERABLE_GROUPS)
+    # Interactive menu
+    console.print("\n[bold]Cosa vuoi generare?[/bold] [dim](i render e il moodboard consumano crediti)[/dim]")
+    for i, g in enumerate(_ALL_DELIVERABLE_GROUPS, 1):
+        console.print(f"  [cyan]{i}[/cyan]. {_DELIVERABLE_LABELS[g]}")
+    console.print("  [cyan]a[/cyan]. Tutti")
+    raw = typer.prompt("Numeri separati da virgola (es. 1,4,5) o 'a'", default="a").strip().lower()
+    if raw in ("a", "all", ""):
+        return ",".join(_ALL_DELIVERABLE_GROUPS)
+    chosen = []
+    for tok in raw.replace(" ", "").split(","):
+        if tok.isdigit() and 1 <= int(tok) <= len(_ALL_DELIVERABLE_GROUPS):
+            chosen.append(_ALL_DELIVERABLE_GROUPS[int(tok) - 1])
+    if not chosen:
+        err_console.print("[yellow]Nessuna selezione valida — genero tutti.[/yellow]")
+        return ",".join(_ALL_DELIVERABLE_GROUPS)
+    return ",".join(dict.fromkeys(chosen))
+
+
+
 def run_command(
     project: Annotated[
         str,
@@ -158,6 +210,20 @@ def run_command(
             "--dry-run",
             help="Force dry-run mode regardless of free/premium auth.",
         ),
+    ] = False,
+    deliverables: Annotated[
+        str | None,
+        typer.Option(
+            "--deliverables",
+            help=(
+                "Cosa generare (CSV): briefing,regolatorio,energia,moodboard,"
+                "renders,documenti. Se omesso in modalità interattiva, te lo chiedo."
+            ),
+        ),
+    ] = None,
+    all_deliverables: Annotated[
+        bool,
+        typer.Option("--all", help="Genera TUTTI i deliverable senza chiedere."),
     ] = False,
     lang_flag: Annotated[
         str | None,
@@ -299,12 +365,17 @@ def run_command(
     )
     console.print()
 
+    # ─── Deliverable selection (phased runs — the user chooses WHAT to build) ──
+    chosen = _resolve_deliverables(deliverables, all_deliverables, is_dry_run, lang)
+
     # ─── Build subprocess command ────────────────────────────────────────
     cmd = [
         sys.executable,
         str(runner),
         "--input-dir",
         str(input_dir),
+        "--deliverables",
+        chosen,
     ]
     cmd.append("--dry-run" if is_dry_run else "--real")
 
