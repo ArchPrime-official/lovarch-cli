@@ -176,6 +176,16 @@ def build_server():
         )
 
     @mcp.tool()
+    async def lovarch_verify_dossier(directory: str, language: str = "it",
+                                     max_llm_files: int = 8) -> dict:
+        """QA completo standalone su una cartella di deliverable: DXF (gratis) +
+        documenti normativi/contratti (adversarial, crediti). Verdetto
+        aggregato PASS/CONCERNS/REJECT per file e complessivo."""
+        return await tools.tool_verify_dossier(
+            gateway, directory=directory, language=language, max_llm_files=max_llm_files,
+        )
+
+    @mcp.tool()
     async def lovarch_job_status(job_id: str | None = None, limit: int = 10) -> dict:
         """Stato dei job asincroni della piattaforma (video, export Shotstack,
         upscale). Senza job_id elenca i job recenti. Costi solo in crediti."""

@@ -173,3 +173,43 @@ async def test_contratto_strong_counterparty_reject(tmp_path):
     )
     report = await verify_contratto(gw, str(doc))
     assert report.verdict == "REJECT"
+
+
+# ── dossier (composição) ───────────────────────────────────────────────────
+
+async def test_dossier_aggregates_worst_verdict(tmp_path):
+    from lovarch_cli.verify import verify_dossier
+
+    _make_dxf(tmp_path / "pianta.dxf", good=True)          # PASS (grátis)
+    (tmp_path / "relazione.md").write_text("DPR 380/2001 art. 99 regola le CILA.")
+    gw = _FakeGateway(
+        {"citations": [{"reference": "DPR 380 art. 99", "article": "99", "claim": "CILA"}]},
+        {"verdicts": [{"reference": "DPR 380 art. 99", "status": "refuted", "reason": "cemento armato"}]},
+    )
+    report = await verify_dossier(gw, tmp_path)
+    assert report.verdict == "REJECT"
+    kinds = {f["kind"] for f in report.files}
+    assert kinds == {"misure", "normativa"}
+    assert report.credits_charged == 5
+
+
+async def test_dossier_llm_cap_reported_not_silent(tmp_path):
+    from lovarch_cli.verify import verify_dossier
+
+    (tmp_path / "doc1.md").write_text("NTC 2018 per le strutture.")
+    (tmp_path / "doc2.md").write_text("UNI 11337 digitale.")
+    gw = _FakeGateway(
+        {"citations": [{"reference": "NTC 2018", "article": None, "claim": "strutture"}]},
+        {"verdicts": [{"reference": "NTC 2018", "status": "ok", "reason": "ok"}]},
+    )
+    report = await verify_dossier(gw, tmp_path, max_llm_files=1)
+    assert len(report.skipped) == 1           # cap explícito, nunca silencioso
+    assert report.verdict == "CONCERNS"        # skip rebaixa PASS→CONCERNS
+
+
+async def test_dossier_empty_folder_errors(tmp_path):
+    from lovarch_cli.verify import verify_dossier
+    from lovarch_cli.verify.normativa import NormativaError
+
+    with pytest.raises(NormativaError):
+        await verify_dossier(_FakeGateway({}, {}), tmp_path)

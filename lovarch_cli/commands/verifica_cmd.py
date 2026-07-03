@@ -129,3 +129,45 @@ def contratto_command(
     console.print(f"[dim]Crediti addebitati: {report.credits_charged}[/dim]")
     _print_verdict(report.verdict)
     raise typer.Exit(0 if report.verdict == "PASS" else (2 if report.verdict == "CONCERNS" else 1))
+
+
+@verifica_app.command("dossier")
+def dossier_command(
+    cartella: Path = typer.Argument(..., help="Cartella dei deliverable da verificare."),
+    language: str = typer.Option(None, "--language", help="Lingua del report."),
+    max_llm: int = typer.Option(8, "--max-llm", help="Massimo documenti verificati con AI (i DXF sono gratis)."),
+) -> None:
+    """QA completo standalone su una cartella (DXF gratis + documenti adversarial)."""
+    from lovarch_cli.ai import LovarchAiGateway
+    from lovarch_cli.auth.session import LovarchSession
+    from lovarch_cli.i18n import current_lang
+    from lovarch_cli.verify import verify_dossier
+    from lovarch_cli.verify.normativa import NormativaError
+
+    session = LovarchSession.load()
+    if session is None:
+        err_console.print("[red]\u2717 Non autenticato. Esegui `lovarch login --premium`.[/red]")
+        raise typer.Exit(1)
+    try:
+        report = asyncio.run(verify_dossier(
+            LovarchAiGateway(session), cartella,
+            language=language or current_lang(), max_llm_files=max_llm,
+        ))
+    except NormativaError as exc:
+        err_console.print(f"[red]\u2717 {exc}[/red]")
+        raise typer.Exit(1)
+
+    table = Table(title=f"verifica dossier \u2014 {cartella.name}", header_style="bold gold1")
+    table.add_column("File", style="cyan")
+    table.add_column("Tipo")
+    table.add_column("Verdetto", justify="center")
+    table.add_column("Dettaglio")
+    for f in report.files:
+        style = _VERDICT_STYLE.get(f["verdict"], "white")
+        table.add_row(f["name"], f["kind"], f"[{style}]{f['verdict']}[/{style}]", str(f["detail"])[:70])
+    console.print(table)
+    if report.skipped:
+        console.print(f"  [yellow]\u00b7[/yellow] non verificati con AI (limite --max-llm): {', '.join(report.skipped)}")
+    console.print(f"[dim]Crediti addebitati: {report.credits_charged}[/dim]")
+    _print_verdict(report.verdict)
+    raise typer.Exit(0 if report.verdict == "PASS" else (2 if report.verdict == "CONCERNS" else 1))

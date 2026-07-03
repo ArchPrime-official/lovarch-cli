@@ -347,3 +347,26 @@ async def tool_verify_contratto(
         return {"ok": False, "error": str(exc)}
     return {"ok": True, "verdict": report.verdict, "structure": report.structure,
             "findings": report.findings, "credits_charged": report.credits_charged}
+
+
+async def tool_verify_dossier(
+    gateway: Any, *, directory: str, language: str = "it", max_llm_files: int = 8
+) -> dict:
+    """Full standalone QA over a deliverables folder."""
+    if gateway is None:
+        return {"error": "not_authenticated", "hint": "Esegui `lovarch login --premium`."}
+    from lovarch_cli.verify import verify_dossier
+    from lovarch_cli.verify.normativa import NormativaError
+
+    try:
+        report = await verify_dossier(gateway, directory, language=language,
+                                      max_llm_files=max_llm_files)
+    except NormativaError as exc:
+        return {"ok": False, "error": str(exc)}
+    except InsufficientCreditsError as exc:
+        return {"ok": False, "error": "insufficient_credits",
+                "credits_available": exc.available, "credits_needed": exc.needed}
+    except AiGatewayError as exc:
+        return {"ok": False, "error": str(exc)}
+    return {"ok": True, "verdict": report.verdict, "files": report.files,
+            "skipped": report.skipped, "credits_charged": report.credits_charged}
