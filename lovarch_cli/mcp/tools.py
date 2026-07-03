@@ -274,3 +274,40 @@ async def tool_copy(
         return await workflows.copy(brief, mode=mode, slide_count=slide_count, language=language)
     except WorkflowError as exc:
         return {"ok": False, "error": str(exc)}
+
+
+def tool_verify_misure(dxf_path: str) -> dict:
+    """Deterministic DXF check (ISO layers, room labels, CNAPPC cartiglio). Free."""
+    from lovarch_cli.verify import verify_misure
+
+    report = verify_misure(dxf_path)
+    return {"verdict": report.verdict, "findings": report.findings, "stats": report.stats}
+
+
+async def tool_verify_normativa(
+    gateway: Any, *, document_path: str, language: str = "it"
+) -> dict:
+    """Adversarial normative-citation check (Sonnet extracts → Opus refutes)."""
+    if gateway is None:
+        return {"error": "not_authenticated", "hint": "Esegui `lovarch login --premium`."}
+    from lovarch_cli.verify import verify_normativa
+    from lovarch_cli.verify.normativa import NormativaError
+
+    try:
+        report = await verify_normativa(gateway, document_path, language=language)
+    except NormativaError as exc:
+        return {"ok": False, "error": str(exc)}
+    except InsufficientCreditsError as exc:
+        return {"ok": False, "error": "insufficient_credits",
+                "credits_available": exc.available, "credits_needed": exc.needed}
+    except AiGatewayError as exc:
+        return {"ok": False, "error": str(exc)}
+    return {
+        "ok": True,
+        "verdict": report.verdict,
+        "citations": report.citations,
+        "verdicts": report.verdicts,
+        "canonical_found": report.canonical_found,
+        "credits_charged": report.credits_charged,
+        "notes": report.notes,
+    }

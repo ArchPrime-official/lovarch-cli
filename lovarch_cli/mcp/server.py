@@ -149,6 +149,22 @@ def build_server():
             workflows, brief=brief, mode=mode, slide_count=slide_count, language=language,
         )
 
+    @mcp.tool()
+    def lovarch_verify_misure(dxf_path: str) -> dict:
+        """Verifica deterministica di un DXF: layer ISO (UNI ISO 5457),
+        etichette ambienti, cartiglio CNAPPC. Gratuita (nessun credito)."""
+        return tools.tool_verify_misure(dxf_path)
+
+    @mcp.tool()
+    async def lovarch_verify_normativa(document_path: str, language: str = "it") -> dict:
+        """Verifica ADVERSARIALE delle citazioni normative di un documento
+        (.pdf/.md/.txt): Sonnet 5 estrae le citazioni, Opus 4.8 prova a
+        confutarle (articoli fantasma, norme citate a sproposito). Addebita
+        crediti per i token reali. Verdetto PASS/CONCERNS/REJECT."""
+        return await tools.tool_verify_normativa(
+            gateway, document_path=document_path, language=language,
+        )
+
     return mcp
 
 

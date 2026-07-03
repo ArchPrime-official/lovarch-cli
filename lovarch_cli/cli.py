@@ -233,6 +233,14 @@ app.add_typer(
     help="Workflow della piattaforma: render, colors, copy (premium).",
 )
 
+from lovarch_cli.commands.verifica_cmd import verifica_app  # noqa: E402
+
+app.add_typer(
+    verifica_app,
+    name="verifica",
+    help="Verifica dati: misure DXF (gratis) · normativa adversarial (premium).",
+)
+
 
 if __name__ == "__main__":
     app()
