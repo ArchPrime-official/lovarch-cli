@@ -3,15 +3,11 @@ name: Publish to PyPI (manual)
 # Status: DORMANT. PyPI publication is deferred — primary distribution is
 # Homebrew + pipx-from-git (see README).
 #
-# This workflow is kept for the day we activate PyPI. It does NOT run on
-# tag push to avoid red CI runs when PYPI_API_TOKEN is unset. To activate:
-#
-#   1. Create PyPI account + project-scoped token at
-#      https://pypi.org/manage/account/token/
-#   2. gh secret set PYPI_API_TOKEN --repo ArchPrime-official/lovarch-cli
-#   3. (Optional) revert the `on:` trigger below to push/tags/v* to make
-#      releases automatic, OR keep workflow_dispatch and invoke manually
-#      with `gh workflow run publish-pypi.yml --ref v0.1.0`.
+# Auth: PyPI TRUSTED PUBLISHING (OIDC) — no API token stored anywhere.
+# PyPI side: pending publisher for project lovarch-cli, owner
+# ArchPrime-official, repo lovarch-cli, workflow publish-pypi.yml,
+# environment 'pypi'. Invoke with:
+#   gh workflow run publish-pypi.yml -f tag=v0.2.1
 
 on:
   workflow_dispatch:
@@ -95,6 +91,11 @@ jobs:
       name: pypi
       url: https://pypi.org/project/lovarch-cli/
 
+    # Trusted Publishing: PyPI trusts the OIDC token GitHub mints for this
+    # repo+workflow+environment. No long-lived secret to leak or rotate.
+    permissions:
+      id-token: write
+
     steps:
       - name: Download artifacts
         uses: actions/download-artifact@v4
@@ -102,10 +103,5 @@ jobs:
           name: dist
           path: dist/
 
-      - name: Publish via twine
-        env:
-          TWINE_USERNAME: __token__
-          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
-        run: |
-          python -m pip install --upgrade twine
-          twine upload --non-interactive --verbose dist/*
+      - name: Publish to PyPI (trusted publishing)
+        uses: pypa/gh-action-pypi-publish@release/v1
