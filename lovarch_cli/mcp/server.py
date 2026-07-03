@@ -169,6 +169,15 @@ def build_server():
         return tools.tool_verify_misure(dxf_path)
 
     @mcp.tool()
+    async def lovarch_agent(agent_id: str, brief: str, language: str = "it",
+                            lead_id: str | None = None) -> dict:
+        """Esegue un agente curato (interior-designer, direzione-lavori,
+        preventivi, geometra-catasto) su un brief, personalizzato col brand
+        dell'utente e addebitando i crediti. Vedi anche le altre tool."""
+        return await tools.tool_agent(gateway, agent_id=agent_id, brief=brief,
+                                      language=language, lead_id=lead_id)
+
+    @mcp.tool()
     async def lovarch_verify_normativa(document_path: str, language: str = "it") -> dict:
         """Verifica ADVERSARIALE delle citazioni normative di un documento
         (.pdf/.md/.txt): Sonnet 5 estrae le citazioni, Opus 4.8 prova a
