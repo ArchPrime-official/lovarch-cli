@@ -7,7 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-(No unreleased changes yet — last release was v0.1.1.)
+(No unreleased changes yet — last release was v0.1.2.)
+
+## [0.1.2] — 2026-06-12
+
+### Fixed
+
+- `lovarch run` now maps the pipeline's `qa_rejected` exit code (3) to a
+  distinct `last_run.status`, instead of collapsing it into a generic
+  failure. A QA-rejected dossier is no longer reported as completed.
+- Vendored squad snapshot refreshed with the 2026-06-12 audit corrections
+  (pipeline no longer marks a run COMPLETED when a Tier 2 QA agent returns
+  REJECT).
+
+### Docs
+
+- README version examples and test count aligned with the shipped release.
 
 ## [0.1.1] — 2026-05-11
 
