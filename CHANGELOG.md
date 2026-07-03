@@ -7,7 +7,46 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-(No unreleased changes yet — last release was v0.1.2.)
+(No unreleased changes yet — last release was v0.2.0.)
+
+## [0.2.0] — 2026-07-03
+
+### Added — Premium billing, MCP server, platform workflows, verifica
+
+The release that makes the premium CLI bill and behave like the platform:
+
+- **Credit debit for real**: premium `lovarch run` now routes ALL paid AI
+  through the `cli-ai-generate` / `cli-ai-text` Edge Functions, debiting the
+  user's Lovarch credits (1000cr=$1) with refund on failure. The runner no
+  longer needs the student's `OPENAI_API_KEY` nor a service_role key —
+  persistence writes as the USER (RLS).
+- **MCP server** — `lovarch mcp serve` (stdio; `pip install 'lovarch-cli[mcp]'`
+  or bundled). 15 tools: whoami, credits, generate_image, ai_text (multi-model:
+  executor=Sonnet 5 · verifier/chief=Opus 4.8, or explicit model from the
+  platform catalog), context, render, colors, copy, audit_input, list_projects,
+  verify_misure/normativa/contratto/dossier, job_status.
+  Register: `claude mcp add lovarch -- lovarch mcp serve`.
+- **`lovarch do render|colors|copy`** — platform workflows from the terminal
+  (Render Studio 2D/3D with reference image, brand palettes, marketing copy).
+- **`lovarch verifica misure|normativa|contratto|dossier`** — data checking for
+  professionals: deterministic DXF checks (free) + ADVERSARIAL two-model
+  document checks (Sonnet extracts → Opus refutes phantom articles; CNAPPC
+  contract structure + compenso rule QN_007).
+- **`lovarch context show`** — the personalization bundle agents use (brand,
+  style, professional signature, fiscal data, output language).
+- **`lovarch jobs list|status`** — async platform jobs (video/export/upscale).
+- **`lovarch config`** — user preferences + BYO API keys for free mode.
+
+### Changed
+
+- User-facing cost is ALWAYS credits — provider USD amounts never appear in any
+  CLI/MCP output.
+- Output language strictly follows the user's configured language.
+
+### Dependencies
+
+- New: `pypdf` (PDF text extraction) · optional extra `[mcp]`.
+
 
 ## [0.1.2] — 2026-06-12
 
