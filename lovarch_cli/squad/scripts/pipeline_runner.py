@@ -978,6 +978,31 @@ def generate_all_documents(client, handoff, exec_id, user_id, project_id, projec
                       "5 PDF in 04-pratiche-comune/ · per firma + invio sportello edilizia")
     prat_files = []
 
+    # Premium: @pratiche-it redige la relazione tecnica illustrativa via LLM
+    # sui dati reali del progetto. Free/dry → template.
+    _rel_llm = _gateway_text(
+        "Sei @pratiche-it, tecnico esperto in pratiche edilizie italiane. Redigi "
+        "una RELAZIONE TECNICA ILLUSTRATIVA in markdown (UNI 11337) con: stato di "
+        "fatto, programma spaziale, soluzioni progettuali, materiali e finiture, "
+        "impianti, sostenibilità (CAM), vincoli e normativa. Riferimenti di legge "
+        "corretti.",
+        f"Progetto: {project_data['name']} · {project_data['address']} · "
+        f"{project_data['square_meters']} m² · {project_data['typology']}.\n"
+        f"Obiettivi: {project_data['brief_objectives']}\n"
+        f"Stile: {project_data['brief_style']}\nVincoli: {project_data['constraints']}\n"
+        "Redigi la relazione tecnica illustrativa.",
+        role="executor", max_tokens=3000, operation="pratiche-it")
+    _rel_tecnica_body = _rel_llm or (
+        f"## RELAZIONE TECNICA ILLUSTRATIVA · {project_data['name']}\n\n"
+        f"## 1. STATO DI FATTO\n{project_data['address']} · {project_data['square_meters']} m² · "
+        f"tipologia {project_data['typology']}.\n\n"
+        f"## 2. OBIETTIVI\n{project_data['brief_objectives']}\n\n"
+        f"## 3. STILE\n{project_data['brief_style']}\n\n"
+        f"## 4. VINCOLI E NORMATIVA\n{project_data['constraints']}\n"
+        "DPR 380/2001 · UNI 11337-7 · CAM Edilizia · D.Lgs 42/2004 ove applicabile.\n")
+    if _rel_llm:
+        handoff.info("relazione tecnica redatta da @pratiche-it (LLM)")
+
     pratiche = [
         ("CILA-precompilata.pdf", "CILA · Comunicazione Inizio Lavori Asseverata",
          f"## DATI COMMITTENTE\n- Marco Rossini · CF RSSMRC83A15F205X\n- Giulia Bianchi · CF BNCGLI88D52F205Y\n- Via Fiori Chiari 17, 20121 Milano\n\n## DATI TECNICO\nArch. {arch_name} · {arch_ordine} · n. matricola {arch_matricola}\nStudio: {arch_company}\nSede: {arch_address}\n{arch_tax_id}\nPEC: {arch_pec}\nEmail: {arch_email} · Tel: {arch_phone}\n\n## IMMOBILE\nFoglio 356 · Mappale 127 · Sub 12\nCat. A/2 · Cl. 5 · Zona A1 NAF\n\n## INTERVENTO\nRistrutturazione interna · DPR 380 art. 6-bis\nNo modifiche prospetti · sì restauro elementi decorativi\n\n## COSTO STIMATO\n€ 180.000 IVA inclusa\n\n## DURATA\n01/07/2026 → 31/10/2026 (90 gg)\n\n## ALLEGATI\n- Visura catastale\n- Planimetrie SA + progetto\n- Relazione tecnica illustrativa\n- Relazione paesaggistica semplificata\n- Documentazione fotografica\n- Asseverazione tecnico\n- Notifica preliminare ASL"),
@@ -986,7 +1011,7 @@ def generate_all_documents(client, handoff, exec_id, user_id, project_id, projec
         ("relazione-paesaggistica.pdf", "Relazione Paesaggistica Semplificata",
          "## VINCOLO\nD.Lgs 42/2004 art. 142 · zona urbanistica A1 NAF (Nucleo di Antica Formazione)\nFacciata vincolata · regolamento PGT Milano\n\n## VERIFICA\nL'intervento NON modifica:\n- Prospetti edilizi (facciata storica preservata)\n- Aperture (finestre originali a riquadrato)\n- Volumetria edilizia\n\nL'intervento RESTAURA:\n- Soffitti decorati originali (stuccatura cream e oro)\n- Pavimento seminato veneziano nel living\n- Decoro stucco camera padronale\n\n## CONCLUSIONE\nL'intervento è COMPATIBILE con il vincolo paesaggistico in quanto:\n1. Esclusivamente interno\n2. Restauro elementi storici originali\n3. Materiali compatibili con epoca dell'edificio (1910)\n4. Nessuna alterazione percepibile dall'esterno\n\nFirma del tecnico: __________________________"),
         ("relazione-tecnica-illustrativa.pdf", "Relazione Tecnica Illustrativa · UNI 11337",
-         "## INDICE\n1. Stato di fatto\n2. Programma spaziale\n3. Soluzioni progettuali\n4. Materiali e finiture\n5. Impianti tecnologici\n6. Sostenibilità ambientale (CAM)\n7. Vincoli e normativa\n\n## 1. STATO DI FATTO\nAttico al 3° piano · 120 m² lordo · edificio 1910 · ristrutturato anni '80 in modo non funzionale.\nDistribuzione razionalista: ingresso lungo, soggiorno separato dalla cucina, 3 camere piccole, 1 bagno cieco.\nElementi originali preziosi: soffitti decorati, seminato veneziano nel living.\n\n## 2. PROGRAMMA SPAZIALE\n9 ambienti totali (target):\n- Living open-space (47.5 m²)\n- Studio Marco (13.5 m²)\n- Camera padronale (18 m²) + cabina armadio walk-in\n- Bagno padronale spa (7 m²)\n- Camera Sofia (12 m²)\n- Bagno secondo (5.5 m²)\n- Ingresso funzionale (6 m²)\n- Lavanderia (3.5 m²) + spazio Otto\n- Terrazzo (20 m² · invariato)\n\n## 3. SOLUZIONI PROGETTUALI\nDemolizione tramezze non portanti per creare living open-space.\nNuove tramezze leggere in laterizio per camera Sofia + bagno secondo.\nPreservazione elementi originali (soffitti, seminato).\n\n## 6. SOSTENIBILITÀ\n- VMC con recupero (efficienza 87%)\n- Riscaldamento radiante (basse temperature)\n- Materiali low-VOC · classe A+\n- Vernici naturali · isolanti naturali\n- CAM Edilizia 2025 conforme"),
+         _rel_tecnica_body),
         ("notifica-preliminare-ASL.pdf", "Notifica Preliminare · ASL Milano",
          f"## Art. 99 D.Lgs 81/2008\n\n## DATI COMMITTENTE\nMarco Rossini · Giulia Bianchi\nVia Fiori Chiari 17, Milano\n\n## NATURA OPERA\nRistrutturazione interna · 120 m² + 20 m² terrazzo\nValore lavori: € 180.000\n\n## DURATA\n90 gg lavorativi · 01/07/2026 → 31/10/2026\nN. uomini-giorno previsti: ~600\n\n## IMPRESA AFFIDATARIA\n[Da definire dopo gara]\n3 imprese pre-selezionate dal cliente.\n\n## CSP / CSE\nCoordinatore per la Progettazione: Arch. {arch_name} ({arch_ordine} · matr. {arch_matricola})\nCoordinatore per l'Esecuzione: stesso\nPEC tecnico: {arch_pec}\n\n## RESPONSABILE LAVORI\nMarco Rossini (committente)\n\n## INDIRIZZO CANTIERE\nVia Fiori Chiari 17, 20121 Milano\nPiano 3 · accesso scala condominiale\n\nNotifica trasmessa via PEC ad ASL Milano\nMilano, {today}"),
     ]
@@ -1011,13 +1036,36 @@ def generate_all_documents(client, handoff, exec_id, user_id, project_id, projec
                       "5 file in 06-cliente/ · per firma + portal sharing")
     cli_files = []
 
-    contr = f"""## TRA
+    _onorari = int(round(project_data["budget_max"] * project_data.get("professional_fee_percent", 12.0) / 100.0))
+    _contr_system = (
+        "Sei @contratto-architect, esperto di contratti di prestazione "
+        "professionale d'architettura secondo lo standard CNAPPC 2023. Redigi "
+        "un contratto in markdown con le sezioni: TRA/E (parti), OGGETTO, "
+        "CORRISPETTIVO (con SAL), TERMINE, CLAUSOLE (foro, GDPR, risoluzione, "
+        "ritenuta), FIRME. REGOLA COMPENSO: per un cliente PRIVATO consumatore i "
+        "parametri DM 17/06/2016 sono ORIENTATIVI — non affermare mai che uno "
+        "scostamento sia una violazione di legge (la L.49/2023 vincola solo "
+        "contraenti forti: PA/banche/grandi imprese)."
+    )
+    _contr_prompt = (
+        f"Professionista: {arch_block}\n\n"
+        "Cliente: committente privato (dati anagrafici da completare a cura del professionista).\n"
+        f"Progetto: {project_data['name']} · {project_data['address']} · "
+        f"{project_data['square_meters']} m².\n"
+        f"Onorario: €{_onorari:,} oltre oneri, in 4 SAL (15/25/25/35%).\n"
+        f"Consegna progetto: {project_data['delivery_date']}.\n"
+        "Redigi il contratto di prestazione professionale completo."
+    )
+    contr = _gateway_text(_contr_system, _contr_prompt, role="executor",
+                          max_tokens=3500, operation="contratto-architect")
+    if contr:
+        handoff.info("contratto redatto da @contratto-architect (LLM)")
+    else:
+        contr = f"""## TRA
 {arch_block}
 
 ## E
-**Marco Rossini** (CF: RSSMRC83A15F205X)
-**Giulia Bianchi** (CF: BNCGLI88D52F205Y)
-residenti in Via Fiori Chiari 17, Milano
+Il committente (dati anagrafici da completare a cura del professionista)
 
 ## OGGETTO
 Affidamento incarico professionale:
@@ -1025,34 +1073,25 @@ Affidamento incarico professionale:
 - Direzione artistica e direzione lavori
 - Pratiche edilizie (CILA, asseverazione, paesaggistica)
 - Coordinamento per la sicurezza (CSP/CSE)
-relativo alla ristrutturazione attico al 3° piano in Via Fiori Chiari 17, Milano.
+relativo a: {project_data['brief_objectives']} — {project_data['address']}.
 
 ## CORRISPETTIVO
-Onorario fisso: **€ 22.000,00** (ventiduemila euro) oltre oneri previdenziali e fiscali.
-
-Pagamento in 4 SAL:
-- SAL 1 · alla firma · 15% (€ 3.300)
-- SAL 2 · al deposito CILA · 25% (€ 5.500)
-- SAL 3 · al 50% lavori · 25% (€ 5.500)
-- SAL 4 · alla consegna chiavi · 35% (€ 7.700)
+Onorario: **€ {_onorari:,}** oltre oneri previdenziali e fiscali.
+Pagamento in 4 SAL: 15% firma · 25% CILA · 25% 50% lavori · 35% consegna.
 
 ## TERMINE
-Inizio: 25/04/2026 · firma del contratto
-Conclusione progetto: 5 giugno 2026
-Direzione lavori: dal 1° luglio al 31 ottobre 2026
+Consegna progetto: {project_data['delivery_date']}.
 
 ## CLAUSOLE
-1. Foro competente: Milano
+1. Foro competente
 2. Riservatezza: GDPR (informativa allegata)
 3. Risoluzione: per inadempimento grave previa diffida
 4. Ritenuta a saldo: 10% liberato dopo collaudo
 
 ## FIRME
 Architetto: ___________________________
-Cliente Marco: ___________________________
-Cliente Giulia: ___________________________
+Cliente: ___________________________
 
-Data: 25 aprile 2026 · Milano
 """
     b = gen_pdf("Contratto Prestazione Professionale", contr,
                   "Template CNAPPC 2023 · valido per firma digitale")
