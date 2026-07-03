@@ -35,6 +35,7 @@ _CHIP_LABELS = {
 @context_app.command("show")
 def show_command(
     lead_id: str = typer.Option(None, "--lead", help="ID di un lead CRM da includere."),
+    as_json: bool = typer.Option(False, "--json", help="Output JSON completo (per skills/agenti)."),
 ) -> None:
     """Mostra il bundle di personalizzazione (richiede login premium)."""
     from lovarch_cli.ai import AiGatewayError, LovarchAiGateway
@@ -50,6 +51,12 @@ def show_command(
     except AiGatewayError as exc:
         err_console.print(f"[red]✗ {exc}[/red]")
         raise typer.Exit(1)
+
+    if as_json:
+        import json as _json
+
+        print(_json.dumps(bundle, ensure_ascii=False, indent=2))
+        return
 
     summary = bundle.get("context_summary", {})
     table = Table(title="Contesto AI — cosa viene usato per personalizzare",
