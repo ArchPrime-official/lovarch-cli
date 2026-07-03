@@ -118,3 +118,39 @@ def copy_command(
     rest = {k: v for k, v in out.items() if k not in ("caption", "hashtags")}
     if rest:
         console.print_json(json.dumps(rest, ensure_ascii=False))
+
+
+@do_app.command("logo")
+def logo_command(
+    prompt: str = typer.Argument(..., help="Descrizione del logo / brand."),
+    output: Path = typer.Option(Path("logo.png"), "--output", "-o"),
+    ref: Path = typer.Option(None, "--ref", help="Immagine di riferimento."),
+    language: str = typer.Option(None, "--language"),
+) -> None:
+    """Logo pack del brand via piattaforma."""
+    from lovarch_cli.mcp.tools import tool_logo
+
+    out = asyncio.run(tool_logo(_workflows(), prompt=prompt, output_path=str(output),
+                                reference_image_path=str(ref) if ref else None, language=_lang(language)))
+    if not out.get("ok"):
+        err_console.print(f"[red]✗ {out.get('error')}[/red]"); raise typer.Exit(1)
+    if out.get("saved_to"):
+        console.print(f"[green]✓[/green] Logo: [bold]{out['saved_to']}[/bold]")
+    if out.get("image_url"):
+        console.print(f"[dim]Nel tuo account: {out['image_url']}[/dim]")
+
+
+@do_app.command("site")
+def site_command(
+    prompt: str = typer.Argument(..., help="Descrizione del sito web."),
+    output: Path = typer.Option(Path("site.html"), "--output", "-o"),
+    language: str = typer.Option(None, "--language"),
+) -> None:
+    """Genera un sito web (HTML) via piattaforma."""
+    from lovarch_cli.mcp.tools import tool_site
+
+    out = asyncio.run(tool_site(_workflows(), prompt=prompt, output_path=str(output), language=_lang(language)))
+    if not out.get("ok"):
+        err_console.print(f"[red]✗ {out.get('error')}[/red]"); raise typer.Exit(1)
+    console.print(f"[green]✓[/green] Sito: [bold]{out['saved_to']}[/bold] ({out.get('bytes', 0)} bytes)")
+

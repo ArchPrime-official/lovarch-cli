@@ -210,3 +210,50 @@ class JobsMixin:
 # Attach the mixin methods to PlatformWorkflows (single public class).
 PlatformWorkflows.jobs_list = JobsMixin.jobs_list        # type: ignore[attr-defined]
 PlatformWorkflows.job_status = JobsMixin.job_status      # type: ignore[attr-defined]
+
+
+# ── TOP-12 leva 3: logo · site · script ────────────────────────────────────
+
+class MoreWorkflowsMixin:
+    """Extra platform workflows attached to PlatformWorkflows."""
+
+    async def logo(
+        self,
+        prompt: str,
+        *,
+        reference_image_path: str | Path | None = None,
+        language: str = "it",
+    ) -> RenderResult:
+        """Logo pack via logo-generate. Returns the primary logo (bytes/URL)."""
+        body: dict[str, Any] = {"prompt": prompt, "language": language}
+        if reference_image_path:
+            raw = Path(reference_image_path).expanduser().read_bytes()
+            body["referenceImage"] = "data:image/png;base64," + base64.b64encode(raw).decode()
+        data = await self._invoke("logo-generate", body, timeout=_RENDER_TIMEOUT)
+        if not data.get("success", data.get("ok", True)):
+            raise WorkflowError(f"logo-generate: {data.get('error', 'errore')}")
+        url = data.get("logoUrl") or data.get("logo_url")
+        if not url:
+            raise WorkflowError("logo-generate non ha restituito un logo.")
+        return RenderResult(image_bytes=None, image_url=str(url),
+                            message=data.get("message"))
+
+    async def site(
+        self,
+        prompt: str,
+        *,
+        language: str = "it",
+    ) -> str:
+        """Generate a website (HTML) via ai-site-generate. Returns the HTML."""
+        data = await self._invoke("ai-site-generate",
+                                  {"prompt": prompt, "language": language},
+                                  timeout=_RENDER_TIMEOUT)
+        html = data.get("code") or data.get("generatedCode") or data.get("html")
+        if not html:
+            raise WorkflowError("ai-site-generate non ha restituito HTML.")
+        return str(html)
+
+
+
+PlatformWorkflows.logo = MoreWorkflowsMixin.logo        # type: ignore[attr-defined]
+PlatformWorkflows.site = MoreWorkflowsMixin.site        # type: ignore[attr-defined]
