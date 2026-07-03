@@ -257,6 +257,14 @@ app.add_typer(
     help="Agenti architetto/interior/cantiere (interior-designer, direzione-lavori...).",
 )
 
+from lovarch_cli.commands.skills_cmd import skills_app  # noqa: E402
+
+app.add_typer(
+    skills_app,
+    name="skills",
+    help="Skills per il tuo agente (Claude Code): testo col TUO modello, zero crediti.",
+)
+
 from lovarch_cli.commands.config_cmd import config_app  # noqa: E402
 
 app.add_typer(
