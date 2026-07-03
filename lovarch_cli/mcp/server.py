@@ -17,6 +17,7 @@ from __future__ import annotations
 from lovarch_cli.ai import LovarchAiGateway
 from lovarch_cli.auth.session import LovarchSession
 from lovarch_cli.mcp import tools
+from lovarch_cli.workflows import PlatformWorkflows
 
 
 def build_server():
@@ -34,6 +35,7 @@ def build_server():
     # Load the premium session once at startup (None if not logged in premium).
     session = LovarchSession.load()
     gateway = LovarchAiGateway(session) if session is not None else None
+    workflows = PlatformWorkflows(session) if session is not None else None
 
     mcp = FastMCP("lovarch")
 
@@ -98,6 +100,54 @@ def build_server():
         firma professionale, dati fiscali, lingua preferita e prompt_block
         pronto. lead_id opzionale carica anche un cliente del CRM."""
         return await tools.tool_user_context(gateway, lead_id=lead_id)
+
+    @mcp.tool()
+    async def lovarch_render(
+        description: str,
+        output_path: str,
+        mode: str | None = None,
+        render_style: str = "moderno",
+        aspect_ratio: str = "16:9",
+        reference_image_path: str | None = None,
+        language: str = "it",
+    ) -> dict:
+        """Render fotorealistico via Render Studio Lovarch (crediti addebitati
+        dalla piattaforma). mode: null=sketch/testo→render 2D ·
+        room_render/render_3d/plan_to_3d=3D (costo maggiore) ·
+        lighting_only/closeup_detail/closeup_angle. reference_image_path invia
+        uno sketch/foto/pianta come riferimento."""
+        return await tools.tool_render(
+            workflows, description=description, output_path=output_path,
+            mode=mode, render_style=render_style, aspect_ratio=aspect_ratio,
+            reference_image_path=reference_image_path, language=language,
+        )
+
+    @mcp.tool()
+    async def lovarch_colors(
+        style: str = "modern",
+        base_colors: list[str] | None = None,
+        image_url: str | None = None,
+        language: str = "it",
+    ) -> dict:
+        """Palette colori brand via piattaforma Lovarch. Con image_url la
+        palette è estratta dall'immagine. style: modern|vintage|natural|bold|custom."""
+        return await tools.tool_colors(
+            workflows, style=style, base_colors=base_colors,
+            image_url=image_url, language=language,
+        )
+
+    @mcp.tool()
+    async def lovarch_copy(
+        brief: str,
+        mode: str = "post",
+        slide_count: int = 5,
+        language: str = "it",
+    ) -> dict:
+        """Copy di marketing (caption + hashtags + headline) via piattaforma
+        Lovarch. mode: post|story|carousel."""
+        return await tools.tool_copy(
+            workflows, brief=brief, mode=mode, slide_count=slide_count, language=language,
+        )
 
     return mcp
 

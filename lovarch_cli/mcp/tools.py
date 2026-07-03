@@ -186,3 +186,91 @@ async def tool_user_context(gateway: Any, *, lead_id: str | None = None) -> dict
         return await gateway.get_user_context(lead_id=lead_id)
     except AiGatewayError as exc:
         return {"ok": False, "error": str(exc)}
+
+
+async def tool_render(
+    workflows: Any,
+    *,
+    description: str,
+    output_path: str,
+    mode: str | None = None,
+    render_style: str = "moderno",
+    aspect_ratio: str = "16:9",
+    reference_image_path: str | None = None,
+    language: str = "it",
+) -> dict:
+    """Photorealistic render via the platform (credits debited server-side)."""
+    if workflows is None:
+        return {"error": "not_authenticated", "hint": "Esegui `lovarch login --premium`."}
+    from lovarch_cli.workflows import WorkflowError
+
+    try:
+        result = await workflows.render(
+            description, mode=mode, render_style=render_style,
+            aspect_ratio=aspect_ratio, reference_image_path=reference_image_path,
+            language=language,
+        )
+    except WorkflowError as exc:
+        return {"ok": False, "error": str(exc)}
+    out: dict = {"ok": True, "message": result.message}
+    image_bytes = result.image_bytes
+    if result.image_url:
+        # The EF persisted the render in the user's Lovarch storage — keep the
+        # URL AND download a local copy for CLI convenience (best-effort).
+        out["image_url"] = result.image_url
+        if image_bytes is None:
+            try:
+                import httpx
+
+                async with httpx.AsyncClient(timeout=60.0) as client:
+                    resp = await client.get(result.image_url)
+                    if resp.status_code == 200:
+                        image_bytes = resp.content
+            except Exception:  # noqa: BLE001
+                image_bytes = None
+    if image_bytes:
+        p = Path(output_path).expanduser()
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_bytes(image_bytes)
+        out["saved_to"] = str(p)
+    return out
+
+
+async def tool_colors(
+    workflows: Any,
+    *,
+    style: str = "modern",
+    base_colors: list[str] | None = None,
+    image_url: str | None = None,
+    language: str = "it",
+) -> dict:
+    """Brand color palette via the platform."""
+    if workflows is None:
+        return {"error": "not_authenticated", "hint": "Esegui `lovarch login --premium`."}
+    from lovarch_cli.workflows import WorkflowError
+
+    try:
+        return await workflows.colors(
+            style=style, base_colors=base_colors, image_url=image_url, language=language,
+        )
+    except WorkflowError as exc:
+        return {"ok": False, "error": str(exc)}
+
+
+async def tool_copy(
+    workflows: Any,
+    *,
+    brief: str,
+    mode: str = "post",
+    slide_count: int = 5,
+    language: str = "it",
+) -> dict:
+    """Marketing copy (caption + hashtags) via the platform."""
+    if workflows is None:
+        return {"error": "not_authenticated", "hint": "Esegui `lovarch login --premium`."}
+    from lovarch_cli.workflows import WorkflowError
+
+    try:
+        return await workflows.copy(brief, mode=mode, slide_count=slide_count, language=language)
+    except WorkflowError as exc:
+        return {"ok": False, "error": str(exc)}
