@@ -325,3 +325,25 @@ async def tool_job_status(workflows: Any, *, job_id: str | None = None, limit: i
         return {"ok": True, "jobs": await workflows.jobs_list(limit=limit)}
     except WorkflowError as exc:
         return {"ok": False, "error": str(exc)}
+
+
+async def tool_verify_contratto(
+    gateway: Any, *, document_path: str, language: str = "it"
+) -> dict:
+    """Adversarial CNAPPC contract check (structure + compenso QN_007)."""
+    if gateway is None:
+        return {"error": "not_authenticated", "hint": "Esegui `lovarch login --premium`."}
+    from lovarch_cli.verify import verify_contratto
+    from lovarch_cli.verify.normativa import NormativaError
+
+    try:
+        report = await verify_contratto(gateway, document_path, language=language)
+    except NormativaError as exc:
+        return {"ok": False, "error": str(exc)}
+    except InsufficientCreditsError as exc:
+        return {"ok": False, "error": "insufficient_credits",
+                "credits_available": exc.available, "credits_needed": exc.needed}
+    except AiGatewayError as exc:
+        return {"ok": False, "error": str(exc)}
+    return {"ok": True, "verdict": report.verdict, "structure": report.structure,
+            "findings": report.findings, "credits_charged": report.credits_charged}

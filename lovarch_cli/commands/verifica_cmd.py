@@ -90,3 +90,42 @@ def normativa_command(
     console.print(f"[dim]Crediti addebitati: {report.credits_charged}[/dim]")
     _print_verdict(report.verdict)
     raise typer.Exit(0 if report.verdict == "PASS" else (2 if report.verdict == "CONCERNS" else 1))
+
+
+@verifica_app.command("contratto")
+def contratto_command(
+    documento: Path = typer.Argument(..., help="Contratto da verificare (.pdf, .md, .txt)."),
+    language: str = typer.Option(None, "--language", help="Lingua del report."),
+) -> None:
+    """Verifica adversarial de contrato CNAPPC (estrutura + compenso · debita créditos)."""
+    from lovarch_cli.ai import LovarchAiGateway
+    from lovarch_cli.auth.session import LovarchSession
+    from lovarch_cli.i18n import current_lang
+    from lovarch_cli.verify import verify_contratto
+    from lovarch_cli.verify.normativa import NormativaError
+
+    session = LovarchSession.load()
+    if session is None:
+        err_console.print("[red]\u2717 Non autenticato. Esegui `lovarch login --premium`.[/red]")
+        raise typer.Exit(1)
+    try:
+        report = asyncio.run(verify_contratto(
+            LovarchAiGateway(session), str(documento), language=language or current_lang(),
+        ))
+    except NormativaError as exc:
+        err_console.print(f"[red]\u2717 {exc}[/red]")
+        raise typer.Exit(1)
+
+    st = report.structure or {}
+    if st.get("client_type"):
+        console.print(f"[dim]Committente: {st['client_type']} \u00b7 Compenso: {(st.get('compenso') or {}).get('amount', '\u2014')}[/dim]")
+    missing = st.get("sections_missing") or []
+    if missing:
+        console.print(f"  [yellow]\u00b7[/yellow] Sezioni mancanti: {', '.join(str(m) for m in missing[:6])}")
+    for f in report.findings:
+        sev = str(f.get("severity", "info")).lower()
+        icon = {"critical": "[red]\u2717[/red]", "concern": "[yellow]?[/yellow]"}.get(sev, "[dim]\u00b7[/dim]")
+        console.print(f"  {icon} [{f.get('area', '?')}] {str(f.get('reason', ''))[:110]}")
+    console.print(f"[dim]Crediti addebitati: {report.credits_charged}[/dim]")
+    _print_verdict(report.verdict)
+    raise typer.Exit(0 if report.verdict == "PASS" else (2 if report.verdict == "CONCERNS" else 1))

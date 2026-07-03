@@ -166,6 +166,16 @@ def build_server():
         )
 
     @mcp.tool()
+    async def lovarch_verify_contratto(document_path: str, language: str = "it") -> dict:
+        """Verifica ADVERSARIALE di un contratto CNAPPC (.pdf/.md/.txt):
+        completezza delle 12 sezioni + regola compenso (per cliente privato i
+        parametri DM 17/06/2016 sono orientativi → CONCERN, mai illecito).
+        Addebita crediti per i token reali."""
+        return await tools.tool_verify_contratto(
+            gateway, document_path=document_path, language=language,
+        )
+
+    @mcp.tool()
     async def lovarch_job_status(job_id: str | None = None, limit: int = 10) -> dict:
         """Stato dei job asincroni della piattaforma (video, export Shotstack,
         upscale). Senza job_id elenca i job recenti. Costi solo in crediti."""

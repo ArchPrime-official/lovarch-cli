@@ -134,3 +134,42 @@ async def test_normativa_no_citations_concerns(tmp_path):
 async def test_normativa_missing_file():
     with pytest.raises(NormativaError):
         await verify_normativa(_FakeGateway({}, {}), "/nope/x.pdf")
+
+
+# ── contratto (adversarial) ────────────────────────────────────────────────
+
+async def test_contratto_private_client_concern_not_reject(tmp_path):
+    from lovarch_cli.verify import verify_contratto
+
+    doc = tmp_path / "contratto.md"
+    doc.write_text("Committente privato. Compenso EUR 11.000 (parametri: 19.700).")
+    gw = _FakeGateway(
+        {"sections_present": ["oggetto", "compenso"], "sections_missing": ["privacy/GDPR"],
+         "client_type": "privato", "compenso": {"amount": "11000", "justification": None}},
+        {"findings": [
+            {"area": "compenso", "severity": "concern",
+             "reason": "privato: parametri orientativi (QN_007), scostamento non motivato"},
+            {"area": "completezza", "severity": "concern", "reason": "manca GDPR"},
+        ], "overall": "CONCERNS"},
+    )
+    report = await verify_contratto(gw, str(doc))
+    assert report.verdict == "CONCERNS"
+    assert gw.roles == ["executor", "verifier"]
+    assert report.credits_charged == 5
+    assert all(f["severity"] != "critical" for f in report.findings)
+
+
+async def test_contratto_strong_counterparty_reject(tmp_path):
+    from lovarch_cli.verify import verify_contratto
+
+    doc = tmp_path / "contratto-pa.md"
+    doc.write_text("Committente: Comune di Milano. Compenso sotto parametri.")
+    gw = _FakeGateway(
+        {"sections_present": [], "sections_missing": [], "client_type": "pa",
+         "compenso": {"amount": "11000", "justification": None}},
+        {"findings": [{"area": "compenso", "severity": "critical",
+                       "reason": "contraente forte: L.49/2023 applicabile"}],
+         "overall": "REJECT"},
+    )
+    report = await verify_contratto(gw, str(doc))
+    assert report.verdict == "REJECT"
