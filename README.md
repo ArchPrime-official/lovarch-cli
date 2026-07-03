@@ -76,7 +76,7 @@ WSL, o se hai già pipx configurato):
 
 ```bash
 # Ultima release (anche pre-release):
-pipx install git+https://github.com/ArchPrime-official/lovarch-cli.git@v0.2.1
+pipx install git+https://github.com/ArchPrime-official/lovarch-cli.git@v0.3.0
 
 # Oppure dal branch main (rolling):
 pipx install git+https://github.com/ArchPrime-official/lovarch-cli.git
@@ -105,7 +105,7 @@ Vedi [CONTRIBUTING.md](./CONTRIBUTING.md) per il workflow di sviluppo.
 
 ```bash
 # Verifica installazione
-lovarch --version    # → lovarch-cli 0.2.1
+lovarch --version    # → lovarch-cli 0.3.0
 
 # Primo login (interattivo: Free o Premium)
 lovarch login
@@ -150,6 +150,19 @@ lovarch status
 
 Vedi `arch --help` per dettagli completi.
 
+## Skills — usa il TUO agente (Claude Code, Codex...)
+
+Se usi già un agente con un suo modello, il TESTO lo genera lui (zero crediti
+Lovarch); la piattaforma addebita solo immagini, dati e verifiche di piattaforma.
+
+```bash
+lovarch skills install     # → ~/.claude/skills
+# poi, nel tuo agente: "progetto di interni per un attico 90mq..." → parte lovarch-interior-designer
+```
+
+Skill disponibili: `interior-designer`, `capitolato`, `preventivi`,
+`direzione-lavori`, `verifica-normativa`, `render`.
+
 ## Server MCP (Claude Code / Claude / IDE)
 
 Il CLI espone le sue capacità come server **MCP** — 15 tools (render, verifica,
@@ -157,6 +170,14 @@ crediti, contesto, testo multi-modello...). Registrazione in Claude Code:
 
 ```bash
 claude mcp add lovarch -- lovarch mcp serve
+```
+
+Oppure il **server MCP remoto** (nessuna installazione — una URL + una chiave):
+
+```bash
+lovarch mcp key                                   # crea una chiave lvk_...
+claude mcp add lovarch --transport http https://mcp.lovarch.com/mcp \\
+  --header "Authorization: Bearer lvk_..."
 ```
 
 Ogni tool-call addebita i crediti Lovarch dell'utente esattamente come il CLI
