@@ -249,6 +249,14 @@ app.add_typer(
     help="Job asincroni (video, export, upscale) — stato e output.",
 )
 
+from lovarch_cli.commands.config_cmd import config_app  # noqa: E402
+
+app.add_typer(
+    config_app,
+    name="config",
+    help="Configurazione utente (lingua, storage, API keys Free mode).",
+)
+
 
 if __name__ == "__main__":
     app()
