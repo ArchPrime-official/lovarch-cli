@@ -100,7 +100,7 @@ phases:
 
       - id: a11
         agent: "@deliverable-builder"
-        depends_on: [a3, a4, a6, a7, a9]   # ultimo, consolidatore
+        depends_on: [a3, a4, a5, a6, a7, a8, a9, a10]   # ultimo, consolidatore — attende TUTTI i produttori di file (concept, CAD, BIM/IFC, computo, capitolato, pratiche, contratto, APE)
         timeout_seconds: 90
 
     on_agent_timeout: retry_once_then_escalate
@@ -172,7 +172,7 @@ targets:
   total_duration_seconds: 840   # 14 min
   parallel_max: 8
   qa_retry_max: 3
-  deliverables_min: 25
+  deliverables_min: 25   # soglia minima; target tipico = 27 (config deliverables_count)
 
 # ============================================================================
 # Failure modes

@@ -15,7 +15,7 @@ These enforce the hub-and-spoke rule. Failure = protocol violation.
 
 | # | Check | Pass Criteria | Fail Action |
 |---|-------|---------------|-------------|
-| **P1** | **Announcement received** | Inbound card contains literally `"Ritorno al @progetto-chief. {lavoro} concluso."` | REJECT — return to specialist demanding announcement |
+| **P1** | **Announcement received** | Inbound card starts with the exact prefix `"Ritorno al @progetto-chief."` followed by a concise esito (free-form, e.g. `verdict PASS`, `cotazioni verificate ±1mm`). The prefix is mandatory; the esito wording is not. | REJECT — return to specialist demanding the announcement prefix |
 | **P2** | **No direct chaining** | Specialist did NOT route work directly to another specialist; output came back to hub | ESCALATE — log AP-VIOLATION-001, force re-routing |
 | **P3** | **Cycle ID matches** | Inbound card's `cycle_id` matches outbound card's `cycle_id` | REJECT — request resubmission with correct ID |
 | **P4** | **Specialist identity** | `from:` in inbound matches the specialist routed | ESCALATE — possible identity confusion, halt |

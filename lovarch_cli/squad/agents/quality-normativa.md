@@ -310,40 +310,42 @@ output_examples:
       
       Ritorno al @progetto-chief. Verifica normativa · phantom article · verdict REJECT.
   
-  - input: "Outbound: contratto onorari €11K (44% sotto parametri DM 17/06/2016 = €19.7K)"
+  - input: "Outbound: contratto cliente privato consumatore · onorari €11K (44% sotto parametri DM 17/06/2016 = €19.7K)"
     output: |
-      ## Equo Compenso violation (heuristic QN_007)
+      ## Compenso equo — verifica riferimento (heuristic QN_007)
       
-      Parametri ministeriali DM 17/06/2016: €19,773
-      Contratto offerto: €11,000
-      Sconto: 44.4% · sotto soglia 20% legale
+      Parametri ministeriali DM 17/06/2016 (riferimento): €19,773
+      Contratto offerto: €11,000 · scostamento 44.4%
       
-      L. 49/2023 vincola onorari ≥80% parametri.
-      Sconto >20% = legal violation.
+      Committente = privato consumatore → i parametri sono ORIENTATIVI.
+      La L. 49/2023 tutela solo il contraente forte (PA / banche / assicurazioni / grandi imprese):
+      per un cliente privato NON esiste violazione di legge né un limite legale del 20%.
       
-      ## Cost of Poor Quality
-      External failure (legal): cliente può impugnare contratto · architetto perde causa · cost = onorari + spese legali + reputazione.
+      ## Perché è comunque un CONCERN
+      Lo scostamento del 44% non è motivato nel contratto. Un compenso non sostenibile o non
+      giustificato è un rischio di qualità (perimetro incoerente, contenzioso su prestazione),
+      non un illecito. Va motivato o il perimetro va ridefinito.
       
-      ## Verdict REJECT
+      ## Verdict CONCERN (non REJECT)
       
       ```json
       {
-        "verdict": "REJECT",
-        "score": {"critical": "5/6"},
-        "violations": [
+        "verdict": "CONCERN",
+        "score": {"critical": "6/6"},
+        "concerns": [
           {
             "id": "N-S1",
-            "severity": "SECONDARIO ma legally CRITICO",
-            "issue": "Onorari €11K < 80% parametri DM 17/06/2016 (€19.7K · soglia €15.8K)",
-            "law": "L. 49/2023 equo compenso",
-            "recommendation": "Negoziare con cliente almeno €15.8K (limite legale) o riconsiderare incarico"
+            "severity": "SECONDARIO",
+            "issue": "Scostamento 44% dai parametri DM 17/06/2016 non motivato (cliente privato: orientativi, nessuna violazione L.49/2023)",
+            "reference": "DM 17/06/2016 (riferimento) · L.49/2023 non applicabile a cliente privato",
+            "recommendation": "Motivare lo scostamento in contratto o ridefinire il perimetro dell'incarico"
           }
         ],
-        "reject_target_agents": ["@contratto-architect"]
+        "reject_target_agents": []
       }
       ```
       
-      Ritorno al @progetto-chief. Verifica normativa · equo compenso violation · verdict REJECT.
+      Ritorno al @progetto-chief. Verifica normativa · compenso sotto parametri non motivato · verdict CONCERN.
 
 # ==========================================================
 # ANTI-PATTERNS
@@ -386,9 +388,9 @@ smoke_tests:
     scenario: "Capitolato cites DPR 380 art. 99 (non-existing)"
     expected: "REJECT · phantom article · target @capitolato-writer"
   
-  test_3_equo_compenso_violation:
-    scenario: "Onorari 44% sotto parametri DM 17/06/2016"
-    expected: "REJECT · L.49/2023 violation · target @contratto-architect"
+  test_3_equo_compenso_privato:
+    scenario: "Cliente privato consumatore · onorari 44% sotto parametri DM 17/06/2016, non motivato"
+    expected: "CONCERN (non REJECT) · scostamento non motivato · nessuna violazione L.49/2023 (cliente privato) · recommendation: motivare o ridefinire perimetro"
 
 # ==========================================================
 # LEVEL 6: INTEGRATION

@@ -219,8 +219,8 @@ smoke_tests:
     expected: "12 articoli · CP €19.7K · cliente offer €22K accepted"
   
   test_2_under_pricing:
-    scenario: "Cliente offer €11K (44% sotto parametri)"
-    expected: "REJECT · L.49/2023 violation · recommendation"
+    scenario: "Cliente privato · offer €11K (44% sotto parametri)"
+    expected: "CONCERN · scostamento sotto parametri (orientativi per cliente privato · nessuna violazione L.49/2023) · perimetro da motivare/ridefinire · recommendation"
   
   test_3_multi_proprietari:
     scenario: "2 proprietari · 1/2 ciascuno"
