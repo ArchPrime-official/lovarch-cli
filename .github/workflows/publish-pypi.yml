@@ -46,7 +46,7 @@ jobs:
       - name: Read declared version + classify tag
         id: read-version
         run: |
-          version=$(python -c "import re,sys; m=re.search(r'__version__\s*=\s*[\"'\''](.*?)[\"'\'']', open('lovarch_cli/version.py').read()); sys.stdout.write(m.group(1))")
+          version=$(sed -nE 's/^__version__ = "(.*)"$/\1/p' lovarch_cli/version.py)
           echo "version=$version" >> "$GITHUB_OUTPUT"
           if echo "${{ inputs.tag }}" | grep -qE '^v[0-9]+\.[0-9]+\.[0-9]+-'; then
             echo "is_prerelease=true" >> "$GITHUB_OUTPUT"
