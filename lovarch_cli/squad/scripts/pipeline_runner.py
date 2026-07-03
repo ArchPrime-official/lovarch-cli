@@ -25,6 +25,8 @@ import base64
 import argparse
 import webbrowser
 import subprocess
+import urllib.request
+import urllib.error
 from pathlib import Path
 from datetime import datetime, timezone
 from typing import Optional, Dict, Any, List, Tuple
@@ -110,8 +112,70 @@ class HandoffAnnouncer:
 # IMAGE GENERATION · OpenAI gpt-image-2
 # ============================================================================
 
+# ── Lovarch AI gateway ──────────────────────────────────────────────────────
+# In PREMIUM mode the CLI passes the user's Supabase access_token via env. When
+# present, ALL image generation is routed through the cli-ai-generate Edge
+# Function, which debits the user's Lovarch credits (1000cr=$1) and refunds on
+# failure — the student's own OPENAI_API_KEY is NEVER used and no key needs to
+# be present locally. When the token is absent (FREE/dry mode, or a student who
+# brings their own keys), it falls back to calling OpenAI directly.
+_LOVARCH_ACCESS_TOKEN = os.environ.get("LOVARCH_ACCESS_TOKEN")
+_LOVARCH_API_URL = os.environ.get(
+    "LOVARCH_API_URL", "https://cuxbydmyahjaplzkthkr.supabase.co"
+).rstrip("/")
+_LOVARCH_ANON_KEY = os.environ.get(
+    "LOVARCH_ANON_KEY",
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN1eGJ5ZG15YWhqYXBsemt0aGtyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzODM3OTYsImV4cCI6MjA4Nzk1OTc5Nn0.UtHrPjSP40pwsRy6vCQseC5YA4DZ6e-hO8sXcRL8w_E",
+)
+
+_SIZE_TO_ASPECT = {"1024x1024": "1:1", "1024x1536": "9:16", "1536x1024": "16:9"}
+
+
+def _gateway_image(prompt: str, size: str, quality: str, *,
+                   mode: str = "generate", ref_bytes: Optional[bytes] = None) -> bytes:
+    """Generate an image via the cli-ai-generate Edge Function (debits credits).
+
+    Returns raw image bytes. Raises RuntimeError on insufficient credits or any
+    gateway error (the EF refunds automatically on a post-debit failure).
+    """
+    body: Dict[str, Any] = {
+        "mode": mode,
+        "prompt": prompt,
+        "quality": quality if quality in ("low", "medium", "high") else "medium",
+        "aspect": _SIZE_TO_ASPECT.get(size, "1:1"),
+        "operation_type": "cli:runner_image",
+    }
+    if mode == "edit" and ref_bytes is not None:
+        # Deno fetch() resolves data: URLs server-side, so we can pass the local
+        # reference photo inline without a prior Storage upload.
+        b64 = base64.b64encode(ref_bytes).decode()
+        body["image_urls"] = [f"data:image/png;base64,{b64}"]
+
+    req = urllib.request.Request(
+        f"{_LOVARCH_API_URL}/functions/v1/cli-ai-generate",
+        data=json.dumps(body).encode(), method="POST",
+    )
+    req.add_header("apikey", _LOVARCH_ANON_KEY)
+    req.add_header("Authorization", f"Bearer {_LOVARCH_ACCESS_TOKEN}")
+    req.add_header("Content-Type", "application/json")
+    try:
+        with urllib.request.urlopen(req, timeout=900) as resp:
+            data = json.loads(resp.read().decode())
+    except urllib.error.HTTPError as exc:
+        detail = exc.read().decode()[:300]
+        if exc.code == 402:
+            raise RuntimeError(f"crediti insufficienti (cli-ai-generate): {detail}")
+        raise RuntimeError(f"cli-ai-generate HTTP {exc.code}: {detail}")
+    if not data.get("ok") or not data.get("image_base64"):
+        raise RuntimeError(f"cli-ai-generate error: {data.get('error', 'unknown')}")
+    return base64.b64decode(data["image_base64"].split(",", 1)[1])
+
+
 def gen_image(prompt: str, size: str = "1024x1024", quality: str = "high") -> bytes:
-    """Text-to-image via gpt-image-2 (mirrors archchat-generate-image edge function)."""
+    """Text-to-image via gpt-image-2. Premium → cli-ai-generate (debits credits);
+    free/no-token → OpenAI directly."""
+    if _LOVARCH_ACCESS_TOKEN:
+        return _gateway_image(prompt, size, quality, mode="generate")
     from openai import OpenAI
     client = OpenAI(timeout=900.0)
     resp = client.images.generate(
@@ -122,7 +186,11 @@ def gen_image(prompt: str, size: str = "1024x1024", quality: str = "high") -> by
 
 def gen_image_from_reference(ref_path: Path, prompt: str, size: str = "1024x1024",
                                 quality: str = "high") -> bytes:
-    """Image-to-image via gpt-image-2 · preserves structure from reference."""
+    """Image-to-image via gpt-image-2 · preserves structure from reference.
+    Premium → cli-ai-generate edit mode (debits credits); free/no-token → OpenAI."""
+    if _LOVARCH_ACCESS_TOKEN:
+        return _gateway_image(prompt, size, quality, mode="edit",
+                              ref_bytes=Path(ref_path).read_bytes())
     from openai import OpenAI
     client = OpenAI(timeout=900.0)
     with open(ref_path, "rb") as f:
@@ -221,7 +289,7 @@ def upload(client: LovarchClient, bucket: str, storage_path: str, content: bytes
     url = f"{client.url}/storage/v1/object/{bucket}/{storage_path}"
     req = urllib.request.Request(
         url, method="POST", data=content,
-        headers={"Authorization": f"Bearer {client.key}", "apikey": client.key,
+        headers={"Authorization": f"Bearer {client.auth_bearer}", "apikey": client.auth_apikey,
                   "Content-Type": mime, "x-upsert": "true"},
     )
     urllib.request.urlopen(req)
@@ -1367,30 +1435,40 @@ def main():
                       "Marco Rossini & Giulia Bianchi · Attico Brera · €180K + €22K onorari",
                       "lead + project + 6 phases + 10 budget + 5 finance + portal + execution_id")
     handoff.working("INSERT lead + project + phases + budget + finance + portal...")
-    bootstrap = client.create_project_complete(
-        user_id=user_id,
-        client_data={"name": "Marco Rossini",
-                       "email": "marco.rossini@studiorossinibianchi.it",
-                       "phone": "+39 333 123 4567",
-                       "city": "Milano", "region": "Lombardia"},
-        project_data={"name": "Attico Brera",
-                        "address": "Via Fiori Chiari 17, 20121 Milano",
-                        "typology": "ristrutturazione",
-                        "square_meters": 120,
-                        "brief_objectives": "Ristrutturazione integrale attico 3° piano · open-space + studio + 2 camere + 2 bagni · 90gg",
-                        "brief_style": "Wabi-sabi neoclassico · materiali naturali · NO total white",
-                        "constraints": "Zona A1 NAF · facciata vincolata · soffitti decorati · seminato veneziano",
-                        "budget_min": 165000, "budget_max": 180000,
-                        "professional_fee_percent": 12.2,
-                        "delivery_date": "2026-10-31"},
-        finance_config={"onorari_total": 22000, "start_date": "2026-04-25",
-                          "sal_breakdown": [("SAL 1 · firma", 0.15),
-                                              ("SAL 2 · CILA", 0.25),
-                                              ("SAL 3 · 50% lavori", 0.25),
-                                              ("SAL 4 · consegna", 0.35)]},
-    )
-    project_id = bootstrap["project_id"]
-    handoff.success(f"project_id {str(project_id)[:8]} · lead + 6 phases + 10 budget + 5 finance + portal")
+    if client.is_user_auth:
+        # PREMIUM/user-token mode: the CRM bootstrap (leads/projects/phases/budget/
+        # finance/portal) writes to tables that don't yet have owner-write RLS, and a
+        # premium student has no service_role key. Skip the CRM bootstrap and use a
+        # synthetic project_id — the run still records the execution + steps and
+        # debits credits for AI. Full CRM persistence for premium is a follow-up
+        # (owner-write RLS across those tables, or a server-side persistence EF).
+        project_id = str(uuid.uuid4())
+        handoff.info("Premium mode · CRM bootstrap skipped (execution tracking only) · project_id synthetic")
+    else:
+        bootstrap = client.create_project_complete(
+            user_id=user_id,
+            client_data={"name": "Marco Rossini",
+                           "email": "marco.rossini@studiorossinibianchi.it",
+                           "phone": "+39 333 123 4567",
+                           "city": "Milano", "region": "Lombardia"},
+            project_data={"name": "Attico Brera",
+                            "address": "Via Fiori Chiari 17, 20121 Milano",
+                            "typology": "ristrutturazione",
+                            "square_meters": 120,
+                            "brief_objectives": "Ristrutturazione integrale attico 3° piano · open-space + studio + 2 camere + 2 bagni · 90gg",
+                            "brief_style": "Wabi-sabi neoclassico · materiali naturali · NO total white",
+                            "constraints": "Zona A1 NAF · facciata vincolata · soffitti decorati · seminato veneziano",
+                            "budget_min": 165000, "budget_max": 180000,
+                            "professional_fee_percent": 12.2,
+                            "delivery_date": "2026-10-31"},
+            finance_config={"onorari_total": 22000, "start_date": "2026-04-25",
+                              "sal_breakdown": [("SAL 1 · firma", 0.15),
+                                                  ("SAL 2 · CILA", 0.25),
+                                                  ("SAL 3 · 50% lavori", 0.25),
+                                                  ("SAL 4 · consegna", 0.35)]},
+        )
+        project_id = bootstrap["project_id"]
+        handoff.success(f"project_id {str(project_id)[:8]} · lead + 6 phases + 10 budget + 5 finance + portal")
 
     handoff.working("INSERT pm_squad_executions row...")
     execution_id = client.create_execution(
