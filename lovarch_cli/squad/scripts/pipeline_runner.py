@@ -2021,6 +2021,49 @@ def main():
     handoff.qa_pass("quality-normativa", f"{verdict_q2} · {_q2_pass}/{_q2_total}")
     for _m in _q2_missing: handoff.info(f"  ✗ missing: {_m}")
 
+    # ── RETRY REALE (F9 leva 4b) · regenera→ri-verifica ──────────────────────
+    # Se Q2 non è PASS per riferimenti normativi mancanti E siamo in premium (LLM
+    # disponibile), @capitolato-writer RIGENERA il capitolato ESIGENDO le refs
+    # mancanti, poi Q2 viene ri-eseguito. Loop reale, limitato a QA_RETRY_MAX,
+    # sul punto più recuperabile (capitolato = documento normativo principale).
+    _q2_retries = 0
+    while (verdict_q2 != "PASS" and _q2_missing and _LOVARCH_ACCESS_TOKEN
+           and _q2_retries < QA_RETRY_MAX):
+        _q2_retries += 1
+        handoff.info(f"🔁 QA retry {_q2_retries}/{QA_RETRY_MAX} · @capitolato-writer rigenera con refs: {_q2_missing}")
+        _retry_body = _gateway_text(
+            "Sei @capitolato-writer. Rigenera il capitolato speciale d'appalto in "
+            "markdown INCLUDENDO ESPLICITAMENTE e citando in modo corretto TUTTI "
+            "questi riferimenti normativi (obbligatori): "
+            + ", ".join(_q2_missing) + ". Sezioni: OGGETTO, NORMATIVA (con i "
+            "riferimenti richiesti), OPERE EDILI, IMPIANTI, FINITURE, "
+            "CRONOPROGRAMMA, SICUREZZA, PENALI. Non inventare articoli inesistenti.",
+            f"Progetto: {project_input.project_data['name']} · "
+            f"{project_input.project_data['address']} · "
+            f"{project_input.project_data['square_meters']} m².\n"
+            f"Riferimenti da includere: {', '.join(_q2_missing)}.",
+            role="executor", max_tokens=4000, operation="capitolato-writer:retry")
+        if not _retry_body:
+            break
+        try:
+            _rb_pdf = gen_pdf(f"Capitolato Speciale d'Appalto · {project_input.project_data['name']}",
+                              _retry_body, f"{arch_footer_main} · per firma del professionista")
+            _cap_sp = f"{user_id}/squad-arch/{project_id}/capitolato-speciale.pdf"
+            upload(client, "user-assets", _cap_sp, _rb_pdf, "application/pdf")
+        except Exception as _re:
+            handoff.info(f"  ⚠ retry upload fallito: {_re}")
+            break
+        # ri-verifica Q2 sul solo testo rigenerato (deterministico)
+        _re_text = _retry_body.lower()
+        _q2_check = {_k: any(_re_qa.search(_p, _re_text) for _p in _v)
+                     for _k, _v in _canon.items()}
+        _q2_pass = sum(1 for _v in _q2_check.values() if _v)
+        _q2_missing = [_k for _k, _v in _q2_check.items() if not _v]
+        verdict_q2 = "PASS" if _q2_pass >= _q2_total - 1 else ("CONCERNS" if _q2_pass >= _q2_total - 3 else "REJECT")
+        insert_step(client, execution_id, "@quality-normativa", 2,
+                    f"Q2 normativa (retry {_q2_retries}): {verdict_q2} · {_q2_pass}/{_q2_total} · missing: {_q2_missing}", [])
+        handoff.qa_pass("quality-normativa", f"retry {_q2_retries} → {verdict_q2} · {_q2_pass}/{_q2_total}")
+
     # ── Q3 · @quality-dati · HEAD all URLs + DB FK integrity ──
     handoff.routing("quality-dati", "Larry English IQ mind clone",
                     "HTTP HEAD all storage URLs · pm_documents FK · execution.completed_at",
@@ -2087,12 +2130,10 @@ def main():
                ("REJECT" if any(_v == "REJECT" for _v in _verdicts.values()) else "CONCERNS")
     handoff.banner(f"Tier 2 OVERALL: {_overall} · " + " ".join(f"{k}={v}" for k, v in _verdicts.items()))
 
-    # The 4 verifiers are deterministic for a GIVEN set of deliverables. A full
-    # regenerate→re-verify loop (config qa_retry_max=3) requires the modular
-    # runner refactor; until then we report the TRUE attempt count (1) instead
-    # of pretending we retried 3 times.
+    # qa_attempts = tentativi REALI: 1 + i retry effettivi di Q2 (regenera→
+    # ri-verifica del capitolato). Onesto — non più il finto QA_RETRY_MAX.
     qa_rejected = (_overall == "REJECT")
-    qa_attempts = 1
+    qa_attempts = 1 + _q2_retries
 
     # Chief REAL action on REJECT (premium): @progetto-chief (Opus 4.8) analyzes
     # the QA findings and produces an ACTIONABLE revision plan — what to fix and
