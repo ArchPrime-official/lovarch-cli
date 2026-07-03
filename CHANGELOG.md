@@ -7,7 +7,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-(No unreleased changes yet — last release was v0.2.1.)
+(No unreleased changes yet — last release was v0.3.0.)
+
+## [0.3.0] — 2026-07-04
+
+### Added — MCP remoto, Skills, agenti, verifica, workflows
+
+Il rilascio che porta agli utenti tutto ciò che è stato costruito dopo v0.2.1:
+
+- **Skills** (`lovarch skills install`) — 6 skill (interior-designer, capitolato,
+  preventivi, direzione-lavori, verifica-normativa, render) che il TUO agente
+  (Claude Code) esegue col PROPRIO modello: il testo non consuma crediti Lovarch,
+  la piattaforma addebita solo immagini/dati/deliverable/verifica. Regola
+  architetturale: "il cervello è dell'utente, la piattaforma fa ciò che solo lei fa".
+- **MCP remoto** `https://mcp.lovarch.com/mcp` (Streamable HTTP) + chiavi `lvk_`
+  (`lovarch mcp key`) — connetti Lovarch a qualsiasi client MCP con URL + header,
+  come le altre piattaforme.
+- **Agenti** (`lovarch agent`) — interior-designer, direzione-lavori, preventivi,
+  geometra-catasto, personalizzati col brand dell'utente (executor=Sonnet 5,
+  verifier=Opus 4.8).
+- **verifica** (`lovarch verifica`) — misure (DXF, gratis), normativa, contratto
+  (regola QN_007), dossier: controllo adversariale a 2 modelli.
+- **do** (`lovarch do`) — render, colors, copy, logo, site: workflow della
+  piattaforma dal terminale.
+- **context** (`lovarch context show [--json]`) — il bundle di personalizzazione.
+- **jobs** (`lovarch jobs`) — job asincroni (video/export/upscale).
+- **config** (`lovarch config`) — preferenze + API keys BYO per il Free.
+- Runner v5: input reale dal progetto (fine del demo hardcoded), run faseadas
+  (`--deliverables`), 3 agenti redigono via LLM, chief Opus sul REJECT,
+  retry-loop reale del QA.
+
+### Rules
+
+- Costo sempre in crediti (mai USD). Lingua dell'utente sempre. Modello
+  scegliibile dal catalogo. Il testo, con un agente proprio, gira in locale.
+
 
 ## [0.2.1] — 2026-07-03
 
