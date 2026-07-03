@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import httpx
-import pytest
 import yaml
 
 from lovarch_cli.ai import AiImageResult, InsufficientCreditsError
