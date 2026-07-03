@@ -168,3 +168,45 @@ class PlatformWorkflows:
             "language": language,
         })
         return data.get("copy") or data
+
+
+# ── Async jobs (video / Shotstack / upscale) ───────────────────────────────
+
+# User-facing job fields. cost_usd is deliberately EXCLUDED — user-facing cost
+# is always credits (credits_charged/credits_refunded).
+_JOB_FIELDS = (
+    "id,engine,model,status,prompt,output_url,credits_charged,credits_refunded,"
+    "error_message,duration,aspect_ratio,created_at,done_at"
+)
+
+
+class JobsMixin:
+    """PostgREST reads of content_video_jobs (owner RLS) via the user session."""
+
+    async def jobs_list(self, *, limit: int = 10) -> list[dict]:
+        response = await self._session.request(
+            "GET",
+            f"/rest/v1/content_video_jobs?select={_JOB_FIELDS}"
+            f"&order=created_at.desc&limit={limit}",
+        )
+        if response.status_code != 200:
+            raise WorkflowError(f"jobs: HTTP {response.status_code}")
+        data = response.json()
+        return data if isinstance(data, list) else []
+
+    async def job_status(self, job_id: str) -> dict:
+        response = await self._session.request(
+            "GET",
+            f"/rest/v1/content_video_jobs?id=eq.{job_id}&select={_JOB_FIELDS}",
+        )
+        if response.status_code != 200:
+            raise WorkflowError(f"job {job_id}: HTTP {response.status_code}")
+        data = response.json()
+        if not data:
+            raise WorkflowError(f"job non trovato: {job_id}")
+        return data[0]
+
+
+# Attach the mixin methods to PlatformWorkflows (single public class).
+PlatformWorkflows.jobs_list = JobsMixin.jobs_list        # type: ignore[attr-defined]
+PlatformWorkflows.job_status = JobsMixin.job_status      # type: ignore[attr-defined]

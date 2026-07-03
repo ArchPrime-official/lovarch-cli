@@ -311,3 +311,17 @@ async def tool_verify_normativa(
         "credits_charged": report.credits_charged,
         "notes": report.notes,
     }
+
+
+async def tool_job_status(workflows: Any, *, job_id: str | None = None, limit: int = 10) -> dict:
+    """Async job status (video/export/upscale). Without job_id lists recent jobs."""
+    if workflows is None:
+        return {"error": "not_authenticated", "hint": "Esegui `lovarch login --premium`."}
+    from lovarch_cli.workflows import WorkflowError
+
+    try:
+        if job_id:
+            return {"ok": True, "job": await workflows.job_status(job_id)}
+        return {"ok": True, "jobs": await workflows.jobs_list(limit=limit)}
+    except WorkflowError as exc:
+        return {"ok": False, "error": str(exc)}
