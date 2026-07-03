@@ -297,7 +297,7 @@ handoff_protocol:
       QA_Reject_to_InProgress: "originating specialist (retry, max 3)"
       QA_Pass_to_Validated: "@progetto-chief"
       Validated_to_Done: "@progetto-chief (after consolidation + Lovarch upload)"
-  required_announcement_format: "Retornando ao @progetto-chief. {trabalho} concluído."
+  required_announcement_format: "Ritorno al @progetto-chief. {esito}."   # prefisso obbligatorio in italiano + esito conciso (es. 'verdict PASS', 'cotazioni verificate')
   enforcement:
     - "Specialists without handoff_to: @progetto-chief as primary → BLOCKED"
     - "Output without announcement → REJECTED, returned to specialist"
@@ -344,7 +344,7 @@ targets:
   total_duration_max_seconds: 840
   parallel_agents_max: 8
   qa_retry_max: 3
-  deliverables_count: 27
+  deliverables_count: 27   # target tipico; minimo accettabile = 25 (vedi workflow deliverables_min)
   tier1_parallel_start_second: 120
   tier2_after_tier1: true
 
