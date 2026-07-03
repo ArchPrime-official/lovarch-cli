@@ -118,7 +118,8 @@ def contratto_command(
 
     st = report.structure or {}
     if st.get("client_type"):
-        console.print(f"[dim]Committente: {st['client_type']} \u00b7 Compenso: {(st.get('compenso') or {}).get('amount', '\u2014')}[/dim]")
+        compenso_amount = (st.get("compenso") or {}).get("amount") or "\u2014"
+        console.print(f"[dim]Committente: {st['client_type']} \u00b7 Compenso: {compenso_amount}[/dim]")
     missing = st.get("sections_missing") or []
     if missing:
         console.print(f"  [yellow]\u00b7[/yellow] Sezioni mancanti: {', '.join(str(m) for m in missing[:6])}")

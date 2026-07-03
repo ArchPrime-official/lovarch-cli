@@ -7,7 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-(No unreleased changes yet — last release was v0.2.0.)
+(No unreleased changes yet — last release was v0.2.1.)
+
+## [0.2.1] — 2026-07-03
+
+### Fixed
+
+- Python 3.11: f-string with a backslash escape in the expression part
+  (verifica contratto) crashed the whole CLI at import time on 3.11
+  (3.12+ tolerates it). Moved the escape out of the expression.
+- Lint: unused import in tests.
 
 ## [0.2.0] — 2026-07-03
 
