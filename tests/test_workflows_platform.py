@@ -101,3 +101,20 @@ async def test_copy_invalid_mode():
     wf = PlatformWorkflows(_FakeSession(_resp(200, {})))  # type: ignore[arg-type]
     with pytest.raises(WorkflowError):
         await wf.copy("x", mode="reel")
+
+
+async def test_logo_returns_url():
+    session = _FakeSession(_resp(200, {"success": True, "logoUrl": "https://cdn/logo.png", "message": "ok"}))
+    wf = PlatformWorkflows(session)  # type: ignore[arg-type]
+    r = await wf.logo("studio minimal", language="it")
+    assert r.image_url == "https://cdn/logo.png"
+    assert session.last_call["path"] == "/functions/v1/logo-generate"
+
+
+async def test_site_returns_html():
+    session = _FakeSession(_resp(200, {"code": "<html>ciao</html>"}))
+    wf = PlatformWorkflows(session)  # type: ignore[arg-type]
+    html = await wf.site("portfolio architetto", language="pt")
+    assert "<html>" in html
+    assert session.last_call["json"]["language"] == "pt"
+

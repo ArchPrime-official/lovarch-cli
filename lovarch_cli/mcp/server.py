@@ -150,6 +150,19 @@ def build_server():
         )
 
     @mcp.tool()
+    async def lovarch_logo(prompt: str, output_path: str,
+                           reference_image_path: str | None = None, language: str = "it") -> dict:
+        """Logo pack del brand via piattaforma Lovarch (crediti addebitati)."""
+        return await tools.tool_logo(workflows, prompt=prompt, output_path=output_path,
+                                     reference_image_path=reference_image_path, language=language)
+
+    @mcp.tool()
+    async def lovarch_site(prompt: str, output_path: str, language: str = "it") -> dict:
+        """Genera un sito web (HTML) via piattaforma Lovarch e lo salva su disco."""
+        return await tools.tool_site(workflows, prompt=prompt, output_path=output_path, language=language)
+
+
+    @mcp.tool()
     def lovarch_verify_misure(dxf_path: str) -> dict:
         """Verifica deterministica di un DXF: layer ISO (UNI ISO 5457),
         etichette ambienti, cartiglio CNAPPC. Gratuita (nessun credito)."""

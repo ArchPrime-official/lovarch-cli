@@ -370,3 +370,44 @@ async def tool_verify_dossier(
         return {"ok": False, "error": str(exc)}
     return {"ok": True, "verdict": report.verdict, "files": report.files,
             "skipped": report.skipped, "credits_charged": report.credits_charged}
+
+
+async def tool_logo(workflows: Any, *, prompt: str, output_path: str,
+                    reference_image_path: str | None = None, language: str = "it") -> dict:
+    """Brand logo pack via the platform."""
+    if workflows is None:
+        return {"error": "not_authenticated", "hint": "Esegui `lovarch login --premium`."}
+    from lovarch_cli.workflows import WorkflowError
+
+    try:
+        result = await workflows.logo(prompt, reference_image_path=reference_image_path, language=language)
+    except WorkflowError as exc:
+        return {"ok": False, "error": str(exc)}
+    out: dict = {"ok": True, "image_url": result.image_url, "message": result.message}
+    if result.image_url:
+        try:
+            import httpx
+            async with httpx.AsyncClient(timeout=60.0) as client:
+                r = await client.get(result.image_url)
+                if r.status_code == 200:
+                    p = Path(output_path).expanduser(); p.parent.mkdir(parents=True, exist_ok=True)
+                    p.write_bytes(r.content); out["saved_to"] = str(p)
+        except Exception:  # noqa: BLE001
+            pass
+    return out
+
+
+async def tool_site(workflows: Any, *, prompt: str, output_path: str, language: str = "it") -> dict:
+    """Generate a website (HTML) via the platform, saved to disk."""
+    if workflows is None:
+        return {"error": "not_authenticated", "hint": "Esegui `lovarch login --premium`."}
+    from lovarch_cli.workflows import WorkflowError
+
+    try:
+        html = await workflows.site(prompt, language=language)
+    except WorkflowError as exc:
+        return {"ok": False, "error": str(exc)}
+    p = Path(output_path).expanduser(); p.parent.mkdir(parents=True, exist_ok=True)
+    p.write_text(html, encoding="utf-8")
+    return {"ok": True, "saved_to": str(p), "bytes": len(html)}
+
