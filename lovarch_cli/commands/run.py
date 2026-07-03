@@ -315,6 +315,23 @@ def run_command(
     env.setdefault("LOVARCH_PROJECT_NAME", project)
     env.setdefault("LOVARCH_WORKFLOW", workflow)
 
+    # PREMIUM: hand the user's Supabase session to the runner so ALL paid AI
+    # goes through cli-ai-generate (debiting the user's credits, 1000cr=$1) and
+    # persistence writes as the user (RLS) — the runner never touches the
+    # student's OPENAI_API_KEY nor a service_role key. Also pass --user-id so the
+    # execution rows are owned by the token's user (RLS requires it).
+    if mode == ExecutionMode.PREMIUM and not is_dry_run:
+        from lovarch_cli.auth.session import LovarchSession
+        from lovarch_cli.config import DEFAULT_API_ANON_KEY, DEFAULT_API_URL
+
+        session = LovarchSession.load()
+        if session is not None:
+            env["LOVARCH_ACCESS_TOKEN"] = session.access_token
+            env["LOVARCH_ANON_KEY"] = DEFAULT_API_ANON_KEY
+            env["LOVARCH_API_URL"] = DEFAULT_API_URL
+            env["LOVARCH_SUPABASE_URL"] = DEFAULT_API_URL
+            cmd += ["--user-id", session.user_id]
+
     # ─── Run subprocess + stream output ──────────────────────────────────
     try:
         result = subprocess.run(cmd, env=env, check=False)
