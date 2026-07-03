@@ -171,6 +171,50 @@ def _gateway_image(prompt: str, size: str, quality: str, *,
     return base64.b64decode(data["image_base64"].split(",", 1)[1])
 
 
+def _gateway_text(system: str, prompt: str, *, role: str = "executor",
+                  max_tokens: int = 3000, operation: str = "cli:agent_text") -> Optional[str]:
+    """Generate an agent's deliverable text via cli-ai-text (debits credits).
+
+    Returns the generated markdown, or None when not in premium mode (no
+    LOVARCH_ACCESS_TOKEN) or on any failure — callers fall back to the template
+    so free/dry runs still produce output.
+    """
+    if not _LOVARCH_ACCESS_TOKEN:
+        return None
+    lang = os.environ.get("LOVARCH_OUTPUT_LANGUAGE", "it")
+    body = json.dumps({
+        "role": role, "system": system, "prompt": prompt,
+        "max_tokens": max_tokens, "language": lang, "operation_type": operation,
+    }).encode()
+    data = None
+    for attempt in range(3):
+        req = urllib.request.Request(
+            f"{_LOVARCH_API_URL}/functions/v1/cli-ai-text", data=body, method="POST")
+        req.add_header("apikey", _LOVARCH_ANON_KEY)
+        req.add_header("Authorization", f"Bearer {_LOVARCH_ACCESS_TOKEN}")
+        req.add_header("Content-Type", "application/json")
+        try:
+            with urllib.request.urlopen(req, timeout=300) as resp:
+                data = json.loads(resp.read().decode())
+            break
+        except urllib.error.HTTPError as exc:
+            # 502/503/504 = cold boot / transient — retry with backoff.
+            if exc.code in (502, 503, 504) and attempt < 2:
+                time.sleep(2 * (attempt + 1))
+                continue
+            print(f"  ⚠ cli-ai-text HTTP {exc.code} — uso il template", file=sys.stderr)
+            return None
+        except (urllib.error.URLError, json.JSONDecodeError) as exc:
+            if attempt < 2:
+                time.sleep(2 * (attempt + 1))
+                continue
+            print(f"  ⚠ cli-ai-text non disponibile ({str(exc)[:60]}) — uso il template", file=sys.stderr)
+            return None
+    if not data or not data.get("ok") or not data.get("text"):
+        return None
+    return str(data["text"])
+
+
 def gen_image(prompt: str, size: str = "1024x1024", quality: str = "high") -> bytes:
     """Text-to-image via gpt-image-2. Premium → cli-ai-generate (debits credits);
     free/no-token → OpenAI directly."""
@@ -750,56 +794,64 @@ def generate_all_documents(client, handoff, exec_id, user_id, project_id, projec
                       "capitolato-speciale.pdf + cronoprogramma.xlsx in 05-impresa/")
     cap_files = []
 
-    cap_body = """## OGGETTO
-Ristrutturazione integrale attico al 3° piano · Via Fiori Chiari 17 Milano (Brera).
-120 m² + terrazzo 20 m². Vincolo zona A1 NAF + facciata storica.
+    # Premium: @capitolato-writer redige il capitolato con l'LLM (executor)
+    # sui dati REALI del progetto — addebita crediti. Free/dry: template.
+    _cap_system = (
+        "Sei @capitolato-writer, esperto di capitolati speciali d'appalto per "
+        "ristrutturazioni edilizie italiane (UNI 11337-7, CAM edilizia D.M. "
+        "23/06/2022, DPR 380/2001, D.Lgs 81/2008, NTC 2018). Redigi un capitolato "
+        "in markdown con le sezioni: OGGETTO, NORMATIVA (riferimenti canonici e "
+        "CORRETTI), OPERE EDILI, IMPIANTI, FINITURE, CRONOPROGRAMMA, SICUREZZA, "
+        "PENALI. Concreto e coerente con i dati forniti. NON inventare articoli "
+        "di legge inesistenti."
+    )
+    _cap_prompt = (
+        f"Progetto: {project_data['name']} · {project_data['address']} · "
+        f"{project_data['square_meters']} m² · tipologia {project_data['typology']}.\n"
+        f"Obiettivi: {project_data['brief_objectives']}\n"
+        f"Stile: {project_data['brief_style']}\n"
+        f"Vincoli: {project_data['constraints']}\n"
+        f"Budget lavori: €{project_data['budget_max']:,} · consegna {project_data['delivery_date']}.\n"
+        "Redigi il capitolato speciale d'appalto completo."
+    )
+    cap_body = _gateway_text(_cap_system, _cap_prompt, role="executor",
+                             max_tokens=4000, operation="capitolato-writer")
+    if cap_body:
+        handoff.info("capitolato redatto da @capitolato-writer (LLM)")
+    else:
+        cap_body = f"""## OGGETTO
+{project_data['brief_objectives']}
+{project_data['name']} · {project_data['address']} · {project_data['square_meters']} m².
 
 ## NORMATIVA
 - DPR 380/2001 · Testo unico edilizia
 - UNI 11337-7:2018 · Capitolato informativo BIM
-- D.Lgs 152/2006 · Decreto CAM Edilizia
+- D.M. 23/06/2022 · Criteri Ambientali Minimi (CAM) Edilizia
 - D.Lgs 81/2008 · Sicurezza cantieri
 - NTC 2018 · Norme tecniche costruzioni
 
-## OPERE EDILI · 35%
+## OPERE EDILI
 - Demolizioni controllate murature interne (no portanti)
-- Ricostruzione tramezze in laterizio cm 8 + cm 12
-- Preservazione soffitti decorati originali (restauro)
-- Preservazione pavimento seminato veneziano nel living
-- Posa parquet rovere chiaro spazzolato
-- Intonaco fine 'argilla' o calce naturale
+- Ricostruzione tramezze · finiture coerenti con lo stile
+{('- Vincoli: ' + project_data['constraints']) if project_data.get('constraints') else ''}
 
-## IMPIANTI · 25%
-- Impianto elettrico · CEI 64-8 · domotica leggera
-- Impianto idraulico · alimentazione caldaia esistente
-- Riscaldamento a pavimento radiante 4 zone
-- VMC con recupero · classe B+
-- Climatizzazione canalizzata occulta
+## IMPIANTI
+- Impianto elettrico · CEI 64-8
+- Riscaldamento · VMC con recupero
 
-## FINITURE · 25%
-- Bagni · gres effetto travertino
-- Cucina · ante rovere chiaro · top granito
-- Cabina armadio walk-in
-- Camera Sofia · carta da parati botanica
-- Vernici naturali atossiche · classe A+
+## FINITURE
+- Finiture coerenti con: {project_data['brief_style']}
 
 ## CRONOPROGRAMMA
-- Inizio: 1° luglio 2026
-- Fine target: 31 ottobre 2026
-- Durata: 90 giorni lavorativi
+- Consegna target: {project_data['delivery_date']}
 
 ## SICUREZZA
-- PSC redatto da CSP abilitato
-- DPI obbligatori · cantiere delimitato
-- Notifica preliminare ASL
-- CSE · coordinatore sicurezza esecuzione
+- PSC/PSC redatto da CSP abilitato · DPI · notifica preliminare ASL
 
 ## PENALI
-- Ritardo > 15 gg: 0,5%/giorno
-- Difformità: ripristino a carico impresa
-- Rispetto regolamento condominiale (preavviso 30 gg)
+- Ritardo > 15 gg: 0,5%/giorno · difformità: ripristino a carico impresa
 """
-    b = gen_pdf("Capitolato Speciale d'Appalto · Attico Brera", cap_body,
+    b = gen_pdf(f"Capitolato Speciale d'Appalto · {project_data['name']}", cap_body,
                   f"{arch_footer} · per firma del professionista")
     sp = f"{user_id}/squad-arch/{project_id}/capitolato-speciale.pdf"
     url = upload(client, "user-assets", sp, b, "application/pdf")
