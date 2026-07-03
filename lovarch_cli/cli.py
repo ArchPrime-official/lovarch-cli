@@ -225,6 +225,14 @@ app.add_typer(
     help="Contesto di personalizzazione usato dagli agenti AI (premium).",
 )
 
+from lovarch_cli.commands.do_cmd import do_app  # noqa: E402
+
+app.add_typer(
+    do_app,
+    name="do",
+    help="Workflow della piattaforma: render, colors, copy (premium).",
+)
+
 
 if __name__ == "__main__":
     app()
