@@ -1386,23 +1386,58 @@ def main():
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--input-dir", default=str(SAMPLE_INPUT))
     parser.add_argument("--user-id", default="a5f3ee03-a7df-4571-a68d-baf168bd4ba8")
+    # Runs faseadas: o usuário escolhe O QUE gerar (CSV de gruppi). Default: tutto.
+    parser.add_argument(
+        "--deliverables",
+        default="briefing,regolatorio,energia,moodboard,renders,documenti",
+        help="Gruppi da generare (CSV): briefing,regolatorio,energia,moodboard,renders,documenti",
+    )
     args = parser.parse_args()
 
+    VALID_GROUPS = {"briefing", "regolatorio", "energia", "moodboard", "renders", "documenti"}
+    selected = {g.strip().lower() for g in args.deliverables.split(",") if g.strip()}
+    invalid = selected - VALID_GROUPS
+    if invalid:
+        print(f"ERROR: gruppi non validi: {sorted(invalid)} · validi: {sorted(VALID_GROUPS)}", file=sys.stderr)
+        return EXIT_PIPELINE_ERROR
+
     handoff = HandoffAnnouncer()
-    handoff.banner("Squad Architettura-Progetto v2.0 · Pipeline Runner v4")
+    handoff.banner("Squad Architettura-Progetto v2.0 · Pipeline Runner v5")
 
     user_id = args.user_id
     handoff.info(f"User: {user_id}")
     handoff.info(f"Input: {args.input_dir}")
     handoff.info(f"Image model: {OPENAI_IMAGE_MODEL}")
+    handoff.info(f"Deliverables: {', '.join(sorted(selected))}")
+
+    # ── Dados REAIS do progetto (dati-progetto.yaml > LLM dal briefing > demo) ──
+    from input_parser import parse_project_input
+    project_input = parse_project_input(args.input_dir)
+    for w in project_input.warnings:
+        handoff.info(f"⚠️  {w}")
+    handoff.info(f"Dati progetto: fonte={project_input.source} · "
+                 f"cliente={project_input.client_data['name']} · "
+                 f"progetto={project_input.project_data['name']} · "
+                 f"{project_input.project_data['square_meters']} m²")
+    p_client = project_input.client_data
+    p_project = project_input.project_data
+    p_finance = project_input.finance_config
 
     if args.dry_run:
         handoff.banner("DRY RUN")
-        n_imgs = 1 + len(RENDER_REFS)
-        n_docs = 22  # estimated
-        print(f"Would generate: 1 moodboard + {len(RENDER_REFS)} i2i renders + ~{n_docs} docs")
-        print(f"Estimated cost: ~${n_imgs * 0.20:.2f} ({n_imgs} images)")
-        print(f"Estimated time: ~{n_imgs * 2.5 + 1:.0f} min")
+        # Estimativa de créditos FIEL à seleção (custo voltado a usuário = crediti,
+        # mai USD). moodboard 4 img ~medium · renders 5 img i2i ~high · testo per gruppo.
+        est_credits = 0
+        plan = []
+        if "briefing" in selected: est_credits += 6; plan.append("briefing (testo)")
+        if "regolatorio" in selected: est_credits += 6; plan.append("analisi regolamentare")
+        if "energia" in selected: est_credits += 6; plan.append("APE + LCA")
+        if "moodboard" in selected: est_credits += 4 * 53; plan.append("moodboard (4 immagini)")
+        if "renders" in selected: est_credits += len(RENDER_REFS) * 211; plan.append(f"{len(RENDER_REFS)} render fotorealistici")
+        if "documenti" in selected: est_credits += 20; plan.append("~22 documenti (DXF/PDF/XLSX)")
+        print(f"Genererebbe: {', '.join(plan)}")
+        print(f"Crediti stimati: ~{est_credits} (massimo · l'addebito reale dipende dai token/immagini)")
+        print(f"Tempo stimato: ~{max(1, ('moodboard' in selected) + ('renders' in selected)) * 4} min")
         return 0
 
     client = LovarchClient()
@@ -1432,7 +1467,7 @@ def main():
     handoff.banner("Phase A · Bootstrap project")
     handoff.routing("progetto-chief",
                       "Bootstrap progetto Lovarch · LovarchClient.create_project_complete()",
-                      "Marco Rossini & Giulia Bianchi · Attico Brera · €180K + €22K onorari",
+                      f"{p_client['name']} · {p_project['name']} · €{p_project['budget_max']:,} + €{p_finance['onorari_total']:,} onorari",
                       "lead + project + 6 phases + 10 budget + 5 finance + portal + execution_id")
     handoff.working("INSERT lead + project + phases + budget + finance + portal...")
     if client.is_user_auth:
@@ -1447,25 +1482,9 @@ def main():
     else:
         bootstrap = client.create_project_complete(
             user_id=user_id,
-            client_data={"name": "Marco Rossini",
-                           "email": "marco.rossini@studiorossinibianchi.it",
-                           "phone": "+39 333 123 4567",
-                           "city": "Milano", "region": "Lombardia"},
-            project_data={"name": "Attico Brera",
-                            "address": "Via Fiori Chiari 17, 20121 Milano",
-                            "typology": "ristrutturazione",
-                            "square_meters": 120,
-                            "brief_objectives": "Ristrutturazione integrale attico 3° piano · open-space + studio + 2 camere + 2 bagni · 90gg",
-                            "brief_style": "Wabi-sabi neoclassico · materiali naturali · NO total white",
-                            "constraints": "Zona A1 NAF · facciata vincolata · soffitti decorati · seminato veneziano",
-                            "budget_min": 165000, "budget_max": 180000,
-                            "professional_fee_percent": 12.2,
-                            "delivery_date": "2026-10-31"},
-            finance_config={"onorari_total": 22000, "start_date": "2026-04-25",
-                              "sal_breakdown": [("SAL 1 · firma", 0.15),
-                                                  ("SAL 2 · CILA", 0.25),
-                                                  ("SAL 3 · 50% lavori", 0.25),
-                                                  ("SAL 4 · consegna", 0.35)]},
+            client_data=p_client,
+            project_data=p_project,
+            finance_config=p_finance,
         )
         project_id = bootstrap["project_id"]
         handoff.success(f"project_id {str(project_id)[:8]} · lead + 6 phases + 10 budget + 5 finance + portal")
@@ -1473,9 +1492,11 @@ def main():
     handoff.working("INSERT pm_squad_executions row...")
     execution_id = client.create_execution(
         user_id=user_id, project_id=project_id,
-        metadata={"scenario": "Attico Brera · Salone 2026 demo",
-                    "client": "Marco Rossini & Giulia Bianchi",
-                    "runner": "pipeline_runner v4",
+        metadata={"scenario": p_project["name"],
+                    "client": p_client["name"],
+                    "input_source": project_input.source,
+                    "deliverables": sorted(selected),
+                    "runner": "pipeline_runner v5",
                     "image_model": OPENAI_IMAGE_MODEL},
     )
     handoff.success(f"execution_id {str(execution_id)[:8]}")
@@ -1537,209 +1558,218 @@ def main():
     # @briefing-architect · Tier 1 · structure briefing in 12 UNI 11337 sections
     # ========================================================================
     handoff.banner("Phase B · Tier 1 · 11 agents")
-    handoff.routing("briefing-architect",
-                      "Strutturazione briefing in 12 sezioni UNI 11337-7",
-                      "Input briefing-cliente.md raw → output JSON 12 sezioni · base per tutti specialisti Tier 1",
-                      "brief-strutturato.json + brief-strutturato.pdf in 01-briefing/")
-    brief_struct = {
-        "sezione_1_anagrafica_cliente": {
-            "committenti": ["Marco Rossini (42, avvocato d'affari)", "Giulia Bianchi (38, designer gioielli)"],
-            "figli": ["Sofia (6 anni)"], "animali": ["Otto · Labrador 4 anni"],
-            "reddito_combinato": "€180K/anno"
-        },
-        "sezione_2_immobile": {
-            "indirizzo": "Via Fiori Chiari 17, 20121 Milano (Brera)",
-            "piano": "3° su 4", "anno_costruzione": 1910,
-            "superficie_lorda_m2": 120, "terrazzo_m2": 20,
-            "catastale": {"foglio": 356, "mappale": 127, "subalterno": 12, "categoria": "A/2"},
-            "vincoli": ["Zona A1 NAF Brera", "Facciata vincolata", "Soffitti decorati", "Seminato veneziano"]
-        },
-        "sezione_3_esigenze": {"programma_spaziale_ambienti": 9,
-                                  "must_have": ["open-space living", "studio Marco isolato", "cabina armadio walk-in",
-                                                  "bagno padronale spa", "camera Sofia botanica"]},
-        "sezione_4_vincoli_cliente": {"no_total_white": True, "no_open_space_totale": True,
-                                          "no_marmi_pregiati": True, "tinte": ["beige caldo", "terra di siena", "verde salvia"]},
-        "sezione_5_budget": {"lavori": 180000, "onorari": 22000, "iva": 10},
-        "sezione_6_timeline": {"inizio_cantiere": "2026-07-01", "fine": "2026-10-31", "durata_gg": 90},
-        "sezione_7_imprese_preselezionate": ["Edilcasa Lombardia", "Costruzioni Galimberti", "Restauri Brambilla"],
-        "sezione_8_stile": ["Vincenzo De Cotiis", "Studiopepe", "Marcante & Testa", "Hotel Vilòn", "Cassina"],
-        "sezione_9_persone_interesse": ["Ing. Davide Conti (strutturale)", "Geom. Francesca Pozzi"],
-        "sezione_10_normativa_cliente": ["DPR 380", "CILA", "asseverazione tecnico"],
-        "sezione_11_comunicazione": {"frequenza": "settimanale email venerdì", "riunioni": "sabato mattina"},
-        "sezione_12_sensibilita": {"marco_paziente_esigente": True, "giulia_occhio_dettaglio": True,
-                                       "sofia_vuole_rosa": True, "otto_spazio_dedicato": True},
-    }
-    brief_json_bytes = json.dumps(brief_struct, indent=2, ensure_ascii=False).encode("utf-8")
-    sp = f"{user_id}/squad-arch/{project_id}/brief-strutturato.json"
-    bj_url = upload(client, "user-assets", sp, brief_json_bytes, "application/json")
+    if "briefing" in selected:
+        # (grupo 'briefing' — pulado se não selecionado)
+        handoff.routing("briefing-architect",
+                          "Strutturazione briefing in 12 sezioni UNI 11337-7",
+                          "Input briefing-cliente.md raw → output JSON 12 sezioni · base per tutti specialisti Tier 1",
+                          "brief-strutturato.json + brief-strutturato.pdf in 01-briefing/")
+        brief_struct = {
+            "sezione_1_anagrafica_cliente": {
+                "committenti": [p_client["name"]],
+                "figli": ["Sofia (6 anni)"], "animali": ["Otto · Labrador 4 anni"],
+                "reddito_combinato": "€180K/anno"
+            },
+            "sezione_2_immobile": {
+                "indirizzo": p_project["address"],
+                "piano": "3° su 4", "anno_costruzione": 1910,
+                "superficie_lorda_m2": p_project["square_meters"], "terrazzo_m2": None,
+                "catastale": {"foglio": 356, "mappale": 127, "subalterno": 12, "categoria": "A/2"},
+                "vincoli": ["Zona A1 NAF Brera", "Facciata vincolata", "Soffitti decorati", "Seminato veneziano"]
+            },
+            "sezione_3_esigenze": {"programma_spaziale_ambienti": 9,
+                                      "must_have": ["open-space living", "studio Marco isolato", "cabina armadio walk-in",
+                                                      "bagno padronale spa", "camera Sofia botanica"]},
+            "sezione_4_vincoli_cliente": {"no_total_white": True, "no_open_space_totale": True,
+                                              "no_marmi_pregiati": True, "tinte": ["beige caldo", "terra di siena", "verde salvia"]},
+            "sezione_5_budget": {"lavori": p_project["budget_max"], "onorari": p_finance["onorari_total"], "iva": 10},
+            "sezione_6_timeline": {"inizio_cantiere": "2026-07-01", "fine": "2026-10-31", "durata_gg": 90},
+            "sezione_7_imprese_preselezionate": ["Edilcasa Lombardia", "Costruzioni Galimberti", "Restauri Brambilla"],
+            "sezione_8_stile": ["Vincenzo De Cotiis", "Studiopepe", "Marcante & Testa", "Hotel Vilòn", "Cassina"],
+            "sezione_9_persone_interesse": ["Ing. Davide Conti (strutturale)", "Geom. Francesca Pozzi"],
+            "sezione_10_normativa_cliente": ["DPR 380", "CILA", "asseverazione tecnico"],
+            "sezione_11_comunicazione": {"frequenza": "settimanale email venerdì", "riunioni": "sabato mattina"},
+            "sezione_12_sensibilita": {"marco_paziente_esigente": True, "giulia_occhio_dettaglio": True,
+                                           "sofia_vuole_rosa": True, "otto_spazio_dedicato": True},
+        }
+        brief_json_bytes = json.dumps(brief_struct, indent=2, ensure_ascii=False).encode("utf-8")
+        sp = f"{user_id}/squad-arch/{project_id}/brief-strutturato.json"
+        bj_url = upload(client, "user-assets", sp, brief_json_bytes, "application/json")
 
-    bp_md = "## BRIEFING STRUTTURATO · 12 SEZIONI UNI 11337-7\n\n"
-    for k, v in brief_struct.items():
-        bp_md += f"### {k.replace('_', ' ').upper()}\n{json.dumps(v, ensure_ascii=False, indent=2)}\n\n"
-    brief_pdf = gen_pdf("Briefing Strutturato · UNI 11337", bp_md, arch_footer_main)
-    sp = f"{user_id}/squad-arch/{project_id}/brief-strutturato.pdf"
-    bp_url = upload(client, "user-assets", sp, brief_pdf, "application/pdf")
+        bp_md = "## BRIEFING STRUTTURATO · 12 SEZIONI UNI 11337-7\n\n"
+        for k, v in brief_struct.items():
+            bp_md += f"### {k.replace('_', ' ').upper()}\n{json.dumps(v, ensure_ascii=False, indent=2)}\n\n"
+        brief_pdf = gen_pdf(f"Briefing Strutturato · {p_project['name']}", bp_md, arch_footer_main)
+        sp = f"{user_id}/squad-arch/{project_id}/brief-strutturato.pdf"
+        bp_url = upload(client, "user-assets", sp, brief_pdf, "application/pdf")
 
-    insert_step(client, execution_id, "@briefing-architect", 1,
-                  "Briefing strutturato 12 sezioni UNI 11337-7",
-                  [file_meta("brief-strutturato.json", "01-briefing/", bj_url, len(brief_json_bytes), "application/json"),
-                   file_meta("brief-strutturato.pdf", "01-briefing/", bp_url, len(brief_pdf), "application/pdf")])
-    handoff.qa_pass("briefing-architect", "12 sezioni · 251 righe → JSON + PDF")
+        insert_step(client, execution_id, "@briefing-architect", 1,
+                      "Briefing strutturato 12 sezioni UNI 11337-7",
+                      [file_meta("brief-strutturato.json", "01-briefing/", bj_url, len(brief_json_bytes), "application/json"),
+                       file_meta("brief-strutturato.pdf", "01-briefing/", bp_url, len(brief_pdf), "application/pdf")])
+        handoff.qa_pass("briefing-architect", "12 sezioni · 251 righe → JSON + PDF")
+
 
     # ========================================================================
     # @regolatorio-it · Tier 1 · regulatory analysis Italian framework
     # ========================================================================
-    handoff.routing("regolatorio-it",
-                      "Verifica conformità DPR 380 + PRG Milano + zona A1 NAF + D.Lgs 42/2004",
-                      "Edificio 1910 vincolato facciata · ristrutturazione interna · soffitti decorati preservati",
-                      "analisi-regolamentare.pdf in 01-briefing/")
-    reg_md = """## ANALISI REGOLAMENTARE · ATTICO BRERA
+    if "regolatorio" in selected:
+        # (grupo 'regolatorio' — pulado se não selecionado)
+        handoff.routing("regolatorio-it",
+                          "Verifica conformità DPR 380 + PRG Milano + zona A1 NAF + D.Lgs 42/2004",
+                          "Edificio 1910 vincolato facciata · ristrutturazione interna · soffitti decorati preservati",
+                          "analisi-regolamentare.pdf in 01-briefing/")
+        reg_md = f"""## ANALISI REGOLAMENTARE · {p_project["name"].upper()}
 
-### NORMATIVA APPLICABILE
-1. **DPR 380/2001 art. 6-bis** · Comunicazione Inizio Lavori Asseverata (CILA)
-2. **D.Lgs 42/2004 art. 142** · vincolo paesaggistico (zona A1 NAF)
-3. **PGT Comune Milano** · regolamento edilizio NAF Brera
-4. **UNI 11337** · gestione informativa BIM
-5. **NTC 2018** · norme tecniche costruzioni
-6. **D.Lgs 81/2008** · sicurezza cantieri (PSC obbligatorio)
-7. **Decreto CAM 23/06/2022** · sostenibilità ambientale
+    ### NORMATIVA APPLICABILE
+    1. **DPR 380/2001 art. 6-bis** · Comunicazione Inizio Lavori Asseverata (CILA)
+    2. **D.Lgs 42/2004 art. 142** · vincolo paesaggistico (zona A1 NAF)
+    3. **PGT Comune Milano** · regolamento edilizio NAF Brera
+    4. **UNI 11337** · gestione informativa BIM
+    5. **NTC 2018** · norme tecniche costruzioni
+    6. **D.Lgs 81/2008** · sicurezza cantieri (PSC obbligatorio)
+    7. **Decreto CAM 23/06/2022** · sostenibilità ambientale
 
-### TIPOLOGIA INTERVENTO
-**CILA · ristrutturazione edilizia interna**
-- Modifiche distributive interne (no aumento volumetrico)
-- Sostituzione pavimenti, impianti, finiture
-- Restauro elementi decorativi originali
+    ### TIPOLOGIA INTERVENTO
+    **CILA · ristrutturazione edilizia interna**
+    - Modifiche distributive interne (no aumento volumetrico)
+    - Sostituzione pavimenti, impianti, finiture
+    - Restauro elementi decorativi originali
 
-### VINCOLI APPLICABILI
-- ☑ Vincolo paesaggistico (zona A1 NAF)
-- ☑ Facciata vincolata (NO modifiche prospetti)
-- ☑ Soffitti decorati originali (preservare obbligatorio)
-- ☐ Vincolo monumentale (no)
+    ### VINCOLI APPLICABILI
+    - ☑ Vincolo paesaggistico (zona A1 NAF)
+    - ☑ Facciata vincolata (NO modifiche prospetti)
+    - ☑ Soffitti decorati originali (preservare obbligatorio)
+    - ☐ Vincolo monumentale (no)
 
-### DOCUMENTI RICHIESTI
-1. CILA modulo principale + asseverazione tecnico abilitato
-2. Relazione paesaggistica semplificata
-3. Relazione tecnica illustrativa
-4. Visura catastale aggiornata
-5. Planimetrie SA + progetto (scala 1:50)
-6. Documentazione fotografica
-7. Notifica preliminare ASL (D.Lgs 81/2008 art. 99)
+    ### DOCUMENTI RICHIESTI
+    1. CILA modulo principale + asseverazione tecnico abilitato
+    2. Relazione paesaggistica semplificata
+    3. Relazione tecnica illustrativa
+    4. Visura catastale aggiornata
+    5. Planimetrie SA + progetto (scala 1:50)
+    6. Documentazione fotografica
+    7. Notifica preliminare ASL (D.Lgs 81/2008 art. 99)
 
-### ENTI COINVOLTI
-- **Comune di Milano** · Sportello Unico Edilizia
-- **Soprintendenza** · per parere paesaggistico
-- **ASL Milano** · notifica preliminare cantiere
-- **Ordine Architetti** · iscrizione tecnico abilitato
+    ### ENTI COINVOLTI
+    - **Comune di Milano** · Sportello Unico Edilizia
+    - **Soprintendenza** · per parere paesaggistico
+    - **ASL Milano** · notifica preliminare cantiere
+    - **Ordine Architetti** · iscrizione tecnico abilitato
 
-### TEMPI ATTESI
-- Deposito CILA → effetto immediato (silenzio-assenso)
-- Soprintendenza paesaggistica → 60 giorni
-- Notifica ASL → contestuale inizio lavori
-"""
-    reg_pdf = gen_pdf("Analisi Regolamentare · Attico Brera", reg_md, arch_footer_main)
-    sp = f"{user_id}/squad-arch/{project_id}/analisi-regolamentare.pdf"
-    reg_url = upload(client, "user-assets", sp, reg_pdf, "application/pdf")
-    insert_step(client, execution_id, "@regolatorio-it", 1,
-                  "Analisi regolamentare · CILA + paesaggistica + 7 framework",
-                  [file_meta("analisi-regolamentare.pdf", "01-briefing/", reg_url, len(reg_pdf), "application/pdf")])
-    handoff.qa_pass("regolatorio-it", "CILA tipologia + 7 framework normativi mapped")
+    ### TEMPI ATTESI
+    - Deposito CILA → effetto immediato (silenzio-assenso)
+    - Soprintendenza paesaggistica → 60 giorni
+    - Notifica ASL → contestuale inizio lavori
+    """
+        reg_pdf = gen_pdf("Analisi Regolamentare · Attico Brera", reg_md, arch_footer_main)
+        sp = f"{user_id}/squad-arch/{project_id}/analisi-regolamentare.pdf"
+        reg_url = upload(client, "user-assets", sp, reg_pdf, "application/pdf")
+        insert_step(client, execution_id, "@regolatorio-it", 1,
+                      "Analisi regolamentare · CILA + paesaggistica + 7 framework",
+                      [file_meta("analisi-regolamentare.pdf", "01-briefing/", reg_url, len(reg_pdf), "application/pdf")])
+        handoff.qa_pass("regolatorio-it", "CILA tipologia + 7 framework normativi mapped")
+
 
     # ========================================================================
     # @energy-prelim (Mazria mind clone) · Tier 1 · APE + LCA preliminari
     # ========================================================================
-    handoff.routing("energy-prelim",
-                      "APE preliminare + LCA materiali · Architecture 2030 mind clone (Mazria)",
-                      "Zona climatica E (Milano) · 120 m² · involucro esistente · obiettivo classe energetica",
-                      "APE-preliminare.pdf + LCA-materiali.pdf in 06-ingegneri/")
-    ape_md = """## APE PRELIMINARE · ATTICO BRERA
+    if "energia" in selected:
+        # (grupo 'energia' — pulado se não selecionado)
+        handoff.routing("energy-prelim",
+                          "APE preliminare + LCA materiali · Architecture 2030 mind clone (Mazria)",
+                          "Zona climatica E (Milano) · 120 m² · involucro esistente · obiettivo classe energetica",
+                          "APE-preliminare.pdf + LCA-materiali.pdf in 06-ingegneri/")
+        ape_md = f"""## APE PRELIMINARE · {p_project["name"].upper()}
 
-### DATI EDIFICIO
-- Anno costruzione: 1910 (involucro esistente)
-- Zona climatica: E (Milano)
-- Superficie utile: 102 m²
-- Volume riscaldato: 295 m³
-- Esposizione: SW (terrazzo)
+    ### DATI EDIFICIO
+    - Anno costruzione: 1910 (involucro esistente)
+    - Zona climatica: E (Milano)
+    - Superficie utile: 102 m²
+    - Volume riscaldato: 295 m³
+    - Esposizione: SW (terrazzo)
 
-### CLASSE ATTUALE STIMATA
-**Classe G** · 280 kWh/m²a (involucro 1910 senza isolamento)
+    ### CLASSE ATTUALE STIMATA
+    **Classe G** · 280 kWh/m²a (involucro 1910 senza isolamento)
 
-### CLASSE PROGETTO STIMATA
-**Classe B+** · 65 kWh/m²a (-77%)
+    ### CLASSE PROGETTO STIMATA
+    **Classe B+** · 65 kWh/m²a (-77%)
 
-### MISURE PREVISTE
-1. **VMC con recupero di calore** · efficienza 87%
-   - Riduzione perdite ventilazione: -45%
-2. **Riscaldamento radiante a pavimento** · 4 zone
-   - Efficienza distribuzione: +18%
-3. **Caldaia a condensazione** (esistente Vaillant 2018) · classe ErP A
-4. **Domotica termoregolazione** · scenari + termostati IR
-5. **Serramenti** · ATTENZIONE vincolo facciata · doppio vetro low-E (sostituzione interno)
+    ### MISURE PREVISTE
+    1. **VMC con recupero di calore** · efficienza 87%
+       - Riduzione perdite ventilazione: -45%
+    2. **Riscaldamento radiante a pavimento** · 4 zone
+       - Efficienza distribuzione: +18%
+    3. **Caldaia a condensazione** (esistente Vaillant 2018) · classe ErP A
+    4. **Domotica termoregolazione** · scenari + termostati IR
+    5. **Serramenti** · ATTENZIONE vincolo facciata · doppio vetro low-E (sostituzione interno)
 
-### INVOLUCRO
-- **NO** isolamento esterno (vincolo facciata)
-- ✅ Isolamento interno cappotto · spessore 6cm rockwool
-- ✅ Isolamento solaio inferiore (verso scantinato)
+    ### INVOLUCRO
+    - **NO** isolamento esterno (vincolo facciata)
+    - ✅ Isolamento interno cappotto · spessore 6cm rockwool
+    - ✅ Isolamento solaio inferiore (verso scantinato)
 
-### EMISSIONI CO2
-- Stato attuale: ~28 kg CO2/m² · totale ~3360 kg/anno
-- Progetto: ~6 kg CO2/m² · totale ~720 kg/anno
-- **Riduzione: -78%**
+    ### EMISSIONI CO2
+    - Stato attuale: ~28 kg CO2/m² · totale ~3360 kg/anno
+    - Progetto: ~6 kg CO2/m² · totale ~720 kg/anno
+    - **Riduzione: -78%**
 
-### ETICHETTA
-La presente è stima preliminare. APE definitivo da emettere a fine lavori da tecnico abilitato (Cened+).
-"""
-    ape_pdf = gen_pdf("APE Preliminare · Attico Brera", ape_md,
-                        f"{arch_footer_main} · per ing. termotecnico Cened+")
-    sp = f"{user_id}/squad-arch/{project_id}/APE-preliminare.pdf"
-    ape_url = upload(client, "user-assets", sp, ape_pdf, "application/pdf")
+    ### ETICHETTA
+    La presente è stima preliminare. APE definitivo da emettere a fine lavori da tecnico abilitato (Cened+).
+    """
+        ape_pdf = gen_pdf("APE Preliminare · Attico Brera", ape_md,
+                            f"{arch_footer_main} · per ing. termotecnico Cened+")
+        sp = f"{user_id}/squad-arch/{project_id}/APE-preliminare.pdf"
+        ape_url = upload(client, "user-assets", sp, ape_pdf, "application/pdf")
 
-    lca_md = """## LCA PRELIMINARE · MATERIALI ATTICO BRERA
+        lca_md = f"""## LCA PRELIMINARE · MATERIALI {p_project["name"].upper()}
 
-### METODOLOGIA
-EN 15978 · Building life cycle · cradle-to-grave A1-A3 (production)
+    ### METODOLOGIA
+    EN 15978 · Building life cycle · cradle-to-grave A1-A3 (production)
 
-### MATERIALI PRINCIPALI · GWP100 (kg CO2-eq/m²)
+    ### MATERIALI PRINCIPALI · GWP100 (kg CO2-eq/m²)
 
-| Materiale | m²/cad | GWP totale | Note |
-|-----------|--------|------------|------|
-| Parquet rovere chiaro 14mm | 65 m² | 12 kg/m² · 780 kg | FSC certified · low impact |
-| Travertino honed | 55 m² | 38 kg/m² · 2090 kg | Locale Italia · trasporto basso |
-| Intonaco argilla naturale | 280 m² | 4 kg/m² · 1120 kg | Naturale · classe A+ VOC |
-| Carta da parati botanica | 18 m² | 8 kg/m² · 144 kg | FSC · stampa eco |
-| Cucina rovere massello | 1 cad | 320 kg | Devon&Devon FSC |
-| Riscaldamento PEX | 110 m² | 6 kg/m² · 660 kg | Henco EPD |
+    | Materiale | m²/cad | GWP totale | Note |
+    |-----------|--------|------------|------|
+    | Parquet rovere chiaro 14mm | 65 m² | 12 kg/m² · 780 kg | FSC certified · low impact |
+    | Travertino honed | 55 m² | 38 kg/m² · 2090 kg | Locale Italia · trasporto basso |
+    | Intonaco argilla naturale | 280 m² | 4 kg/m² · 1120 kg | Naturale · classe A+ VOC |
+    | Carta da parati botanica | 18 m² | 8 kg/m² · 144 kg | FSC · stampa eco |
+    | Cucina rovere massello | 1 cad | 320 kg | Devon&Devon FSC |
+    | Riscaldamento PEX | 110 m² | 6 kg/m² · 660 kg | Henco EPD |
 
-### EMBODIED CARBON TOTALE
-**~5114 kg CO2-eq** per ~120 m² lordo
-**Densità: 42 kg CO2/m²** (sotto media europea 70 kg/m²)
+    ### EMBODIED CARBON TOTALE
+    **~5114 kg CO2-eq** per ~120 m² lordo
+    **Densità: 42 kg CO2/m²** (sotto media europea 70 kg/m²)
 
-### COMPARAZIONE
-- Ristrutturazione standard: ~95 kg CO2/m²
-- **Progetto Attico Brera: 42 kg/m²** (-56%)
-- Casa nuova mainstream: 250+ kg/m²
+    ### COMPARAZIONE
+    - Ristrutturazione standard: ~95 kg CO2/m²
+    - **Progetto Attico Brera: 42 kg/m²** (-56%)
+    - Casa nuova mainstream: 250+ kg/m²
 
-### COMPLIANCE
-✅ CAM Edilizia 2025 (D.Lgs 152/2006 art. 32)
-- Materiali biobased > 30% ✅ (parquet + argilla + linen)
-- Riciclato/recuperato > 15% ✅ (acciaio strutture)
-- Demolizione differenziata 100% ✅
-- VOC classe A+ ✅
+    ### COMPLIANCE
+    ✅ CAM Edilizia 2025 (D.Lgs 152/2006 art. 32)
+    - Materiali biobased > 30% ✅ (parquet + argilla + linen)
+    - Riciclato/recuperato > 15% ✅ (acciaio strutture)
+    - Demolizione differenziata 100% ✅
+    - VOC classe A+ ✅
 
-### ARCHITECTURE 2030 ALIGNMENT
-Building targets 2030:
-- Operational: net-zero ✅ via VMC + radiante
-- Embodied: 65% reduction vs business-as-usual ✅
-"""
-    lca_pdf = gen_pdf("LCA Materiali Preliminare · Attico Brera", lca_md,
-                        f"Mazria-style analysis · {arch_footer_main}")
-    sp = f"{user_id}/squad-arch/{project_id}/LCA-materiali-preliminare.pdf"
-    lca_url = upload(client, "user-assets", sp, lca_pdf, "application/pdf")
+    ### ARCHITECTURE 2030 ALIGNMENT
+    Building targets 2030:
+    - Operational: net-zero ✅ via VMC + radiante
+    - Embodied: 65% reduction vs business-as-usual ✅
+    """
+        lca_pdf = gen_pdf("LCA Materiali Preliminare · Attico Brera", lca_md,
+                            f"Mazria-style analysis · {arch_footer_main}")
+        sp = f"{user_id}/squad-arch/{project_id}/LCA-materiali-preliminare.pdf"
+        lca_url = upload(client, "user-assets", sp, lca_pdf, "application/pdf")
 
-    insert_step(client, execution_id, "@energy-prelim", 1,
-                  "APE preliminare classe B+ + LCA embodied carbon (Mazria)",
-                  [file_meta("APE-preliminare.pdf", "06-ingegneri/", ape_url, len(ape_pdf), "application/pdf"),
-                   file_meta("LCA-materiali-preliminare.pdf", "06-ingegneri/", lca_url, len(lca_pdf), "application/pdf")])
-    handoff.qa_pass("energy-prelim", "APE B+ stimata · LCA -56% vs BAU")
+        insert_step(client, execution_id, "@energy-prelim", 1,
+                      "APE preliminare classe B+ + LCA embodied carbon (Mazria)",
+                      [file_meta("APE-preliminare.pdf", "06-ingegneri/", ape_url, len(ape_pdf), "application/pdf"),
+                       file_meta("LCA-materiali-preliminare.pdf", "06-ingegneri/", lca_url, len(lca_pdf), "application/pdf")])
+        handoff.qa_pass("energy-prelim", "APE B+ stimata · LCA -56% vs BAU")
+
 
     # ========================================================================
     # CRITICAL · resilient pattern · Phase B + C wrapped · Phase D ALWAYS runs
@@ -1752,28 +1782,30 @@ Building targets 2030:
     render_data = []
     docs = []
 
-    try:
-        moodboard = generate_moodboard(client, handoff, execution_id, user_id, project_id)
-    except Exception as _e:
-        pipeline_error = f"moodboard FAILED: {_e}"
-        handoff.info(f"⚠ {pipeline_error}")
+    if "moodboard" in selected:
+        try:
+            moodboard = generate_moodboard(client, handoff, execution_id, user_id, project_id)
+        except Exception as _e:
+            pipeline_error = f"moodboard FAILED: {_e}"
+            handoff.info(f"⚠ {pipeline_error}")
 
-    try:
-        render_urls = generate_renders(client, handoff, execution_id, user_id, project_id, sample_input_dir)
-        render_data = list(zip([s for s in RENDER_REFS.keys()], render_urls))
-    except Exception as _e:
-        pipeline_error = (pipeline_error or "") + f" · renders FAILED: {_e}"
-        handoff.info(f"⚠ renders crash: {_e}")
+    if "renders" in selected:
+        try:
+            render_urls = generate_renders(client, handoff, execution_id, user_id, project_id, sample_input_dir)
+            render_data = list(zip([s for s in RENDER_REFS.keys()], render_urls))
+        except Exception as _e:
+            pipeline_error = (pipeline_error or "") + f" · renders FAILED: {_e}"
+            handoff.info(f"⚠ renders crash: {_e}")
 
-    project_data = {"name": "Attico Brera"}
-    try:
-        docs = generate_all_documents(client, handoff, execution_id, user_id, project_id,
-                                         project_data, moodboard.get("asset_url"), render_data,
-                                         sample_input_dir=sample_input_dir,
-                                         architect_profile=profile)
-    except Exception as _e:
-        pipeline_error = (pipeline_error or "") + f" · documents FAILED: {_e}"
-        handoff.info(f"⚠ documents crash: {_e}")
+    if "documenti" in selected:
+        try:
+            docs = generate_all_documents(client, handoff, execution_id, user_id, project_id,
+                                             p_project, moodboard.get("asset_url"), render_data,
+                                             sample_input_dir=sample_input_dir,
+                                             architect_profile=profile)
+        except Exception as _e:
+            pipeline_error = (pipeline_error or "") + f" · documents FAILED: {_e}"
+            handoff.info(f"⚠ documents crash: {_e}")
 
     # Phase C · Tier 2 QA · REAL verifiers (no hardcoded "PASS")
     # CRITICAL: wrapped in try · ALWAYS finalizes Phase D even if QA crashes
@@ -1785,7 +1817,8 @@ Building targets 2030:
     # Collect all deliverable URLs for cross-agent reuse
     _all_qa = []  # list of dicts {name, url, size, mime}
     _mb_url = moodboard.get("public_url") or moodboard.get("asset_url")
-    _all_qa.append({"name": "moodboard-composite.jpg", "url": _mb_url, "size": 0, "mime": "image/jpeg"})
+    if _mb_url:
+        _all_qa.append({"name": "moodboard-composite.jpg", "url": _mb_url, "size": 0, "mime": "image/jpeg"})
     for _slug, _url in render_data:
         _all_qa.append({"name": f"{_slug}-progetto.jpg", "url": _url,
                         "size": 0, "mime": "image/jpeg"})
