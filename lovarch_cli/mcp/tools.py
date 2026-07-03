@@ -97,7 +97,6 @@ async def tool_generate_image(
         "content_type": result.content_type,
         "credits_charged": result.credits_charged,
         "balance": result.balance,
-        "cost_usd": result.cost_usd,
         "revised_prompt": result.revised_prompt,
     }
 
@@ -144,3 +143,46 @@ def tool_list_projects(home: Path | None = None) -> dict:
             "last_run": (meta.get("last_run") or {}).get("status"),
         })
     return {"projects": projects}
+
+
+async def tool_ai_text(
+    gateway: Any,
+    *,
+    prompt: str,
+    role: str = "executor",
+    model: str | None = None,
+    system: str | None = None,
+    max_tokens: int | None = None,
+    language: str | None = None,
+) -> dict:
+    """Generate text via the platform gateway (debits credits by real tokens)."""
+    if gateway is None:
+        return {"error": "not_authenticated", "hint": "Esegui `lovarch login --premium`."}
+    try:
+        result = await gateway.generate_text(
+            prompt, role=role, model=model, system=system,
+            max_tokens=max_tokens, language=language,
+            operation_type="mcp:ai_text",
+        )
+    except InsufficientCreditsError as exc:
+        return {"ok": False, "error": "insufficient_credits",
+                "credits_available": exc.available, "credits_needed": exc.needed}
+    except AiGatewayError as exc:
+        return {"ok": False, "error": str(exc)}
+    return {
+        "ok": True,
+        "text": result.text,
+        "model": result.model,
+        "credits_charged": result.credits_charged,
+        "balance": result.balance,
+    }
+
+
+async def tool_user_context(gateway: Any, *, lead_id: str | None = None) -> dict:
+    """Fetch the user's personalization bundle (brand, style, signature, language)."""
+    if gateway is None:
+        return {"error": "not_authenticated", "hint": "Esegui `lovarch login --premium`."}
+    try:
+        return await gateway.get_user_context(lead_id=lead_id)
+    except AiGatewayError as exc:
+        return {"ok": False, "error": str(exc)}

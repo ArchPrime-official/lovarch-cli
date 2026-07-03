@@ -74,6 +74,31 @@ def build_server():
         """Elenca i progetti Lovarch locali con workflow e ultimo audit."""
         return tools.tool_list_projects()
 
+    @mcp.tool()
+    async def lovarch_ai_text(
+        prompt: str,
+        role: str = "executor",
+        model: str | None = None,
+        system: str | None = None,
+        max_tokens: int | None = None,
+        language: str | None = None,
+    ) -> dict:
+        """Genera testo via piattaforma Lovarch addebitando i crediti dell'utente
+        per i token reali. role: executor (default) | verifier | chief — il
+        server sceglie il modello; oppure model esplicito dal catalogo della
+        piattaforma. language forza la lingua dell'output."""
+        return await tools.tool_ai_text(
+            gateway, prompt=prompt, role=role, model=model, system=system,
+            max_tokens=max_tokens, language=language,
+        )
+
+    @mcp.tool()
+    async def lovarch_context(lead_id: str | None = None) -> dict:
+        """Bundle di personalizzazione dell'utente Lovarch: brand, stile,
+        firma professionale, dati fiscali, lingua preferita e prompt_block
+        pronto. lead_id opzionale carica anche un cliente del CRM."""
+        return await tools.tool_user_context(gateway, lead_id=lead_id)
+
     return mcp
 
 

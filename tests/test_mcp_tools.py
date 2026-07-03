@@ -72,7 +72,7 @@ class _FakeGateway:
 async def test_generate_image_saves_and_reports_debit(tmp_path):
     gw = _FakeGateway(result=AiImageResult(
         image_bytes=b"PNGDATA", content_type="image/png", revised_prompt="rp",
-        credits_charged=6, balance=994, cost_usd=0.006, is_admin=False,
+        credits_charged=6, balance=994, is_admin=False,
     ))
     out_file = tmp_path / "sub" / "img.png"
     out = await tools.tool_generate_image(gw, prompt="grey square",
