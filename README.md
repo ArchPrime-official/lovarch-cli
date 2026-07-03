@@ -76,7 +76,7 @@ WSL, o se hai già pipx configurato):
 
 ```bash
 # Ultima release (anche pre-release):
-pipx install git+https://github.com/ArchPrime-official/lovarch-cli.git@v0.1.0-beta.1
+pipx install git+https://github.com/ArchPrime-official/lovarch-cli.git@v0.1.2
 
 # Oppure dal branch main (rolling):
 pipx install git+https://github.com/ArchPrime-official/lovarch-cli.git
@@ -105,7 +105,7 @@ Vedi [CONTRIBUTING.md](./CONTRIBUTING.md) per il workflow di sviluppo.
 
 ```bash
 # Verifica installazione
-lovarch --version    # → lovarch-cli 0.1.0-beta.1
+lovarch --version    # → lovarch-cli 0.1.2
 
 # Primo login (interattivo: Free o Premium)
 lovarch login
@@ -132,7 +132,7 @@ lovarch status
 |---------|-------------|
 | `arch login` | Login Free o Premium |
 | `arch signup` | Cadastro Free interattivo |
-| `arch config` | Configurazione (API keys, lingua, storage path) |
+| `arch config` | Configurazione (API keys, lingua, storage path) — _in arrivo (v0.2)_ |
 | `arch init <progetto>` | Crea nuovo progetto con struttura sample-input |
 | `arch audit <progetto>` | Esegue audit input (gate di ingresso) |
 | `arch run <workflow>` | Esegue workflow completo |
