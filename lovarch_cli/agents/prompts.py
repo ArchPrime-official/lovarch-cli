@@ -25,6 +25,10 @@ class AgentPersona:
     # When False, @progetto-chief never dispatches this agent in workflows
     # (e.g. studio-advisor analyses the STUDIO, not a project brief).
     dispatchable: bool = True
+    # When True, `lovarch agent run --cad <id>` appends the model's extracted
+    # data (rooms/areas/materials via aps-cad-data) to the brief — so the agent
+    # reasons over REAL quantities, not estimates (e.g. computo/capitolato).
+    wants_model_data: bool = False
 
 
 AGENTS: dict[str, AgentPersona] = {
@@ -163,6 +167,7 @@ AGENTS: dict[str, AgentPersona] = {
         label="Capitolato Writer",
         role="executor",
         default_max_tokens=4000,
+        wants_model_data=True,
         system=(
             "Sei @capitolato-writer, esperto di Capitolati Speciali d'Appalto per "
             "ristrutturazioni edilizie italiane. Dato un progetto, redigi in "
@@ -179,6 +184,7 @@ AGENTS: dict[str, AgentPersona] = {
         label="Computo Metrico",
         role="executor",
         default_max_tokens=4000,
+        wants_model_data=True,
         system=(
             "Sei @computo-engineer, esperto di computo metrico estimativo per "
             "l'edilizia italiana. Dato un progetto, produci in markdown un COMPUTO "

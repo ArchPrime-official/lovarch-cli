@@ -96,6 +96,34 @@ async def fetch_account_digest(gateway: LovarchAiGateway) -> str:
     return "\n\n".join(parts)
 
 
+async def fetch_model_digest(gateway: LovarchAiGateway, cad_id: str) -> str:
+    """Digest of a CAD/BIM model's extracted data (rooms/areas/materials) for
+    agents with ``wants_model_data`` — real quantities instead of estimates."""
+    try:
+        r = await gateway.data("model_data", cad_id=cad_id)
+    except (AiGatewayError, AttributeError):
+        return ""
+    d = (r or {}).get("data") if isinstance(r, dict) else None
+    if not isinstance(d, dict):
+        return ""
+    parts = []
+    if d.get("superficie_totale_mq"):
+        parts.append(f"Superficie totale: {d['superficie_totale_mq']} mq · "
+                     f"{d.get('contagem_ambienti', 0)} ambienti")
+    amb = d.get("ambienti") or []
+    if amb:
+        parts.append("AMBIENTI (dal modello CAD/BIM):\n" + "\n".join(
+            f"- {a.get('nome')}: {a.get('area')} mq" for a in amb[:60]))
+    cat = d.get("contagem_per_categoria") or {}
+    if cat:
+        parts.append("Oggetti per categoria: "
+                     + ", ".join(f"{k}={v}" for k, v in list(cat.items())[:20]))
+    mat = d.get("materiali") or []
+    if mat:
+        parts.append("Materiali: " + ", ".join(mat[:30]))
+    return "\n\n".join(parts)
+
+
 async def run_agent(
     gateway: LovarchAiGateway,
     agent_id: str,
@@ -103,6 +131,7 @@ async def run_agent(
     *,
     language: str = "it",
     lead_id: str | None = None,
+    cad_id: str | None = None,
 ) -> AgentResult:
     """Run the agent on a brief, personalized with the user's context bundle."""
     persona = AGENTS.get(agent_id)
@@ -123,6 +152,13 @@ async def run_agent(
         else:
             brief = (f"{brief}\n\n(Nessun dato finanziario/CRM disponibile "
                      "nell'account — segnalalo in '## Dati mancanti'.)")
+
+    # Model-driven agents (computo/capitolato): use REAL quantities from a CAD
+    # model when the caller passed --cad <id>.
+    if persona.wants_model_data and cad_id:
+        model = await fetch_model_digest(gateway, cad_id)
+        if model:
+            brief = f"{brief}\n\n=== DATI DAL MODELLO CAD/BIM ===\n{model}"
 
     result = await gateway.generate_text(
         brief,
