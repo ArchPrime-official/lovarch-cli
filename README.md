@@ -163,6 +163,14 @@ lovarch skills install     # → ~/.claude/skills
 Skill disponibili: `interior-designer`, `capitolato`, `preventivi`,
 `direzione-lavori`, `verifica-normativa`, `render`.
 
+## Guida per persona
+
+Architetto, interior designer, geometra, impresa/DL: quale superficie usare
+(Skill / CLI / MCP) e cosa costa crediti → **[docs/guida-per-persona.md](docs/guida-per-persona.md)**.
+
+Workflow composto per interni: `lovarch progetto interni "<brief>" --renders 2`
+(concept → render → preventivo → mini-dossier).
+
 ## Server MCP (Claude Code / Claude / IDE)
 
 Il CLI espone le sue capacità come server **MCP** — 15 tools (render, verifica,
