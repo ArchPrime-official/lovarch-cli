@@ -253,7 +253,38 @@ class MoreWorkflowsMixin:
             raise WorkflowError("ai-site-generate non ha restituito HTML.")
         return str(html)
 
+    async def script(
+        self,
+        topic: str,
+        *,
+        type: str = "reel",
+        goal: str = "educare",
+        tone: str = "professionale",
+        cta: str = "",
+        language: str = "it",
+    ) -> dict:
+        """Structured content script via scripts-generate. Returns the script
+        dict (title, content, outline, hashtags). `persisted` is True when it was
+        saved to the account; the platform refunds credits if it couldn't save."""
+        data = await self._invoke("scripts-generate", {
+            "type": type,
+            "topic": topic,
+            "goal": goal,
+            "tone": tone,
+            "cta": cta,
+            "editorial_line_id": "none",
+            "brainstorm_idea_id": "none",
+            "language": language,
+        }, timeout=_RENDER_TIMEOUT)
+        script = data.get("script") or {}
+        if not script:
+            raise WorkflowError(f"scripts-generate: {data.get('error', 'nessuno script')}")
+        # Normalize content field (real schema uses `content`; resilient path `full_script`).
+        script.setdefault("content", script.get("full_script"))
+        script["persisted"] = bool(data.get("persisted", True))
+        return script
 
 
 PlatformWorkflows.logo = MoreWorkflowsMixin.logo        # type: ignore[attr-defined]
 PlatformWorkflows.site = MoreWorkflowsMixin.site        # type: ignore[attr-defined]
+PlatformWorkflows.script = MoreWorkflowsMixin.script    # type: ignore[attr-defined]
