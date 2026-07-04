@@ -5,6 +5,22 @@ All notable changes to `lovarch-cli` are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] — 2026-07-04
+
+### Added
+- **Dati bidirezionali col tuo account Lovarch**: `lovarch media` (list/download/worlds/cad — la galleria nel terminale, download degli asset originali) e `lovarch dati` (progetti/progetto/finanze/prezzario/clienti/contratti, sola lettura, gratis).
+- **Tutto ciò che generi dal terminale appare nell'app**: le immagini di `cli-ai-generate`/MCP ora persistono nella galleria; gli elaborati degli agenti e i dossier si salvano nell'account (`--save`, DEFAULT ON → progetto "Documenti CLI") e si riscaricano con signed URL.
+- **`lovarch do world`** — mondo 3D navigabile (WorldLabs Marble 1.1) da testo o da un'immagine della tua galleria. 1200 crediti, rimborso automatico, appare anche nell'app (/mondi).
+- **`lovarch cad view`** — carica DWG/DXF/RVT/IFC (upload diretto al S3 Autodesk, nessun limite via EF), traduzione SVF2 (RVT/IFC/NWD 1500 cr · DWG/DXF 300 cr) e viewer Autodesk nell'app (/cad/<id>).
+- **`lovarch cad ifc`** — export BIM **IFC4 reale** (IfcSpace per ambiente + pareti, geometria estrusa): deterministico, gratis. Extra opzionale `pip install 'lovarch-cli[ifc]'`.
+- **4 agenti nuovi (17 totali)**: `@studio-advisor` (analizza i DATI REALI dello studio — finanze/progetti/CRM), `@pratiche-writer` (bozza CILA/SCIA), `@gare-tender` (analisi bando D.Lgs 36/2023 con GO/NO-GO, usa `--file` per allegare il disciplinare), `@stime-immobiliari` (estimo MCA advisory).
+- **`lovarch progetto completo --interactive`** — fase 0: il chief chiede i dati mancanti PRIMA di pianificare; il piano ora è **data-aware** (tiene conto di progetti/CRM/prezzario presenti nell'account).
+- `lovarch agent run --file` — allega un documento (.pdf/.md/.txt) al brief.
+- MCP locale: tools `lovarch_data` e `lovarch_world`.
+
+### Changed
+- `leads.stage` → `leads.status` (colonna reale) in `dati clienti` e nel digest del studio-advisor.
+
 ## [0.3.5] — 2026-07-04
 
 ### Added
