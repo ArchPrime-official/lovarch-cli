@@ -98,6 +98,42 @@ def computo_command(
     raise typer.Exit(0 if report.verdict == "PASS" else (2 if report.verdict == "CONCERNS" else 1))
 
 
+@verifica_app.command("dati-modello")
+def dati_modello_command(
+    computo: Path = typer.Argument(..., help="Computo metrico (.csv o .json)."),
+    cad: str = typer.Option(..., "--cad", help="ID del modello CAD/BIM (le quantità reali)."),
+) -> None:
+    """Confronta le quantità del computo con le superfici REALI del modello CAD/BIM
+    (deterministico, gratis). Segnala quantità a mq impossibili vs il modello."""
+    from lovarch_cli.ai import LovarchAiGateway
+    from lovarch_cli.auth.session import LovarchSession
+    from lovarch_cli.verify.dati_modello import DatiModelloError, verify_dati_modello
+
+    session = LovarchSession.load()
+    if session is None:
+        not_authenticated()
+        raise typer.Exit(1)
+
+    try:
+        report = asyncio.run(verify_dati_modello(
+            LovarchAiGateway(session), str(computo), cad))
+    except DatiModelloError as exc:
+        err_console.print(f"[red]✗ {exc}[/red]")
+        raise typer.Exit(1)
+
+    table = Table(title=f"verifica dati-modello — {computo.name}", header_style="bold gold1")
+    table.add_column("Metrica", style="cyan")
+    table.add_column("Valore", justify="right")
+    table.add_row("Superficie modello (mq)", str(report.stats.get("superficie_modello_mq", "—")))
+    table.add_row("Ambienti modello", str(report.stats.get("ambienti_modello", "—")))
+    table.add_row("Voci computo", str(report.stats.get("voci_computo", "—")))
+    console.print(table)
+    for f in report.findings:
+        console.print(f"  [yellow]·[/yellow] {f}")
+    _print_verdict(report.verdict)
+    raise typer.Exit(0 if report.verdict == "PASS" else (2 if report.verdict == "CONCERNS" else 1))
+
+
 @verifica_app.command("pratica")
 def pratica_command(
     documento: Path = typer.Argument(..., help="Pratica edilizia (.pdf, .md, .txt)."),
