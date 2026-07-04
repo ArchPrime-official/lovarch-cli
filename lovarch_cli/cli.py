@@ -257,6 +257,14 @@ app.add_typer(
     help="Agenti architetto/interior/cantiere (interior-designer, direzione-lavori...).",
 )
 
+from lovarch_cli.commands.progetto_cmd import progetto_app  # noqa: E402
+
+app.add_typer(
+    progetto_app,
+    name="progetto",
+    help="Workflow composti (progetto interni: concept → render → preventivo → dossier).",
+)
+
 from lovarch_cli.commands.skills_cmd import skills_app  # noqa: E402
 
 app.add_typer(
