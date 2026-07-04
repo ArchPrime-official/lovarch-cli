@@ -7,6 +7,7 @@ The heavy ``mcp`` SDK import is lazy (inside the command) so that
 from __future__ import annotations
 
 import typer
+from lovarch_cli.upsell import not_authenticated
 
 mcp_app = typer.Typer(
     help="Server MCP di Lovarch (per Claude Code / IDE). Richiede l'extra [mcp].",
@@ -45,7 +46,7 @@ def key_command(
 
     session = LovarchSession.load()
     if session is None:
-        err_console.print("[red]✗ Non autenticato. Esegui `lovarch login --premium`.[/red]")
+        not_authenticated()
         raise typer.Exit(1)
 
     async def _call(body: dict) -> dict:

@@ -18,6 +18,7 @@ from pathlib import Path
 import typer
 from rich.console import Console
 from rich.table import Table
+from lovarch_cli.upsell import not_authenticated
 
 console = Console()
 err_console = Console(stderr=True)
@@ -63,7 +64,7 @@ def genera_command(
 
         session = LovarchSession.load()
         if session is None:
-            err_console.print("[red]✗ Non autenticato (--brief richiede login). `lovarch login --premium`.[/red]")
+            not_authenticated("Il layout via IA (--brief)")
             raise typer.Exit(1)
         try:
             res = asyncio.run(LovarchAiGateway(session).generate_text(

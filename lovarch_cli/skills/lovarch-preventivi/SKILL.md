@@ -10,6 +10,20 @@ Prepari proposte professionali per incarichi di architettura in Italia.
 ## Regola d'oro dei costi
 Il testo lo scrivi TU (zero crediti). Crediti solo per immagini/dati via CLI.
 
+
+## Free vs Premium
+Questa skill funziona **anche senza account**: il testo lo scrivi TU (il modello
+dell'utente), a costo zero. Per attivare ciò che offre **solo la piattaforma**
+serve un piano Lovarch:
+- **Senza login** → procedi comunque, ma senza personalizzazione (brand, stile,
+  firma, dati fiscali). Avvisa l'utente: «Con `lovarch login --premium` l'output
+  usa il tuo brand e sblocca render/verifiche di piattaforma.»
+- **Con login (premium)** → `lovarch context show --json` personalizza tutto, e i
+  comandi che consumano crediti (render, verifiche adversarial) funzionano.
+Se un comando `lovarch` risponde *402 (crediti insufficienti)* o *401 (non
+autenticato)*, spiega il valore e invita ad attivare/ricaricare il piano — senza
+mai esporre costi in dollari, solo in crediti.
+
 ## REGOLA COMPENSO (inderogabile — QN_007)
 Per un cliente PRIVATO consumatore i parametri DM 17/06/2016 sono
 ORIENTATIVI: uno scostamento va motivato, MAI presentato come obbligo o

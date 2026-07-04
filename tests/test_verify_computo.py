@@ -65,3 +65,25 @@ async def test_computo_no_prezzario_raises(tmp_path):
 async def test_computo_missing_file(tmp_path):
     r = await verify_computo(_FakeSession(_PREZZARI), tmp_path / "nope.json")
     assert r.verdict == "REJECT"
+
+
+async def test_computo_offline_bundled_lombardia(tmp_path):
+    """Without a session, verify_computo uses the bundled Lombardia prezzario."""
+    import json as _json
+    f = tmp_path / "c.json"
+    # usa um codice real do prezzario bundled (1.A.01.01.001 = demolizione)
+    f.write_text(_json.dumps([
+        {"codice": "1.A.01.01.001", "quantita": 10, "prezzo_unitario": 19.0, "unita": "m²"},
+    ]), encoding="utf-8")
+    r = await verify_computo(None, f, region="Lombardia")   # session=None → offline
+    assert r.stats["voci_verificate"] == 1
+    assert "offline" in r.stats["prezzario"]
+    assert r.verdict in ("PASS", "CONCERNS")
+
+
+async def test_computo_offline_unknown_region_raises(tmp_path):
+    import json as _json
+    f = tmp_path / "c.json"
+    f.write_text(_json.dumps([{"codice": "x", "quantita": 1, "prezzo_unitario": 1}]), encoding="utf-8")
+    with pytest.raises(ComputoError):
+        await verify_computo(None, f, region="Sicilia")   # não bundled, sem sessão

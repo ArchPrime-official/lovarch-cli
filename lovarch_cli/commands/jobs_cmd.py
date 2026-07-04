@@ -13,6 +13,7 @@ import asyncio
 import typer
 from rich.console import Console
 from rich.table import Table
+from lovarch_cli.upsell import not_authenticated
 
 console = Console()
 err_console = Console(stderr=True)
@@ -32,7 +33,7 @@ def _workflows():
 
     session = LovarchSession.load()
     if session is None:
-        err_console.print("[red]✗ Non autenticato. Esegui `lovarch login --premium`.[/red]")
+        not_authenticated()
         raise typer.Exit(1)
     return PlatformWorkflows(session)
 
