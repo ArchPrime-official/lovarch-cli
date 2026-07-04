@@ -5,6 +5,19 @@ All notable changes to `lovarch-cli` are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.5] — 2026-07-04
+
+### Added
+- **8 nuovi agenti LLM** (`lovarch agent`, tutti advisory/BOZZA — la firma resta del tecnico abilitato):
+  - Ingegneria: `@strutturista` (NTC 2018), `@impianti-engineer` (CEI 64-8/idraulico/termico), `@energia-engineer` (APE/L.10).
+  - Progetto: `@progetto-chief` (orchestratore vero: dato un brief decide quali agenti far girare e consolida in dossier), `@capitolato-writer` (capitolato UNI 11337), `@computo-engineer` (computo metrico ragionato).
+  - Interior: `@moodboard-curator` (direzione moodboard → `lovarch do render`), `@fornitori-scout` (selezione FF&E ragionata).
+- **4 nuove verifiche adversarial** (Sonnet estrae → Opus refuta): `verifica strutturale` (NTC 2018), `verifica antincendio` (DM 03/08/2015), `verifica acustica` (DPCM 5/12/1997), `verifica energetica` (DM 26/06/2015 + L.10).
+- `lovarch progetto completo <brief> [--esegui N]` — l'orchestratore `@progetto-chief` pianifica ed esegue i sotto-agenti in un unico dossier.
+
+### Notes
+- Copre ora anche l'ICP **ingegnere/impresa** (prima quasi assente). Totale: **13 agenti + 12 verificatori** reali, zero hard-coded.
+
 ## [0.3.4] — 2026-07-04
 
 ### Removed
