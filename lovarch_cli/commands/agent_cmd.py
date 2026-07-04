@@ -40,6 +40,7 @@ def run_command(
     agent_id: str = typer.Argument(..., help="ID agente (vedi `lovarch agent list`)."),
     brief: str = typer.Argument(..., help="Brief / richiesta per l'agente."),
     lead: str = typer.Option(None, "--lead", help="ID di un cliente CRM da usare come contesto."),
+    cad: str = typer.Option(None, "--cad", help="ID di un modello CAD/BIM: usa le quantità estratte (aree/ambienti) — per computo/capitolato."),
     file: str = typer.Option(None, "--file", "-f", help="Documento (.pdf/.md/.txt) da allegare al brief (es. disciplinare per gare-tender)."),
     language: str = typer.Option(None, "--language", help="Lingua dell'output."),
     output: str = typer.Option(None, "--output", "-o", help="Salva il markdown su file."),
@@ -78,7 +79,7 @@ def run_command(
     try:
         result = asyncio.run(run_agent(
             LovarchAiGateway(session), agent_id, brief,
-            language=language or current_lang(), lead_id=lead,
+            language=language or current_lang(), lead_id=lead, cad_id=cad,
         ))
     except InsufficientCreditsError as exc:
         insufficient_credits(exc.available, exc.needed)
