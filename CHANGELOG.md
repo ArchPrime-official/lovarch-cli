@@ -5,6 +5,15 @@ All notable changes to `lovarch-cli` are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.2] — 2026-07-04
+
+### Added
+- `lovarch archchat list|read` — leggi le conversazioni ArchChat del tuo studio (sola lettura, **nessun credito**): non esegue l'IA di ArchChat, ti dà accesso a ciò che c'è già.
+- `lovarch cad genera` — genera una **pianta DXF 2D reale** (9 layer ISO + cartiglio CNAPPC) da specifiche di ambienti o da un brief (`--brief`, IA→layout). Geometria deterministica gratis; passa `lovarch verifica misure`.
+
+### Notes
+- MCP remoto: OAuth 2.1 (conettori claude.ai senza chiave manuale) + tool `archchat_list`/`archchat_read`.
+
 ## [0.3.1] — 2026-07-04
 
 ### Added
