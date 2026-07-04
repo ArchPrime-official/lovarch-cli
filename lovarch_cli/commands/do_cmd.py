@@ -154,3 +154,37 @@ def site_command(
         err_console.print(f"[red]✗ {out.get('error')}[/red]"); raise typer.Exit(1)
     console.print(f"[green]✓[/green] Sito: [bold]{out['saved_to']}[/bold] ({out.get('bytes', 0)} bytes)")
 
+
+@do_app.command("script")
+def script_command(
+    topic: str = typer.Argument(..., help="Argomento dello script."),
+    type: str = typer.Option("reel", "--type", help="reel | post | carousel | video…"),
+    goal: str = typer.Option("educare", "--goal", help="Obiettivo del contenuto."),
+    tone: str = typer.Option("professionale", "--tone", help="Tono di voce."),
+    cta: str = typer.Option("", "--cta", help="Call-to-action."),
+    output: Path = typer.Option(None, "--output", "-o", help="Salva lo script su file."),
+    language: str = typer.Option(None, "--language"),
+) -> None:
+    """Script di contenuto strutturato via piattaforma (addebita crediti)."""
+    wf = _workflows()
+    from lovarch_cli.workflows import WorkflowError
+
+    try:
+        s = asyncio.run(wf.script(topic, type=type, goal=goal, tone=tone, cta=cta,
+                                  language=_lang(language)))
+    except WorkflowError as exc:
+        err_console.print(f"[red]✗ {exc}[/red]"); raise typer.Exit(1)
+
+    title = s.get("title") or topic
+    content = s.get("content") or ""
+    console.print(f"\n[bold gold1]{title}[/bold gold1]\n")
+    if content:
+        console.print(content)
+    if s.get("keywords"):
+        console.print("\n[dim]" + " ".join(s["keywords"]) + "[/dim]")
+    if not s.get("persisted", True):
+        console.print("\n[yellow]⚠ Non salvato nel tuo account (crediti rimborsati).[/yellow]")
+    if output:
+        Path(output).expanduser().write_text(content or title, encoding="utf-8")
+        console.print(f"\n[green]✓[/green] salvato: {output}")
+

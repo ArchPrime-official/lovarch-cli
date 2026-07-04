@@ -118,3 +118,36 @@ async def test_site_returns_html():
     assert "<html>" in html
     assert session.last_call["json"]["language"] == "pt"
 
+
+
+async def test_script_returns_persisted_content():
+    session = _FakeSession(_resp(200, {
+        "success": True, "persisted": True,
+        "script": {"id": "abc", "title": "Reel luce", "content": "<p>Hook</p>",
+                   "keywords": ["#luce"]},
+    }))
+    wf = PlatformWorkflows(session)  # type: ignore[arg-type]
+    out = await wf.script("illuminazione", type="reel", language="it")
+    assert out["content"] == "<p>Hook</p>"
+    assert out["persisted"] is True
+    assert session.last_call["json"]["topic"] == "illuminazione"
+    assert session.last_call["json"]["language"] == "it"
+
+
+async def test_script_resilient_not_persisted():
+    session = _FakeSession(_resp(200, {
+        "success": True, "persisted": False, "refunded": True,
+        "script": {"id": None, "title": "T", "full_script": "<p>x</p>"},
+    }))
+    wf = PlatformWorkflows(session)  # type: ignore[arg-type]
+    out = await wf.script("tema", language="it")
+    # content is normalized from full_script when not persisted
+    assert out["content"] == "<p>x</p>"
+    assert out["persisted"] is False
+
+
+async def test_script_error_raises():
+    session = _FakeSession(_resp(200, {"success": False, "error": "boom"}))
+    wf = PlatformWorkflows(session)  # type: ignore[arg-type]
+    with pytest.raises(WorkflowError):
+        await wf.script("tema", language="it")
