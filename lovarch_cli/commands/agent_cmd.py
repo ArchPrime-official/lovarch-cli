@@ -40,6 +40,7 @@ def run_command(
     agent_id: str = typer.Argument(..., help="ID agente (vedi `lovarch agent list`)."),
     brief: str = typer.Argument(..., help="Brief / richiesta per l'agente."),
     lead: str = typer.Option(None, "--lead", help="ID di un cliente CRM da usare come contesto."),
+    file: str = typer.Option(None, "--file", "-f", help="Documento (.pdf/.md/.txt) da allegare al brief (es. disciplinare per gare-tender)."),
     language: str = typer.Option(None, "--language", help="Lingua dell'output."),
     output: str = typer.Option(None, "--output", "-o", help="Salva il markdown su file."),
     save: bool = typer.Option(True, "--save/--no-save", help="Salva l'elaborato nel tuo account Lovarch (visibile nell'app)."),
@@ -61,6 +62,18 @@ def run_command(
     if session is None:
         not_authenticated()
         raise typer.Exit(1)
+
+    if file:
+        from pathlib import Path as _P
+
+        from lovarch_cli.verify.normativa import extract_text
+
+        fp = _P(file).expanduser()
+        if not fp.is_file():
+            err_console.print(f"[red]✗ File non trovato: {file}[/red]")
+            raise typer.Exit(2)
+        doc_text = extract_text(str(fp))[:60_000]
+        brief = f"{brief}\n\n=== DOCUMENTO ALLEGATO ({fp.name}) ===\n{doc_text}"
 
     try:
         result = asyncio.run(run_agent(

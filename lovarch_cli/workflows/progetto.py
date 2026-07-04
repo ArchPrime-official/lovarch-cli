@@ -199,13 +199,18 @@ async def cantiere_check(
 # Every runnable specialist except the chief itself — derived from AGENTS so
 # the plan prompt and the dispatch set can never drift apart (that drift is
 # exactly the bug that hid moodboard-curator/fornitori-scout from the chief).
-_DISPATCHABLE = {aid for aid in AGENTS if aid != "progetto-chief"}
+# Personas with dispatchable=False (studio-advisor) are excluded: they analyse
+# the studio, not a project brief.
+_DISPATCHABLE = {
+    aid for aid, p in AGENTS.items()
+    if aid != "progetto-chief" and p.dispatchable
+}
 
 
 def _chief_plan_system() -> str:
     roster = "; ".join(
         f"{p.id} ({p.label})" for aid, p in sorted(AGENTS.items())
-        if aid != "progetto-chief"
+        if aid in _DISPATCHABLE
     )
     return (
         "Sei @progetto-chief, direttore di studio. Dato un brief, decidi quali "
@@ -214,8 +219,63 @@ def _chief_plan_system() -> str:
         'deve produrre per questo progetto"}], "note": ["..."]}. '
         f"Gli id ammessi: {roster}. Sii selettivo (di norma 2-4 agenti); ordina "
         "gli agenti nella sequenza di lavoro corretta (chi produce input per gli "
-        "altri va prima)."
+        "altri va prima). Se il CONTESTO ACCOUNT indica dati reali disponibili "
+        "(progetti, prezzario, CRM), tienine conto nel piano."
     )
+
+
+_CHIEF_QUESTIONS_SYSTEM = (
+    "Sei @progetto-chief. Prima di pianificare, individua i dati ESSENZIALI "
+    "che mancano nel brief per un lavoro professionale (max 5 domande, solo "
+    "quelle davvero necessarie). Rispondi SOLO con JSON valido: "
+    '{"domande": ["..."]}. Se il brief è già completo: {"domande": []}.'
+)
+
+
+async def chief_questions(
+    gateway: LovarchAiGateway, brief: str, *, language: str = "it",
+) -> tuple[list[str], int]:
+    """Phase 0 of the interactive workflow: the chief asks for missing data
+    BEFORE dispatching specialists. Returns (questions, credits)."""
+    import json as _json
+
+    r = await gateway.generate_text(
+        brief, role="chief", system=_CHIEF_QUESTIONS_SYSTEM, max_tokens=600,
+        language=language, operation_type="progetto:chief-domande",
+    )
+    try:
+        txt = r.text
+        data = _json.loads(txt[txt.find("{"):txt.rfind("}") + 1])
+        questions = [str(q) for q in (data.get("domande") or [])][:5]
+    except (ValueError, TypeError):
+        questions = []
+    return questions, r.credits_charged
+
+
+async def _account_context(gateway: LovarchAiGateway) -> str:
+    """Compact 'what exists in this account' summary for the chief plan."""
+    bits: list[str] = []
+    try:
+        proj = await gateway.data("projects_list", limit=5)
+        n = len(proj.get("items") or [])
+        if n:
+            bits.append(f"{n}+ progetti attivi ({', '.join(p['name'] for p in proj['items'][:3])})")
+    except (AiGatewayError, AttributeError):
+        pass
+    try:
+        leads = await gateway.data("leads_list", limit=5)
+        if leads.get("items"):
+            bits.append(f"CRM con {len(leads['items'])}+ clienti")
+    except (AiGatewayError, AttributeError):
+        pass
+    try:
+        ctx = await gateway.get_user_context()
+        region = ((ctx.get("regional_pricing") or {}).get("region"))
+        if region:
+            bits.append(f"regione {region} (prezzario)")
+    except (AiGatewayError, AttributeError):
+        pass
+    return "; ".join(bits)
 
 
 _CHIEF_SYNTH_SYSTEM = (
@@ -262,13 +322,15 @@ async def progetto_completo(
     sections: dict = {}
 
     # Phase 1 — chief plans (structured), personalized with the user's context
-    # (brand/studio/fiscal/CRM lead) like every other agent.
+    # (brand/studio/fiscal/CRM lead) AND aware of what exists in the account.
     _phase("progetto-chief")
     plan_system, language = await personalize_system(
         gateway, _chief_plan_system(), lead_id=lead_id, language=language,
     )
+    account = await _account_context(gateway)
+    plan_input = brief if not account else f"{brief}\n\nCONTESTO ACCOUNT: {account}"
     planned = await gateway.generate_text(
-        brief, role="chief", system=plan_system, max_tokens=1200,
+        plan_input, role="chief", system=plan_system, max_tokens=1200,
         language=language, operation_type="progetto:chief-plan",
     )
     credits += planned.credits_charged
