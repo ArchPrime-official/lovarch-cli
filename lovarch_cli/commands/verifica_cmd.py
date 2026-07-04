@@ -88,6 +88,49 @@ def computo_command(
     raise typer.Exit(0 if report.verdict == "PASS" else (2 if report.verdict == "CONCERNS" else 1))
 
 
+@verifica_app.command("pratica")
+def pratica_command(
+    documento: Path = typer.Argument(..., help="Pratica edilizia (.pdf, .md, .txt)."),
+    tipo: str = typer.Option(None, "--tipo", help="CILA | SCIA (se noto)."),
+    language: str = typer.Option(None, "--language", help="Lingua del report."),
+) -> None:
+    """Verifica adversarial di una pratica CILA/SCIA (2 modelli · debita crediti)."""
+    from lovarch_cli.ai import LovarchAiGateway
+    from lovarch_cli.auth.session import LovarchSession
+    from lovarch_cli.i18n import current_lang
+    from lovarch_cli.verify import verify_pratica
+    from lovarch_cli.verify.normativa import NormativaError
+
+    session = LovarchSession.load()
+    if session is None:
+        err_console.print("[red]✗ Non autenticato. Esegui `lovarch login --premium`.[/red]")
+        raise typer.Exit(1)
+
+    try:
+        report = asyncio.run(verify_pratica(
+            LovarchAiGateway(session), documento, tipo=tipo,
+            language=language or current_lang(),
+        ))
+    except NormativaError as exc:
+        err_console.print(f"[red]✗ {exc}[/red]")
+        raise typer.Exit(1)
+
+    console.print(f"[dim]Tipo pratica: {report.tipo}[/dim]")
+    table = Table(title=f"verifica pratica — {documento.name}", header_style="bold gold1")
+    table.add_column("Area", style="cyan")
+    table.add_column("Severità", justify="center")
+    table.add_column("Motivo")
+    for f in report.findings:
+        sev = str(f.get("severity", "")).lower()
+        icon = {"critical": "[red]✗[/red]", "concern": "[yellow]?[/yellow]", "info": "[dim]·[/dim]"}.get(sev, "?")
+        table.add_row(str(f.get("area", "—")), icon, str(f.get("reason", ""))[:100])
+    console.print(table)
+    console.print("[dim]Firma e responsabilità restano del tecnico abilitato (BOZZA).[/dim]")
+    console.print(f"[dim]Crediti addebitati: {report.credits_charged}[/dim]")
+    _print_verdict(report.verdict)
+    raise typer.Exit(0 if report.verdict == "PASS" else (2 if report.verdict == "CONCERNS" else 1))
+
+
 @verifica_app.command("normativa")
 def normativa_command(
     documento: Path = typer.Argument(..., help="Documento da verificare (.pdf, .md, .txt)."),
