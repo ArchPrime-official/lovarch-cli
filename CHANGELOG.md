@@ -5,6 +5,19 @@ All notable changes to `lovarch-cli` are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.3] — 2026-07-04
+
+### Added
+- `lovarch verifica sicurezza` — pre-check adversarial di un PSC/POS (D.Lgs 81/2008): CSP/CSE, rischi per fase, costi sicurezza.
+- `lovarch verifica accessibilità` — L.13/89 + DM 236/89 (livelli + parametri prescrittivi).
+- `lovarch progetto cantiere` — check composto: cronoprogramma → pre-check sicurezza.
+- Agente `@sicurezza-advisor` e skill `lovarch-progetto` (orchestratore del mini-dossier).
+
+### Changed
+- `lovarch verifica computo` ora funziona **offline/gratis senza login** (prezzario Lombardia integrato); con login usa i prezzari live.
+- Tutte le 6 skill hanno il blocco **Free vs Premium** (senza login → procedi e indica `lovarch login --premium`).
+- Messaggi **402/401 con CTA** (`lovarch upgrade`) coerenti — costo sempre in crediti.
+
 ## [0.3.2] — 2026-07-04
 
 ### Added
