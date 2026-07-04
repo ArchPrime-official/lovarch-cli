@@ -193,3 +193,38 @@ def view_command(
                 err_console.print("[red]✗ Traduzione fallita — crediti rimborsati.[/red]")
                 raise typer.Exit(1)
     console.print("[yellow]⚠ Traduzione ancora in corso — `lovarch media cad` per lo stato.[/yellow]")
+
+
+@cad_app.command("ifc")
+def ifc_command(
+    output: str = typer.Option("modello.ifc", "--output", "-o", help="File IFC di destinazione."),
+    rooms_json: str = typer.Option(None, "--rooms", help="JSON degli ambienti [{name,width_m,height_m},…] (default: appartamento tipo)."),
+    project_name: str = typer.Option("Progetto Lovarch", "--project-name", help="Nome del progetto IFC."),
+    height: float = typer.Option(2.7, "--height", help="Altezza interpiano (m)."),
+) -> None:
+    """Esporta un modello BIM IFC4 REALE (IfcSpace per ambiente + pareti).
+
+    Deterministico e gratuito. Stesso edificio di `cad genera` (DXF).
+    Richiede l'extra ifc: pip install 'lovarch-cli[ifc]'.
+    """
+    import json as _json
+
+    from lovarch_cli.cad.ifc_export import IfcExportError, generate_ifc
+
+    rooms = None
+    if rooms_json:
+        try:
+            rooms = _json.loads(rooms_json)
+        except ValueError:
+            err_console.print("[red]✗ --rooms non è JSON valido.[/red]")
+            raise typer.Exit(2)
+
+    try:
+        r = generate_ifc(output, rooms=rooms, project_name=project_name, height_m=height)
+    except IfcExportError as exc:
+        err_console.print(f"[red]✗ {exc}[/red]")
+        raise typer.Exit(1)
+
+    console.print(f"[green]✓[/green] IFC4 generato: {r.path}")
+    console.print(f"  Spazi: {r.spaces} · Pareti: {r.walls} · Superficie: {r.total_area_m2} mq")
+    console.print("[dim]Apri in un viewer BIM o carica nel viewer Autodesk: lovarch cad view " + r.path + "[/dim]")
