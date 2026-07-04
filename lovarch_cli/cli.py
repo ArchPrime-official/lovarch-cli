@@ -41,9 +41,10 @@ app = typer.Typer(
     name="lovarch",
     help=(
         "lovarch-cli — AI-powered architectural project execution.\n\n"
-        "Squad di 17 agenti specializzati che genera audit, CAD, BIM/IFC, "
-        "computo, capitolato, pratiche IT, contratto CNAPPC, energy/LCA "
-        "in 14 minuti vs 3 settimane di lavoro tradizionale."
+        "Agenti LLM reali per architetti, interior designer, geometri e "
+        "ingegneri: progetto, computo, capitolato, verifiche adversarial "
+        "(NTC, antincendio, acustica, energetica, contratto CNAPPC), CAD 2D "
+        "DXF, render e workflow orchestrati dal @progetto-chief."
     ),
     no_args_is_help=True,
     add_completion=True,
@@ -100,6 +101,12 @@ def main(
     ctx.obj["verbose"] = verbose
 
 
+def _agents_count() -> int:
+    from lovarch_cli.agents import AGENTS
+
+    return len(AGENTS)
+
+
 @app.command(name="info")
 def info_cmd() -> None:
     """Mostra informazioni sulla installazione corrente."""
@@ -112,8 +119,8 @@ def info_cmd() -> None:
         (f"{sys.version.split()[0]}\n", "bold"),
         ("Platform:", "dim"),
         (f" {sys.platform}\n", "bold"),
-        ("Squad:   ", "dim"),
-        ("architettura-progetto (17 agents, 6 tasks, 1 workflow)\n", "bold"),
+        ("Agenti:  ", "dim"),
+        (f"{_agents_count()} agenti LLM + 12 verifiche (vedi `lovarch agent list`)\n", "bold"),
         ("Mode:    ", "dim"),
         (t("info.mode_not_configured", lang=lang), "italic yellow"),
     )

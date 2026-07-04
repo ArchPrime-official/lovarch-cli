@@ -1,7 +1,7 @@
-"""`lovarch verifica` — conferência de dados para profissionais.
+"""`lovarch verifica` — verifiche di dati e documenti per professionisti.
 
-    lovarch verifica misure pianta.dxf          (determinístico, grátis)
-    lovarch verifica normativa capitolato.pdf   (adversarial 2 modelos, débito)
+    lovarch verifica misure pianta.dxf          (deterministico, gratis)
+    lovarch verifica normativa capitolato.pdf   (adversarial 2 modelli, addebito)
 """
 from __future__ import annotations
 
@@ -27,6 +27,10 @@ _VERDICT_STYLE = {"PASS": "green", "CONCERNS": "yellow", "REJECT": "red"}
 def _print_verdict(verdict: str) -> None:
     style = _VERDICT_STYLE.get(verdict, "white")
     console.print(f"\n[bold {style}]VERDETTO: {verdict}[/bold {style}]")
+    console.print(
+        "[dim]BOZZA — verifica preliminare generata con IA. Firma e "
+        "responsabilità restano del tecnico abilitato.[/dim]"
+    )
 
 
 @verifica_app.command("misure")

@@ -72,10 +72,17 @@ def run_command(
         err_console.print(f"[red]✗ {exc}[/red]")
         raise typer.Exit(1)
 
+    # BOZZA banner is printed deterministically (not left to the model).
+    banner = ("**BOZZA** — elaborato generato con IA. Firma e responsabilità "
+              "restano del professionista abilitato.")
+    console.print(Markdown(f"> {banner}"))
     console.print(Markdown(result.text))
     console.print(f"\n[dim]— @{result.agent_id} · crediti addebitati: {result.credits_charged}[/dim]")
     if output:
         from pathlib import Path
 
-        Path(output).expanduser().write_text(result.text, encoding="utf-8")
+        text = result.text
+        if "BOZZA" not in text[:400]:
+            text = f"> {banner}\n\n{text}"
+        Path(output).expanduser().write_text(text, encoding="utf-8")
         console.print(f"[green]✓[/green] salvato: {output}")

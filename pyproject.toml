@@ -14,8 +14,8 @@ keywords = [
   "architecture",
   "ai",
   "cad",
-  "ifc",
-  "bim",
+  "dxf",
+  "interior-design",
   "italy",
   "lovarch",
   "uni-11337",
@@ -48,10 +48,6 @@ dependencies = [
   "keyring>=24.0,<26.0",
   "pyyaml>=6.0,<7.0",
   "ezdxf>=1.3,<2.0",
-  "ifcopenshell>=0.7,<0.9",
-  "reportlab>=4.0,<5.0",
-  "xlsxwriter>=3.2,<4.0",
-  "pillow>=10.0,<12.0",
   "pypdf>=4.0,<6.0",
 ]
 
