@@ -67,16 +67,6 @@ def build_server():
         )
 
     @mcp.tool()
-    def lovarch_audit_input(project_dir: str) -> dict:
-        """Esegue l'audit dei 18 input su un progetto (gate di ingresso)."""
-        return tools.tool_audit_input(project_dir)
-
-    @mcp.tool()
-    def lovarch_list_projects() -> dict:
-        """Elenca i progetti Lovarch locali con workflow e ultimo audit."""
-        return tools.tool_list_projects()
-
-    @mcp.tool()
     async def lovarch_ai_text(
         prompt: str,
         role: str = "executor",

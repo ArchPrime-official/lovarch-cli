@@ -5,9 +5,14 @@
 [![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue.svg)](https://www.python.org/downloads/)
 [![Release](https://img.shields.io/github/v/release/ArchPrime-official/lovarch-cli?include_prereleases)](https://github.com/ArchPrime-official/lovarch-cli/releases)
 
-> **AI-powered architectural project execution CLI** — squad di 17 agenti specializzati che esegue audit input, briefing, normativa IT, CAD, BIM/IFC, computo metrico, capitolato, pratiche edilizie (CILA/SCIA), contratto CNAPPC, energy/LCA preliminare, dossier consolidato — in 14 minuti vs 3 settimane di lavoro tradizionale.
+> **AI per architetti, interior designer, geometri e imprese** — agenti LLM
+> (senza contenuti pre-impostati), workflow componibili, render fotorealistici e
+> verifiche normative adversariali, dal terminale. Il testo lo genera il TUO
+> modello (Claude Code…) a costo zero; la piattaforma addebita crediti solo per
+> immagini, dati e verifiche.
 
-> ⚠️ **Status: BETA (v0.1.x)** — distribuito via Homebrew tap + pipx-from-git. Usato in produzione dagli iscritti al [Corso IA Avanzato per Architetti](https://lovarch.com/corso) (€1.497). Pubblicazione su PyPI valutata per v0.2+.
+> **Status: BETA** — distribuito via Homebrew tap, PyPI e pipx. Parte del
+> [Corso IA Avanzato per Architetti](https://lovarch.com/corso).
 
 🌐 **Lingue:** [🇮🇹 Italiano](README.md) (default) · [🇵🇹 Português](README.pt.md) · [🇬🇧 English](README.en.md) · [🇪🇸 Español](README.es.md)
 
@@ -15,37 +20,36 @@
 
 ## Cosa fa
 
-`lovarch-cli` orchestra il **Squad Architettura-Progetto** di Lovarch — 17 agenti AI con framework documentati (mind clones di Schumacher, Baldwin, Mazria, Deming, Juran, English, Dodds) — per generare 27 deliverable architettonici conformi alla normativa italiana:
+Tre superfici, un'unica regola dei costi (testo col TUO modello = gratis;
+piattaforma = crediti):
 
-- **Audit input** (18 controlli) prima di iniziare
-- **CAD quotato** DXF/PDF (UNI ISO 5457, ±1mm)
-- **BIM IFC4 LOD 300**
-- **Computo metrico** (Prezzario Lombardia 2025)
-- **Capitolato Speciale d'Appalto** (UNI 11337-7 + CAM 2025)
-- **Pratiche edilizie pre-compilate** (CILA/SCIA/Paesaggistica)
-- **Contratto CNAPPC** + Equo Compenso L.49/2023
-- **APE Preliminare + LCA Embodied Carbon**
-- **Dossier finale** ZIP con 27 documenti
+- **Agenti LLM reali** (`lovarch agent`) — interior designer, direzione lavori,
+  preventivi, geometra/catasto, sicurezza-advisor. Ragionano sul TUO brief,
+  personalizzati col tuo brand (nessun contenuto hard-coded).
+- **Workflow componibili** (`lovarch progetto interni|cantiere`) — concept →
+  render → preventivo, oppure cronoprogramma → pre-check sicurezza.
+- **Render Studio** (`lovarch do render/logo/site/colors/copy/script`) — immagini
+  e branding via piattaforma (crediti).
+- **Verifiche adversariali** (`lovarch verifica`) — misure DXF (gratis) · computo
+  vs prezzario (gratis offline) · normativa · contratto CNAPPC · pratica CILA/SCIA
+  · sicurezza D.Lgs 81 · accessibilità L.13/89 (2 modelli, crediti).
+- **CAD 2D** (`lovarch cad genera`) — pianta DXF reale (9 layer ISO + cartiglio).
+- **ArchChat** (`lovarch archchat`) — leggi le conversazioni del tuo studio (gratis).
+- **Skills** (`lovarch skills install`) — il tuo Claude Code esegue le personas col
+  proprio modello (zero crediti di testo).
 
 ## Due modalità
 
-### 🆓 Free Mode (registrazione richiesta)
+### 🆓 Senza account
+Le **skill** e le verifiche locali funzionano subito: il testo lo scrivi TU (il tuo
+modello), `lovarch verifica misure` e `lovarch cad genera` girano offline, e
+`lovarch verifica computo` usa il prezzario Lombardia integrato. Per render, dati
+del tuo studio e verifiche di piattaforma → `lovarch login --premium`.
+
+### ⭐ Premium (login Lovarch)
 
 ```bash
-lovarch signup
-# → Cadastro: Nome completo, email, telefono, paese, lingua
-```
-
-- Esegui il squad **localmente** con i tuoi propri API keys (OpenAI, Mapbox, fal.ai)
-- Storage in `~/.lovarch/projects/` (filesystem locale)
-- Database in `~/.lovarch/local.db` (SQLite)
-- Tutti i 17 agenti disponibili
-- Tu paghi le tue API direttamente ai provider
-
-### ⭐ Premium Mode (login Lovarch)
-
-```bash
-arch login --premium
+lovarch login --premium
 # → Apre il browser per autenticazione Lovarch (PKCE flow)
 ```
 
@@ -104,46 +108,48 @@ Vedi [CONTRIBUTING.md](./CONTRIBUTING.md) per il workflow di sviluppo.
 ## Quick start
 
 ```bash
-# Verifica installazione
-lovarch --version    # → lovarch-cli 0.3.0
+lovarch --version
 
-# Primo login (interattivo: Free o Premium)
-lovarch login
+# Login premium (per render, dati e verifiche di piattaforma)
+lovarch login --premium
 
-# Inizializza un progetto (con --sample scarica villa-chianti da GitHub Releases)
-lovarch init villa-toscana --sample
+# Un agente reale sul TUO brief (personalizzato, nessun contenuto hard-coded)
+lovarch agent interior-designer "attico 90mq, stile caldo minimale, cliente ama il legno"
 
-# Audit dei 18 input prima di girare il pipeline
-lovarch audit villa-toscana
+# Workflow composto: concept → render → preventivo → mini-dossier
+lovarch progetto interni "attico 90mq Milano" --renders 2 -o dossier.md
 
-# Esegui workflow (Free=dry-run · Premium=produzione)
-lovarch run dal-brief-al-cantiere villa-toscana
+# Verifiche (misure/computo gratis · normativa/sicurezza a crediti)
+lovarch verifica misure pianta.dxf
+lovarch verifica sicurezza psc.pdf
 
-# Consolida deliverable in DOSSIER.zip
-lovarch consolidate villa-toscana
+# CAD 2D reale
+lovarch cad genera -o pianta.dxf
 
-# Stato di tutti i progetti
-lovarch status
+# Skills: il TUO Claude Code esegue le personas (zero crediti di testo)
+lovarch skills install
 ```
 
 ## Comandi disponibili
 
 | Comando | Descrizione |
 |---------|-------------|
-| `arch login` | Login Free o Premium |
-| `arch signup` | Cadastro Free interattivo |
-| `arch config` | Configurazione (API keys, lingua, storage path) |
-| `arch init <progetto>` | Crea nuovo progetto con struttura sample-input |
-| `arch audit <progetto>` | Esegue audit input (gate di ingresso) |
-| `arch run <workflow>` | Esegue workflow completo |
-| `arch consolidate <progetto>` | Genera DOSSIER.zip finale |
-| `arch status <id>` | Stato di una esecuzione |
-| `arch upgrade` | CTA per passare da Free a Premium |
-| `arch account delete` | Right-to-erasure GDPR |
-| `arch context show` | Contesto di personalizzazione usato dagli agenti AI (premium) |
-| `arch do render\|colors\|copy` | Workflow della piattaforma dal terminale (premium) |
-| `arch verifica misure <dxf>` | Verifica DXF: layer ISO, ambienti, cartiglio (gratis) |
-| `arch verifica normativa\|contratto <doc>` | Verifica adversariale 2 modelli (premium) |
+| `lovarch login` | Login Free o Premium |
+| `lovarch signup` | Cadastro Free interattivo |
+| `lovarch config` | Configurazione (lingua, storage path) |
+| `lovarch agent <persona> <brief>` | Agente LLM reale (interior/DL/preventivi/geometra/sicurezza) |
+| `lovarch progetto interni\|cantiere` | Workflow componibili (concept→render→preventivo · cronoprogramma→sicurezza) |
+| `lovarch do render\|logo\|site\|colors\|copy\|script` | Render Studio / branding (crediti) |
+| `lovarch verifica misure\|computo` | Verifiche deterministiche (gratis, anche offline) |
+| `lovarch verifica normativa\|contratto\|pratica\|sicurezza\|accessibilita` | Adversariale 2 modelli (crediti) |
+| `lovarch cad genera` | Genera una pianta DXF reale |
+| `lovarch archchat list\|read` | Leggi le conversazioni ArchChat dello studio (gratis) |
+| `lovarch skills install` | Installa le skill (testo col TUO modello, zero crediti) |
+| `lovarch mcp serve\|key` | Connessione MCP (locale/remoto) |
+| `lovarch context show` | Contesto di personalizzazione (premium) |
+| `lovarch status <id>` | Stato di una esecuzione |
+| `lovarch upgrade` | CTA per passare da Free a Premium |
+| `lovarch account delete` | Right-to-erasure GDPR |
 | `arch verifica dossier <cartella>` | QA completo standalone su una cartella (premium) |
 | `arch jobs list\|status` | Job asincroni (video, export, upscale) |
 | `arch mcp serve` | Server MCP per Claude Code / IDE |

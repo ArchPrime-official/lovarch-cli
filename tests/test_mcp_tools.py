@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import httpx
-import yaml
 
 from lovarch_cli.ai import AiImageResult, InsufficientCreditsError
 from lovarch_cli.mcp import tools
@@ -96,25 +95,5 @@ async def test_generate_image_unauthenticated(tmp_path):
     assert out["error"] == "not_authenticated"
 
 
-def test_audit_input_missing_dir(tmp_path):
-    out = tools.tool_audit_input(str(tmp_path / "nope"))
-    assert out["error"] == "input_dir_not_found"
 
 
-def test_list_projects_reads_yaml(tmp_path):
-    root = tmp_path / "projects" / "villa"
-    root.mkdir(parents=True)
-    (root / "project.yaml").write_text(yaml.safe_dump({
-        "workflow": "dal-brief-al-cantiere",
-        "last_audit": {"verdict": "PASS"},
-        "last_run": {"status": "completed"},
-    }))
-    out = tools.tool_list_projects(home=tmp_path)
-    assert out["projects"] == [{
-        "name": "villa", "workflow": "dal-brief-al-cantiere",
-        "last_audit": "PASS", "last_run": "completed",
-    }]
-
-
-def test_list_projects_empty(tmp_path):
-    assert tools.tool_list_projects(home=tmp_path) == {"projects": []}

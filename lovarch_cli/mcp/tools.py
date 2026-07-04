@@ -13,15 +13,10 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
-import yaml
 
 from lovarch_cli.ai import AiGatewayError, InsufficientCreditsError, LovarchAiGateway
 from lovarch_cli.credits.lovarch import LovarchCreditsClient
 
-
-def _projects_root(home: Path | None = None) -> Path:
-    base = home or (Path.home() / ".lovarch")
-    return base / "projects"
 
 
 async def tool_whoami(session: Any) -> dict:
@@ -101,48 +96,6 @@ async def tool_generate_image(
     }
 
 
-def tool_audit_input(project_dir: str) -> dict:
-    """Run the 18-point input audit on a project's ``input/`` directory."""
-    # Imported lazily to avoid a hard dependency at module import time.
-    from lovarch_cli.commands.audit import _overall_verdict, _run_checks
-
-    root = Path(project_dir).expanduser()
-    input_dir = root / "input" if (root / "input").exists() else root
-    if not input_dir.exists():
-        return {"error": "input_dir_not_found", "path": str(input_dir)}
-    results = _run_checks(input_dir)
-    verdict = _overall_verdict(results)
-    return {
-        "verdict": verdict.value,
-        "checks": [
-            {"index": r.index, "key": r.key, "status": r.status.value,
-             "detail": r.detail, "required": r.required}
-            for r in results
-        ],
-    }
-
-
-def tool_list_projects(home: Path | None = None) -> dict:
-    """List local Lovarch projects with their workflow + last audit verdict."""
-    root = _projects_root(home)
-    if not root.exists():
-        return {"projects": []}
-    projects = []
-    for child in sorted(root.iterdir()):
-        meta_file = child / "project.yaml"
-        if not meta_file.is_file():
-            continue
-        try:
-            meta = yaml.safe_load(meta_file.read_text()) or {}
-        except yaml.YAMLError:
-            meta = {}
-        projects.append({
-            "name": child.name,
-            "workflow": meta.get("workflow"),
-            "last_audit": (meta.get("last_audit") or {}).get("verdict"),
-            "last_run": (meta.get("last_run") or {}).get("status"),
-        })
-    return {"projects": projects}
 
 
 async def tool_ai_text(

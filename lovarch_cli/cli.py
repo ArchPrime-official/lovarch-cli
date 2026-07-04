@@ -1,14 +1,18 @@
 """lovarch-cli — Typer app entry point.
 
-Subcommand structure (loaded lazily as commands are implemented):
+Subcommand structure:
     lovarch login      → Free or Premium authentication
     lovarch signup     → Free mode registration (name, email, phone)
     lovarch config     → API keys, language, storage path
-    lovarch init       → Create new project with sample-input
-    lovarch audit      → Run input audit (18-point checklist)
-    lovarch run        → Execute full workflow
-    lovarch consolidate → Generate DOSSIER.zip
-    lovarch status     → Inspect execution
+    lovarch agent      → Real LLM agents (interior-designer, sicurezza-advisor…)
+    lovarch progetto   → Composed workflows (interni, cantiere)
+    lovarch do         → Render/logo/site/colors/copy/script (platform)
+    lovarch verifica   → misure/computo/normativa/contratto/pratica/sicurezza/…
+    lovarch cad        → Generate a real DXF floor plan
+    lovarch archchat   → Read your studio's ArchChat conversations
+    lovarch skills     → Install skills (text with YOUR model, zero credits)
+    lovarch mcp        → Remote/local MCP connection
+    lovarch status     → Inspect executions
     lovarch upgrade    → CTA from Free to Premium
     lovarch account    → GDPR right-to-erasure
 
@@ -165,48 +169,17 @@ app.command(name="upgrade", help="Passa da Free a Premium (apre il browser).")(
     upgrade_command
 )
 
-# Fase A.1 — Create a new project directory (+ optional sample-input)
-from lovarch_cli.commands.init import init_command  # noqa: E402
+# The hard-coded squad demo pipeline (init/audit/run/consolidate/dev) was a test
+# scaffold and has been removed. Real project work is done with the LLM agents and
+# composed workflows — no hard-coded content:
+#   lovarch agent <persona> · lovarch progetto interni|cantiere · lovarch do ...
+#   lovarch verifica ... · lovarch cad genera · lovarch skills (col tuo modello).
 
-app.command(name="init", help="Inizializza un nuovo progetto (con --sample copia villa-chianti).")(
-    init_command
-)
-
-# Fase A.2 — 18-point input validation checklist
-from lovarch_cli.commands.audit import audit_command  # noqa: E402
-
-app.command(name="audit", help="Audit dei 18 input prima del run (verdict PASS/CONCERNS/FAIL).")(
-    audit_command
-)
-
-# Fase A.3 — Execute the squad pipeline (subprocess wrapper, premium = real)
-from lovarch_cli.commands.run import run_command  # noqa: E402
-
-app.command(name="run", help="Esegui il pipeline (Free=dry-run, Premium=reale).")(
-    run_command
-)
-
-# Fase A.4 — Bundle run output into DOSSIER.zip
-from lovarch_cli.commands.consolidate import consolidate_command  # noqa: E402
-
-app.command(name="consolidate", help="Genera DOSSIER.zip dall'output di un run.")(
-    consolidate_command
-)
-
-# Fase A.5 — Inspect project state and recent runs
+# Inspect project state and recent CLI executions
 from lovarch_cli.commands.status import status_command  # noqa: E402
 
 app.command(name="status", help="Stato dei progetti e ultime esecuzioni.")(
     status_command
-)
-
-# Squad-dev-loop — developer tooling (squad path resolution, vendor refresh)
-from lovarch_cli.commands.dev import dev_app  # noqa: E402
-
-app.add_typer(
-    dev_app,
-    name="dev",
-    help="Developer tooling for the squad payload (contributors only).",
 )
 
 from lovarch_cli.commands.mcp_cmd import mcp_app  # noqa: E402

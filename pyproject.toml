@@ -88,10 +88,8 @@ path = "lovarch_cli/version.py"
 packages = ["lovarch_cli"]
 
 [tool.hatch.build.targets.sdist]
-include = ["/lovarch_cli", "/scripts", "/README.md", "/LICENSE", "/CHANGELOG.md"]
+include = ["/lovarch_cli", "/README.md", "/LICENSE", "/CHANGELOG.md"]
 
-[tool.hatch.build.hooks.custom]
-path = "scripts/sync_squad.py"
 
 [tool.ruff]
 line-length = 100
