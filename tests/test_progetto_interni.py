@@ -62,3 +62,22 @@ async def test_progetto_render_failure_is_warning_not_crash():
     assert r.renders == []
     assert any("render" in w for w in r.warnings)
     assert "concept" in r.sections     # concept still delivered
+
+
+async def test_cantiere_check_full():
+    from lovarch_cli.workflows.progetto import cantiere_check
+    gw = _FakeGateway()
+    r = await cantiere_check(gw, "ristrutturazione 120mq, 3 imprese", want_sicurezza=True)
+    assert "cronoprogramma" in r.sections
+    assert "sicurezza" in r.sections
+    assert r.credits_charged == 6   # direzione(3) + sicurezza(3)
+    assert "# Cantiere" in r.dossier_md
+    assert "BOZZA" in r.dossier_md
+
+
+async def test_cantiere_no_sicurezza():
+    from lovarch_cli.workflows.progetto import cantiere_check
+    gw = _FakeGateway()
+    r = await cantiere_check(gw, "opere minori", want_sicurezza=False)
+    assert "sicurezza" not in r.sections
+    assert r.credits_charged == 3
