@@ -1,8 +1,6 @@
 """Unit tests for the composed progetto_interni workflow."""
 from __future__ import annotations
 
-import pytest
-
 from lovarch_cli.ai import AiImageResult, AiTextResult
 from lovarch_cli.workflows.progetto import progetto_interni
 
