@@ -26,6 +26,23 @@ progetto_app = typer.Typer(
 )
 
 
+def _save_to_lovarch(session, name: str, dossier_md: str, project: str | None) -> None:
+    """Persist the dossier in the user's Lovarch account (visible in the app)."""
+    from lovarch_cli.ai import AiGatewayError, LovarchAiGateway
+
+    try:
+        saved = asyncio.run(LovarchAiGateway(session).data(
+            "deliverable_save", name=name, content_md=dossier_md,
+            **({"project_id": project} if project else {}),
+        ))
+        console.print(
+            f"[green]✓[/green] salvato nel tuo account Lovarch "
+            f"(documento {str(saved.get('document_id'))[:8]} — visibile nell'app)"
+        )
+    except AiGatewayError as exc:
+        err_console.print(f"[yellow]⚠ salvataggio Lovarch non riuscito: {exc}[/yellow]")
+
+
 @progetto_app.command("interni")
 def interni_command(
     brief: str = typer.Argument(..., help="Brief del progetto di interni."),
@@ -34,6 +51,8 @@ def interni_command(
     lead: str = typer.Option(None, "--lead", help="ID cliente CRM da usare come contesto."),
     language: str = typer.Option(None, "--language", help="Lingua dell'output."),
     output: Path = typer.Option(None, "--output", "-o", help="Salva il dossier markdown su file."),
+    save: bool = typer.Option(True, "--save/--no-save", help="Salva il dossier nel tuo account Lovarch."),
+    project: str = typer.Option(None, "--project", help="ID progetto Lovarch dove salvare."),
 ) -> None:
     """Progetto di interni composto: concept → render → preventivo → mini-dossier."""
     from lovarch_cli.ai import AiGatewayError, InsufficientCreditsError, LovarchAiGateway
@@ -78,6 +97,8 @@ def interni_command(
             (out.parent / f"render-{i}.png").write_bytes(img)
         console.print(f"[green]✓[/green] dossier salvato: {output}"
                       + (f" (+{len(result.renders)} render)" if result.renders else ""))
+    if save:
+        _save_to_lovarch(session, f"Progetto interni — {brief[:60]}", result.dossier_md, project)
 
 
 @progetto_app.command("cantiere")
@@ -87,6 +108,8 @@ def cantiere_command(
     lead: str = typer.Option(None, "--lead", help="ID cliente CRM come contesto."),
     language: str = typer.Option(None, "--language", help="Lingua dell'output."),
     output: Path = typer.Option(None, "--output", "-o", help="Salva il dossier markdown."),
+    save: bool = typer.Option(True, "--save/--no-save", help="Salva il dossier nel tuo account Lovarch."),
+    project: str = typer.Option(None, "--project", help="ID progetto Lovarch dove salvare."),
 ) -> None:
     """Check cantiere composto: cronoprogramma (direzione lavori) → pre-check sicurezza."""
     from lovarch_cli.ai import AiGatewayError, InsufficientCreditsError, LovarchAiGateway
@@ -117,6 +140,8 @@ def cantiere_command(
     if output:
         Path(output).expanduser().write_text(result.dossier_md, encoding="utf-8")
         console.print(f"[green]✓[/green] dossier salvato: {output}")
+    if save:
+        _save_to_lovarch(session, f"Cantiere — {brief[:60]}", result.dossier_md, project)
 
 
 @progetto_app.command("completo")
@@ -126,6 +151,8 @@ def completo_command(
     lead: str = typer.Option(None, "--lead", help="ID cliente CRM come contesto."),
     language: str = typer.Option(None, "--language", help="Lingua dell'output."),
     output: Path = typer.Option(None, "--output", "-o", help="Salva il dossier markdown."),
+    save: bool = typer.Option(True, "--save/--no-save", help="Salva il dossier nel tuo account Lovarch."),
+    project: str = typer.Option(None, "--project", help="ID progetto Lovarch dove salvare."),
 ) -> None:
     """Orchestratore: @progetto-chief pianifica gli specialisti e (--esegui) li lancia."""
     from lovarch_cli.ai import AiGatewayError, InsufficientCreditsError, LovarchAiGateway
@@ -159,3 +186,5 @@ def completo_command(
     if output:
         Path(output).expanduser().write_text(result.dossier_md, encoding="utf-8")
         console.print(f"[green]✓[/green] dossier salvato: {output}")
+    if save:
+        _save_to_lovarch(session, f"Dossier di progetto — {brief[:60]}", result.dossier_md, project)

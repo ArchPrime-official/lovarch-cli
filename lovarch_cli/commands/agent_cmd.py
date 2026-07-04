@@ -42,6 +42,8 @@ def run_command(
     lead: str = typer.Option(None, "--lead", help="ID di un cliente CRM da usare come contesto."),
     language: str = typer.Option(None, "--language", help="Lingua dell'output."),
     output: str = typer.Option(None, "--output", "-o", help="Salva il markdown su file."),
+    save: bool = typer.Option(True, "--save/--no-save", help="Salva l'elaborato nel tuo account Lovarch (visibile nell'app)."),
+    project: str = typer.Option(None, "--project", help="ID progetto Lovarch dove salvare (con --save)."),
 ) -> None:
     """Esegui un agente su un brief (personalizzato + addebita crediti)."""
     from lovarch_cli.agents import run_agent
@@ -86,3 +88,21 @@ def run_command(
             text = f"> {banner}\n\n{text}"
         Path(output).expanduser().write_text(text, encoding="utf-8")
         console.print(f"[green]✓[/green] salvato: {output}")
+
+    if save:
+        text = result.text
+        if "BOZZA" not in text[:400]:
+            text = f"> {banner}\n\n{text}"
+        try:
+            saved = asyncio.run(LovarchAiGateway(session).data(
+                "deliverable_save",
+                name=f"{agent_id} — {brief[:60]}",
+                content_md=text,
+                **({"project_id": project} if project else {}),
+            ))
+            console.print(
+                f"[green]✓[/green] salvato nel tuo account Lovarch "
+                f"(documento {str(saved.get('document_id'))[:8]} — visibile nell'app)"
+            )
+        except AiGatewayError as exc:
+            err_console.print(f"[yellow]⚠ salvataggio Lovarch non riuscito: {exc}[/yellow]")

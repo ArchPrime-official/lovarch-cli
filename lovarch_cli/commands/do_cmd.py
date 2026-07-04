@@ -189,3 +189,92 @@ def script_command(
         Path(output).expanduser().write_text(content or title, encoding="utf-8")
         console.print(f"\n[green]✓[/green] salvato: {output}")
 
+
+
+@do_app.command("world")
+def world_command(
+    prompt: str = typer.Argument(None, help="Descrizione del mondo 3D (o vuoto se usi --image)."),
+    image: str = typer.Option(None, "--image", help="Immagine sorgente: URL https o ID di un asset della tua galleria."),
+    name: str = typer.Option(None, "--name", help="Nome del mondo."),
+    wait: bool = typer.Option(True, "--wait/--no-wait", help="Attendi il completamento (~5 min)."),
+) -> None:
+    """Genera un MONDO 3D navigabile (WorldLabs Marble) da testo o immagine.
+
+    Addebita 1200 crediti (rimborso automatico in caso di errore). Il mondo
+    appare anche nell'app e in `lovarch media worlds`.
+    """
+    from lovarch_cli.ai import AiGatewayError, InsufficientCreditsError, LovarchAiGateway
+    from lovarch_cli.auth.session import LovarchSession
+    from lovarch_cli.upsell import insufficient_credits
+
+    session = LovarchSession.load()
+    if session is None:
+        not_authenticated()
+        raise typer.Exit(1)
+    gw = LovarchAiGateway(session)
+
+    image_url = None
+    if image:
+        if image.startswith("https://"):
+            image_url = image
+        else:
+            # Gallery asset id → public URL.
+            try:
+                listing = asyncio.run(gw.data("media_list", limit=100))
+                matches = [i for i in listing.get("items", []) if str(i["id"]).startswith(image)]
+                if len(matches) != 1:
+                    err_console.print(f"[red]✗ Asset non trovato in galleria: {image}[/red]")
+                    raise typer.Exit(2)
+                image_url = matches[0]["asset_url"]
+            except AiGatewayError as exc:
+                err_console.print(f"[red]✗ {exc}[/red]"); raise typer.Exit(1)
+
+    if not prompt and not image_url:
+        err_console.print("[red]✗ Serve un prompt o --image.[/red]")
+        raise typer.Exit(2)
+
+    body: dict = {"operation": "generate", "source": "cli"}
+    if prompt:
+        body["prompt"] = prompt
+    if image_url:
+        body["image_url"] = image_url
+    if name:
+        body["display_name"] = name
+
+    try:
+        res = asyncio.run(gw.platform("worldlabs-world", body))
+    except InsufficientCreditsError as exc:
+        insufficient_credits(exc.available, exc.needed); raise typer.Exit(1)
+    except AiGatewayError as exc:
+        err_console.print(f"[red]✗ {exc}[/red]"); raise typer.Exit(1)
+
+    world_id = res["id"]
+    console.print(f"[green]✓[/green] generazione avviata (crediti: {res.get('credits_charged', 0)}) — ~5 minuti")
+    if not wait:
+        console.print(f"Controlla con: lovarch media worlds  (id {str(world_id)[:8]})")
+        return
+
+    import time as _time
+    with console.status("[gold1]Generando il mondo 3D…[/gold1]"):
+        for _ in range(40):  # up to ~10 min
+            _time.sleep(15)
+            try:
+                st = asyncio.run(gw.platform("worldlabs-world", {"operation": "status", "id": world_id}))
+            except AiGatewayError:
+                continue
+            w = st.get("world", {})
+            if w.get("status") == "ready":
+                console.print(f"\n[bold gold1]{w.get('display_name')}[/bold gold1]")
+                console.print(f"  Naviga:   {w.get('marble_url')}")
+                if w.get("splat_url"):
+                    console.print(f"  Splat 3D: {w['splat_url'][:90]}…")
+                if w.get("mesh_url"):
+                    console.print(f"  Mesh GLB: {w['mesh_url'][:90]}…")
+                if w.get("pano_url"):
+                    console.print(f"  Panorama: {w['pano_url'][:90]}…")
+                console.print("[dim]Presente anche nell'app e in `lovarch media worlds`.[/dim]")
+                return
+            if w.get("status") == "failed":
+                err_console.print("[red]✗ Generazione fallita — crediti rimborsati.[/red]")
+                raise typer.Exit(1)
+    console.print("[yellow]⚠ Ancora in corso — controlla più tardi con `lovarch media worlds`.[/yellow]")

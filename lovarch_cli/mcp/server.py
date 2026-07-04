@@ -203,6 +203,32 @@ def build_server():
         upscale). Senza job_id elenca i job recenti. Costi solo in crediti."""
         return await tools.tool_job_status(workflows, job_id=job_id, limit=limit)
 
+    @mcp.tool()
+    async def lovarch_data(resource: str, id: str | None = None,
+                           asset_type: str | None = None, region: str | None = None,
+                           search: str | None = None, months: int | None = None,
+                           limit: int | None = None) -> dict:
+        """I dati dell'account Lovarch dell'utente (sola lettura, gratis):
+        media_list/media_get (galleria immagini+video), worlds_list (mondi 3D),
+        cad_list (modelli CAD), projects_list/project_get, financial_summary,
+        contracts_list, leads_list, prezzario (region+search)."""
+        return await tools.tool_data(gateway, resource=resource, id=id,
+                                     asset_type=asset_type, region=region,
+                                     search=search, months=months, limit=limit)
+
+    @mcp.tool()
+    async def lovarch_world(operation: str, prompt: str | None = None,
+                            image_url: str | None = None,
+                            display_name: str | None = None,
+                            world_asset_id: str | None = None) -> dict:
+        """Mondo 3D navigabile (WorldLabs Marble) da testo o immagine.
+        operation: generate (1200 crediti, rimborso su errore, ~5 min) |
+        status (world_asset_id) | list. Il risultato (marble_url, splat,
+        mesh GLB, panorama) appare anche nell'app."""
+        return await tools.tool_world(gateway, operation=operation, prompt=prompt,
+                                      image_url=image_url, display_name=display_name,
+                                      world_asset_id=world_asset_id)
+
     return mcp
 
 
