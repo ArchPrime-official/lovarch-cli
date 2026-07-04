@@ -15,9 +15,13 @@ from lovarch_cli.verify.normativa import verify_normativa
 from lovarch_cli.verify.pratica import verify_pratica
 from lovarch_cli.verify.sicurezza import verify_sicurezza
 from lovarch_cli.verify.accessibilita import verify_accessibilita
+from lovarch_cli.verify.ingegneria import (
+    verify_strutturale, verify_antincendio, verify_acustica, verify_energetica,
+)
 
 __all__ = [
     "verify_computo", "verify_contratto", "verify_dossier",
     "verify_misure", "verify_normativa", "verify_pratica",
     "verify_sicurezza", "verify_accessibilita",
+    "verify_strutturale", "verify_antincendio", "verify_acustica", "verify_energetica",
 ]

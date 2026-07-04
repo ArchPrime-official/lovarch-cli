@@ -190,6 +190,46 @@ def accessibilita_command(
     _run_adversarial_verify(verify_accessibilita, documento, "verifica accessibilità", language)
 
 
+@verifica_app.command("strutturale")
+def strutturale_command(
+    documento: Path = typer.Argument(..., help="Relazione/progetto strutturale (.pdf/.md/.txt)."),
+    language: str = typer.Option(None, "--language", help="Lingua del report."),
+) -> None:
+    """Verifica adversarial strutturale (NTC 2018 · advisory · 2 modelli · crediti)."""
+    from lovarch_cli.verify import verify_strutturale
+    _run_adversarial_verify(verify_strutturale, documento, "verifica strutturale", language)
+
+
+@verifica_app.command("antincendio")
+def antincendio_command(
+    documento: Path = typer.Argument(..., help="Progetto antincendio (.pdf/.md/.txt)."),
+    language: str = typer.Option(None, "--language", help="Lingua del report."),
+) -> None:
+    """Verifica adversarial antincendio (DM 03/08/2015 · 2 modelli · crediti)."""
+    from lovarch_cli.verify import verify_antincendio
+    _run_adversarial_verify(verify_antincendio, documento, "verifica antincendio", language)
+
+
+@verifica_app.command("acustica")
+def acustica_command(
+    documento: Path = typer.Argument(..., help="Relazione acustica (.pdf/.md/.txt)."),
+    language: str = typer.Option(None, "--language", help="Lingua del report."),
+) -> None:
+    """Verifica adversarial acustica (DPCM 5/12/1997 · 2 modelli · crediti)."""
+    from lovarch_cli.verify import verify_acustica
+    _run_adversarial_verify(verify_acustica, documento, "verifica acustica", language)
+
+
+@verifica_app.command("energetica")
+def energetica_command(
+    documento: Path = typer.Argument(..., help="Relazione energetica / L.10 (.pdf/.md/.txt)."),
+    language: str = typer.Option(None, "--language", help="Lingua del report."),
+) -> None:
+    """Verifica adversarial energetica (D.Lgs 192/2005 · DM 26/06/2015 · crediti)."""
+    from lovarch_cli.verify import verify_energetica
+    _run_adversarial_verify(verify_energetica, documento, "verifica energetica", language)
+
+
 @verifica_app.command("normativa")
 def normativa_command(
     documento: Path = typer.Argument(..., help="Documento da verificare (.pdf, .md, .txt)."),
