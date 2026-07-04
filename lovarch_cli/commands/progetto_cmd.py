@@ -148,6 +148,7 @@ def cantiere_command(
 def completo_command(
     brief: str = typer.Argument(..., help="Brief del progetto."),
     esegui: int = typer.Option(0, "--esegui", help="Esegui fino a N specialisti raccomandati (0 = solo piano)."),
+    interactive: bool = typer.Option(False, "--interactive", "-i", help="Il chief chiede PRIMA i dati mancanti (fase 0)."),
     lead: str = typer.Option(None, "--lead", help="ID cliente CRM come contesto."),
     language: str = typer.Option(None, "--language", help="Lingua dell'output."),
     output: Path = typer.Option(None, "--output", "-o", help="Salva il dossier markdown."),
@@ -165,9 +166,31 @@ def completo_command(
         not_authenticated("L'orchestratore di progetto")
         raise typer.Exit(1)
 
+    gw = LovarchAiGateway(session)
+    if interactive:
+        from lovarch_cli.workflows.progetto import chief_questions
+
+        try:
+            domande, q_credits = asyncio.run(chief_questions(
+                gw, brief, language=language or current_lang()))
+        except AiGatewayError as exc:
+            err_console.print(f"[yellow]⚠ fase domande saltata: {exc}[/yellow]")
+            domande, q_credits = [], 0
+        if domande:
+            console.print("[bold gold1]Il chief ha bisogno di alcuni dati prima di pianificare:[/bold gold1]")
+            risposte = []
+            for q in domande:
+                a = typer.prompt(f"  {q}", default="", show_default=False)
+                if a.strip():
+                    risposte.append(f"- {q} → {a.strip()}")
+            if risposte:
+                brief = brief + "\n\nDATI FORNITI DAL CLIENTE:\n" + "\n".join(risposte)
+        if q_credits:
+            console.print(f"[dim]Fase domande: {q_credits} crediti[/dim]")
+
     try:
         result = asyncio.run(progetto_completo(
-            LovarchAiGateway(session), brief,
+            gw, brief,
             language=language or current_lang(), esegui=esegui, lead_id=lead,
             on_phase=lambda n: console.print(f"[dim]→ {n}…[/dim]"),
         ))

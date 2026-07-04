@@ -50,9 +50,50 @@ async def personalize_system(
         lang = ((bundle or {}).get("preferences") or {}).get("preferred_language") if isinstance(bundle, dict) else None
         if lang:
             language = lang
-    except AiGatewayError:
+    except (AiGatewayError, AttributeError):
         pass  # personalization is optional; the agent still runs
     return system, language
+
+
+async def fetch_account_digest(gateway: LovarchAiGateway) -> str:
+    """Compact digest of the user's REAL account data (cli-data) for agents
+    with ``wants_account_data`` — finance by month, projects, CRM pipeline.
+    Best-effort: returns '' when the data surface is unavailable."""
+    import json as _json
+
+    parts: list[str] = []
+    try:
+        fin = await gateway.data("financial_summary", months=12)
+        if fin.get("by_month"):
+            parts.append("SINTESI FINANZIARIA (12 mesi, EUR):\n"
+                         + _json.dumps(fin.get("by_month"), ensure_ascii=False))
+            if fin.get("expense_by_category"):
+                parts.append("SPESE PER CATEGORIA:\n"
+                             + _json.dumps(fin["expense_by_category"], ensure_ascii=False))
+    except (AiGatewayError, AttributeError):
+        pass
+    try:
+        proj = await gateway.data("projects_list", limit=20)
+        items = proj.get("items") or []
+        if items:
+            parts.append("PROGETTI:\n" + "\n".join(
+                f"- {p.get('name')} · {p.get('status')} · {p.get('typology') or ''} "
+                f"· budget {p.get('budget_min') or '?'}–{p.get('budget_max') or '?'}"
+                for p in items[:20]))
+    except (AiGatewayError, AttributeError):
+        pass
+    try:
+        leads = await gateway.data("leads_list", limit=30)
+        items = leads.get("items") or []
+        if items:
+            stages: dict[str, int] = {}
+            for l in items:
+                stages[l.get("status") or "?"] = stages.get(l.get("status") or "?", 0) + 1
+            parts.append("PIPELINE CRM (clienti per fase): "
+                         + ", ".join(f"{k}: {v}" for k, v in stages.items()))
+    except (AiGatewayError, AttributeError):
+        pass
+    return "\n\n".join(parts)
 
 
 async def run_agent(
@@ -73,6 +114,15 @@ async def run_agent(
     system, language = await personalize_system(
         gateway, persona.system + AGENT_TAIL, lead_id=lead_id, language=language,
     )
+
+    # Data-driven agents (studio-advisor): work on the user's REAL numbers.
+    if persona.wants_account_data:
+        digest = await fetch_account_digest(gateway)
+        if digest:
+            brief = f"{brief}\n\n=== DATI REALI DELLO STUDIO (Lovarch) ===\n{digest}"
+        else:
+            brief = (f"{brief}\n\n(Nessun dato finanziario/CRM disponibile "
+                     "nell'account — segnalalo in '## Dati mancanti'.)")
 
     result = await gateway.generate_text(
         brief,
