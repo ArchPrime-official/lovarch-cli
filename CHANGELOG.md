@@ -5,6 +5,15 @@ All notable changes to `lovarch-cli` are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.1] — 2026-07-04
+
+### Added
+- **`lovarch agent run --cad <id>`** — computo/capitolato usano le QUANTITÀ REALI estratte da un modello CAD/BIM (aree per ambiente, superficie totale, materiali via Autodesk Model Derivative), non stime. `@computo-engineer` e `@capitolato-writer` ora ragionano sul modello.
+- **`lovarch verifica dati-modello <computo> --cad <id>`** — cross-check deterministico (gratis): confronta le quantità a mq del computo con la superficie reale del modello; segnala quantità impossibili (più pavimento dell'intero appartamento).
+
+### Changed
+- `cad ifc` ora allega Pset_SpaceCommon + Qto_SpaceBaseQuantities (nome/area/altezza) a ogni IfcSpace — l'IFC ha dati leggibili da Revit/ArchiCAD/BIM, non solo geometria.
+
 ## [0.4.0] — 2026-07-04
 
 ### Added
