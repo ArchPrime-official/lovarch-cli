@@ -194,3 +194,105 @@ async def cantiere_check(
 
     return CantiereResult(dossier_md=dossier, sections=sections,
                           credits_charged=credits, warnings=warnings)
+
+
+_CHIEF_PLAN_SYSTEM = (
+    "Sei @progetto-chief, direttore di studio. Dato un brief, decidi quali "
+    "specialisti coinvolgere — SOLO quelli pertinenti. Rispondi SOLO con JSON "
+    'valido: {"inquadramento": "...", "agenti": [{"id": "<id>", "focus": "cosa '
+    'deve produrre per questo progetto"}], "note": ["..."]}. Gli id ammessi: '
+    "interior-designer, capitolato-writer, computo-engineer, preventivi, "
+    "direzione-lavori, geometra-catasto, sicurezza-advisor, strutturista, "
+    "impianti-engineer, energia-engineer. Sii selettivo (di norma 2-4 agenti)."
+)
+
+# Only agents that exist can be dispatched by the orchestrator.
+_DISPATCHABLE = {
+    "interior-designer", "capitolato-writer", "computo-engineer", "preventivi",
+    "direzione-lavori", "geometra-catasto", "sicurezza-advisor", "strutturista",
+    "impianti-engineer", "energia-engineer",
+}
+
+
+@dataclass
+class CompletoResult:
+    dossier_md: str
+    plan: dict = field(default_factory=dict)
+    sections: dict = field(default_factory=dict)   # agent_id → text
+    credits_charged: int = 0
+    warnings: list = field(default_factory=list)
+
+
+async def progetto_completo(
+    gateway: LovarchAiGateway,
+    brief: str,
+    *,
+    language: str = "it",
+    esegui: int = 0,           # run up to N recommended agents (0 = plan only)
+    lead_id: str | None = None,
+    on_phase: Any = None,
+) -> CompletoResult:
+    """The real hub: @progetto-chief plans (which specialists), optionally runs
+    the recommended agents and consolidates them into a dossier."""
+    import json as _json
+
+    def _phase(name: str) -> None:
+        if callable(on_phase):
+            on_phase(name)
+
+    credits = 0
+    warnings: list = []
+    sections: dict = {}
+
+    # Phase 1 — chief plans (structured).
+    _phase("progetto-chief")
+    planned = await gateway.generate_text(
+        brief, role="chief", system=_CHIEF_PLAN_SYSTEM, max_tokens=1200,
+        language=language, operation_type="progetto:chief-plan",
+    )
+    credits += planned.credits_charged
+    try:
+        txt = planned.text
+        plan = _json.loads(txt[txt.find("{"):txt.rfind("}") + 1])
+    except (ValueError, TypeError):
+        plan = {"inquadramento": planned.text[:500], "agenti": [], "note": ["piano non strutturato"]}
+
+    agenti = [a for a in (plan.get("agenti") or []) if a.get("id") in _DISPATCHABLE]
+
+    # Phase 2 — optionally run the recommended agents.
+    if esegui > 0 and agenti:
+        for a in agenti[:esegui]:
+            aid = a["id"]
+            focus = a.get("focus", "")
+            _phase(aid)
+            try:
+                r = await run_agent(gateway, aid, f"{brief}\n\nFocus richiesto: {focus}",
+                                    language=language, lead_id=lead_id)
+                credits += r.credits_charged
+                sections[aid] = r.text
+            except AiGatewayError as exc:
+                warnings.append(f"{aid} non eseguito: {exc}")
+
+    # Phase 3 — assemble.
+    _phase("dossier")
+    banner = {
+        "it": "> **BOZZA** — piano e elaborati generati con IA. Firme e "
+              "responsabilità restano dei professionisti abilitati.",
+        "en": "> **DRAFT** — AI-generated plan and documents. Sign-off stays with "
+              "the licensed professionals.",
+        "pt": "> **RASCUNHO** — plano e documentos por IA. Assinaturas dos "
+              "profissionais habilitados.",
+        "es": "> **BORRADOR** — plan y documentos por IA.",
+    }.get(language, "")
+    parts = [f"# Dossier di progetto\n\n{banner}\n", f"**Brief:** {brief}\n"]
+    if plan.get("inquadramento"):
+        parts.append("## Inquadramento (progetto-chief)\n\n" + str(plan["inquadramento"]))
+    if agenti:
+        parts.append("## Piano — specialisti coinvolti\n\n" + "\n".join(
+            f"- **{a['id']}** — {a.get('focus','')}" for a in agenti))
+    for aid, text in sections.items():
+        parts.append(f"## {aid}\n\n{text}")
+    dossier = "\n\n".join(parts) + "\n"
+
+    return CompletoResult(dossier_md=dossier, plan=plan, sections=sections,
+                          credits_charged=credits, warnings=warnings)

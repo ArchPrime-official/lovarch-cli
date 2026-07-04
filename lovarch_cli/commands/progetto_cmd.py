@@ -117,3 +117,45 @@ def cantiere_command(
     if output:
         Path(output).expanduser().write_text(result.dossier_md, encoding="utf-8")
         console.print(f"[green]✓[/green] dossier salvato: {output}")
+
+
+@progetto_app.command("completo")
+def completo_command(
+    brief: str = typer.Argument(..., help="Brief del progetto."),
+    esegui: int = typer.Option(0, "--esegui", help="Esegui fino a N specialisti raccomandati (0 = solo piano)."),
+    lead: str = typer.Option(None, "--lead", help="ID cliente CRM come contesto."),
+    language: str = typer.Option(None, "--language", help="Lingua dell'output."),
+    output: Path = typer.Option(None, "--output", "-o", help="Salva il dossier markdown."),
+) -> None:
+    """Orchestratore: @progetto-chief pianifica gli specialisti e (--esegui) li lancia."""
+    from lovarch_cli.ai import AiGatewayError, InsufficientCreditsError, LovarchAiGateway
+    from lovarch_cli.auth.session import LovarchSession
+    from lovarch_cli.i18n import current_lang
+    from lovarch_cli.workflows.progetto import progetto_completo
+
+    session = LovarchSession.load()
+    if session is None:
+        not_authenticated("L'orchestratore di progetto")
+        raise typer.Exit(1)
+
+    try:
+        result = asyncio.run(progetto_completo(
+            LovarchAiGateway(session), brief,
+            language=language or current_lang(), esegui=esegui, lead_id=lead,
+            on_phase=lambda n: console.print(f"[dim]→ {n}…[/dim]"),
+        ))
+    except InsufficientCreditsError as exc:
+        insufficient_credits(exc.available, exc.needed); raise typer.Exit(1)
+    except AiGatewayError as exc:
+        err_console.print(f"[red]✗ {exc}[/red]"); raise typer.Exit(1)
+
+    console.print(Markdown(result.dossier_md))
+    agenti = result.plan.get("agenti") or []
+    if agenti and esegui == 0:
+        console.print("\n[dim]Per eseguire gli specialisti: aggiungi [bold]--esegui N[/bold].[/dim]")
+    for w in result.warnings:
+        console.print(f"  [yellow]· {w}[/yellow]")
+    console.print(f"\n[dim]Crediti addebitati: {result.credits_charged}[/dim]")
+    if output:
+        Path(output).expanduser().write_text(result.dossier_md, encoding="utf-8")
+        console.print(f"[green]✓[/green] dossier salvato: {output}")
