@@ -5,6 +5,16 @@ All notable changes to `lovarch-cli` are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.1] — 2026-07-04
+
+### Added
+- `lovarch do script <topic>` — script di contenuto strutturato via piattaforma (schema drift della EF scripts-generate corretto lato monorepo; refund resiliente).
+- `lovarch verifica computo <file> [--region --version]` — confronto deterministico (gratis) delle voci di un computo col prezzario regionale (tabella `prezzari`, seed Lombardia): codici inesistenti, prezzi fuori tolleranza (±20%), unità incoerenti, totale.
+- `lovarch verifica pratica <file> [--tipo CILA|SCIA]` — verifica adversarial (2 modelli) di una pratica edilizia: completezza (catasto, titolo, asseverazione) e coerenza titolo↔intervento.
+
+### Notes
+- Persistenza premium: il runner ora crea il progetto CRM completo nell'account dell'utente tramite la EF `cli-persist` (scrittura controllata lato server, nessuna scrittura cross-tenant).
+
 ## [Unreleased]
 
 (No unreleased changes yet — last release was v0.3.0.)
