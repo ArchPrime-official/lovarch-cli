@@ -210,7 +210,8 @@ _CHIEF_PLAN_SYSTEM = (
 _DISPATCHABLE = {
     "interior-designer", "capitolato-writer", "computo-engineer", "preventivi",
     "direzione-lavori", "geometra-catasto", "sicurezza-advisor", "strutturista",
-    "impianti-engineer", "energia-engineer",
+    "impianti-engineer", "energia-engineer", "moodboard-curator",
+    "fornitori-scout",
 }
 
 
