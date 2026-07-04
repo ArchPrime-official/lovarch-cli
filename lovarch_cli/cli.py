@@ -273,6 +273,14 @@ app.add_typer(
     help="Leggi le tue conversazioni ArchChat dello studio (sola lettura, nessun credito).",
 )
 
+from lovarch_cli.commands.cad_cmd import cad_app  # noqa: E402
+
+app.add_typer(
+    cad_app,
+    name="cad",
+    help="Genera CAD 2D (DXF) da specifiche di ambienti (deterministico, gratis).",
+)
+
 from lovarch_cli.commands.skills_cmd import skills_app  # noqa: E402
 
 app.add_typer(
