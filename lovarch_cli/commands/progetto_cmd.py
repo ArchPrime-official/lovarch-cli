@@ -15,6 +15,7 @@ from pathlib import Path
 import typer
 from rich.console import Console
 from rich.markdown import Markdown
+from lovarch_cli.upsell import insufficient_credits, not_authenticated
 
 console = Console()
 err_console = Console(stderr=True)
@@ -42,7 +43,7 @@ def interni_command(
 
     session = LovarchSession.load()
     if session is None:
-        err_console.print("[red]✗ Non autenticato. Esegui `lovarch login --premium`.[/red]")
+        not_authenticated()
         raise typer.Exit(1)
 
     def _on_phase(name: str) -> None:
@@ -59,7 +60,7 @@ def interni_command(
             on_phase=_on_phase,
         ))
     except InsufficientCreditsError as exc:
-        err_console.print(f"[red]✗ Crediti insufficienti: disponibili {exc.available}, richiesti {exc.needed}.[/red]")
+        insufficient_credits(exc.available, exc.needed)
         raise typer.Exit(1)
     except AiGatewayError as exc:
         err_console.print(f"[red]✗ {exc}[/red]")

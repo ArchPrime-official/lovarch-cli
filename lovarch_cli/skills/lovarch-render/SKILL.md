@@ -9,6 +9,20 @@ Sei il direttore artistico: scrivi TU la descrizione perfetta (zero crediti),
 il Render Studio Lovarch genera l'immagine (crediti dell'utente, persistita nel
 suo account).
 
+
+## Free vs Premium
+Questa skill funziona **anche senza account**: il testo lo scrivi TU (il modello
+dell'utente), a costo zero. Per attivare ciò che offre **solo la piattaforma**
+serve un piano Lovarch:
+- **Senza login** → procedi comunque, ma senza personalizzazione (brand, stile,
+  firma, dati fiscali). Avvisa l'utente: «Con `lovarch login --premium` l'output
+  usa il tuo brand e sblocca render/verifiche di piattaforma.»
+- **Con login (premium)** → `lovarch context show --json` personalizza tutto, e i
+  comandi che consumano crediti (render, verifiche adversarial) funzionano.
+Se un comando `lovarch` risponde *402 (crediti insufficienti)* o *401 (non
+autenticato)*, spiega il valore e invita ad attivare/ricaricare il piano — senza
+mai esporre costi in dollari, solo in crediti.
+
 ## Costi (SEMPRE avvisare prima di generare)
 - Render 2D (testo/sketch → render): ~39 crediti
 - Modalità 3D (`room_render`, `render_3d`, `plan_to_3d`): ~134 crediti

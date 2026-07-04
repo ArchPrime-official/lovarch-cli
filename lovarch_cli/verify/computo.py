@@ -51,6 +51,18 @@ def _num(v: Any) -> float | None:
         return None
 
 
+def _bundled_prezzario(region: str) -> list[dict]:
+    """Offline fallback prezzario shipped with the CLI (free, no login).
+    Only Lombardia is bundled; other regions need a premium session (live DB)."""
+    if region.lower() != "lombardia":
+        return []
+    data_path = Path(__file__).resolve().parent.parent / "data" / "prezzario-lombardia.json"
+    try:
+        return json.loads(data_path.read_text(encoding="utf-8")).get("voci", [])
+    except (OSError, json.JSONDecodeError):
+        return []
+
+
 async def verify_computo(
     session: Any,
     computo_path: str | Path,
@@ -58,7 +70,10 @@ async def verify_computo(
     region: str = "Lombardia",
     version: str | None = None,
 ) -> ComputoReport:
-    """Compare a computo file's voci against the prezzari reference for a region."""
+    """Compare a computo file's voci against the prezzari reference for a region.
+
+    With a session, reads the live `prezzari` table (all regions/versions). Without
+    a session (free/offline), falls back to the bundled Lombardia prezzario."""
     path = Path(computo_path).expanduser()
     if not path.is_file():
         return ComputoReport(verdict="REJECT", findings=[f"file non trovato: {path}"])
@@ -71,18 +86,29 @@ async def verify_computo(
     if not voci:
         return ComputoReport(verdict="REJECT", findings=["nessuna voce nel computo"])
 
-    # Load the prezzario for the region (RLS: authenticated read).
-    params = {"region": f"eq.{region}", "select": "codice,prezzo,unita,descrizione"}
-    if version:
-        params["version"] = f"eq.{version}"
-    resp = await session.request("GET", "/rest/v1/prezzari", params=params)
-    if resp.status_code != 200:
-        raise ComputoError(f"prezzari non disponibili: HTTP {resp.status_code}")
-    ref_rows = resp.json()
+    ref_rows: list[dict] = []
+    used_bundled = False
+    if session is not None:
+        # Live prezzario (RLS: authenticated read) — all regions/versions.
+        params = {"region": f"eq.{region}", "select": "codice,prezzo,unita,descrizione"}
+        if version:
+            params["version"] = f"eq.{version}"
+        resp = await session.request("GET", "/rest/v1/prezzari", params=params)
+        if resp.status_code != 200:
+            raise ComputoError(f"prezzari non disponibili: HTTP {resp.status_code}")
+        ref_rows = resp.json()
+    if not ref_rows:
+        # Free/offline fallback (or region missing in DB): bundled Lombardia.
+        ref_rows = _bundled_prezzario(region)
+        used_bundled = bool(ref_rows)
+
     ref = {r["codice"]: r for r in ref_rows if isinstance(r, dict) and r.get("codice")}
     if not ref:
-        raise ComputoError(f"nessun prezzario per regione '{region}'"
-                           + (f" versione '{version}'" if version else ""))
+        raise ComputoError(
+            f"nessun prezzario per regione '{region}'"
+            + (f" versione '{version}'" if version else "")
+            + (" — accedi con `lovarch login --premium` per i prezzari live di altre regioni."
+               if region.lower() != "lombardia" else ""))
 
     findings: list[str] = []
     unknown = 0
@@ -134,7 +160,8 @@ async def verify_computo(
         "totale_computo_eur": round(total_computo, 2),
         "prezzario": f"{region}"
         + (f" {version}" if version else "")
-        + f" ({len(ref)} voci)",
+        + f" ({len(ref)} voci)"
+        + (" · offline/gratis" if used_bundled else ""),
     }
 
     if unknown or out_of_range:

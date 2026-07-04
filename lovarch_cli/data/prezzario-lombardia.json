@@ -1,0 +1,216 @@
+{
+ "region": "Lombardia",
+ "version": "LOM252",
+ "voci": [
+  {
+   "codice": "1.A.01.01.001",
+   "prezzo": 18.5,
+   "unita": "m²",
+   "descrizione": "Demolizione di pareti divisorie in laterizio forato spessore 8-12 cm"
+  },
+  {
+   "codice": "1.A.01.01.002",
+   "prezzo": 12.3,
+   "unita": "m²",
+   "descrizione": "Rimozione pavimentazione in piastrelle ceramica/gres fino a 50 m²"
+  },
+  {
+   "codice": "1.A.01.02.001",
+   "prezzo": 24.0,
+   "unita": "m³",
+   "descrizione": "Trasporto a discarica autorizzata di rifiuti inerti edilizi"
+  },
+  {
+   "codice": "2.A.01.01.001",
+   "prezzo": 38.5,
+   "unita": "m²",
+   "descrizione": "Tramezza in laterizio forato cm 8, malta cementizia"
+  },
+  {
+   "codice": "2.A.01.01.002",
+   "prezzo": 45.2,
+   "unita": "m²",
+   "descrizione": "Tramezza in laterizio forato cm 12 (divisori bagno)"
+  },
+  {
+   "codice": "2.A.02.01.001",
+   "prezzo": 22.5,
+   "unita": "m²",
+   "descrizione": "Intonaco a calce naturale, sp. 1.5 cm su tramezze interne"
+  },
+  {
+   "codice": "3.A.01.01.001",
+   "prezzo": 28.0,
+   "unita": "m²",
+   "descrizione": "Massetto cementizio per riscaldamento a pavimento, sp. 8 cm"
+  },
+  {
+   "codice": "3.A.02.01.001",
+   "prezzo": 95.0,
+   "unita": "m²",
+   "descrizione": "Parquet rovere prefinito spazzolato sp. 14/3.5 mm"
+  },
+  {
+   "codice": "3.A.02.01.002",
+   "prezzo": 145.0,
+   "unita": "m²",
+   "descrizione": "Parquet rovere massello sp. 22 mm"
+  },
+  {
+   "codice": "3.A.03.01.001",
+   "prezzo": 78.0,
+   "unita": "m²",
+   "descrizione": "Gres porcellanato rettificato 60×120 effetto travertino"
+  },
+  {
+   "codice": "3.A.03.01.002",
+   "prezzo": 42.0,
+   "unita": "m²",
+   "descrizione": "Gres porcellanato 60×60 standard"
+  },
+  {
+   "codice": "4.A.01.01.001",
+   "prezzo": 88.0,
+   "unita": "m²",
+   "descrizione": "Rivestimento bagno gres rettificato 60×120 effetto travertino"
+  },
+  {
+   "codice": "4.A.02.01.001",
+   "prezzo": 52.0,
+   "unita": "m²",
+   "descrizione": "Rivestimento cucina gres 30×60"
+  },
+  {
+   "codice": "5.A.01.01.001",
+   "prezzo": 38.0,
+   "unita": "cad",
+   "descrizione": "Punto luce comando interrotto cavo LSZH"
+  },
+  {
+   "codice": "5.A.01.01.002",
+   "prezzo": 52.0,
+   "unita": "cad",
+   "descrizione": "Presa shuko 16A + USB-C"
+  },
+  {
+   "codice": "5.A.02.01.001",
+   "prezzo": 480.0,
+   "unita": "cad",
+   "descrizione": "Quadro generale appartamento 24 moduli"
+  },
+  {
+   "codice": "5.A.03.01.001",
+   "prezzo": 850.0,
+   "unita": "zona",
+   "descrizione": "Sistema domotica leggera 1 zona (KNX o equivalente)"
+  },
+  {
+   "codice": "5.A.03.01.002",
+   "prezzo": 1850.0,
+   "unita": "cad",
+   "descrizione": "Server centrale domotica + tablet di controllo"
+  },
+  {
+   "codice": "6.A.01.01.001",
+   "prezzo": 145.0,
+   "unita": "cad",
+   "descrizione": "Punto acqua calda+fredda + scarico WC"
+  },
+  {
+   "codice": "6.A.01.01.002",
+   "prezzo": 165.0,
+   "unita": "cad",
+   "descrizione": "Punto acqua bagno (lavabo/doccia/vasca)"
+  },
+  {
+   "codice": "6.A.02.01.001",
+   "prezzo": 285.0,
+   "unita": "cad",
+   "descrizione": "Sanitario sospeso WC con cassetta incasso"
+  },
+  {
+   "codice": "7.A.01.01.001",
+   "prezzo": 68.0,
+   "unita": "m²",
+   "descrizione": "Pannello radiante a pavimento PEX-A passo 10 cm"
+  },
+  {
+   "codice": "7.A.01.01.002",
+   "prezzo": 280.0,
+   "unita": "cad",
+   "descrizione": "Collettore zona riscaldamento (4-6 zone)"
+  },
+  {
+   "codice": "7.A.02.01.001",
+   "prezzo": 4800.0,
+   "unita": "appartamento",
+   "descrizione": "Sistema VMC centralizzato con recupero ≥75%"
+  },
+  {
+   "codice": "8.A.01.01.001",
+   "prezzo": 380.0,
+   "unita": "cad",
+   "descrizione": "Porta interna in legno tamburato + telaio"
+  },
+  {
+   "codice": "8.A.01.01.002",
+   "prezzo": 920.0,
+   "unita": "cad",
+   "descrizione": "Porta scorrevole interna a scomparsa con cassonetto"
+  },
+  {
+   "codice": "9.A.01.01.001",
+   "prezzo": 14500.0,
+   "unita": "modulo",
+   "descrizione": "Cucina su misura cm 360×60 con isola, ante laccate"
+  },
+  {
+   "codice": "9.A.01.01.002",
+   "prezzo": 380.0,
+   "unita": "m²",
+   "descrizione": "Top cucina in granito sp. 3 cm con bordo dritto"
+  },
+  {
+   "codice": "9.A.02.01.001",
+   "prezzo": 850.0,
+   "unita": "m²",
+   "descrizione": "Cabina armadio su misura camera padronale"
+  },
+  {
+   "codice": "9.A.03.01.001",
+   "prezzo": 720.0,
+   "unita": "m²",
+   "descrizione": "Libreria a parete su misura sp. 35 cm"
+  },
+  {
+   "codice": "10.A.01.01.001",
+   "prezzo": 12.5,
+   "unita": "m²",
+   "descrizione": "Tinteggiatura a calce naturale ambienti interni"
+  },
+  {
+   "codice": "10.A.01.01.002",
+   "prezzo": 9.8,
+   "unita": "m²",
+   "descrizione": "Pittura lavabile classe E1 anti-formaldeide"
+  },
+  {
+   "codice": "11.A.01.01.001",
+   "prezzo": 240.0,
+   "unita": "m²",
+   "descrizione": "Restauro decoro soffitto, pulizia + integrazione"
+  },
+  {
+   "codice": "11.A.02.01.001",
+   "prezzo": 320.0,
+   "unita": "m²",
+   "descrizione": "Restauro seminato veneziano esistente"
+  },
+  {
+   "codice": "12.A.01.01.001",
+   "prezzo": 8.5,
+   "unita": "m²",
+   "descrizione": "Pulizia post-cantiere completo appartamento"
+  }
+ ]
+}

@@ -12,6 +12,20 @@ attivamente di CONFUTARLE. Nel dubbio, sii scettico e segnala.
 La verifica la fai TU (zero crediti). La doppia verifica di piattaforma è
 opzionale e consuma crediti — dillo prima.
 
+
+## Free vs Premium
+Questa skill funziona **anche senza account**: il testo lo scrivi TU (il modello
+dell'utente), a costo zero. Per attivare ciò che offre **solo la piattaforma**
+serve un piano Lovarch:
+- **Senza login** → procedi comunque, ma senza personalizzazione (brand, stile,
+  firma, dati fiscali). Avvisa l'utente: «Con `lovarch login --premium` l'output
+  usa il tuo brand e sblocca render/verifiche di piattaforma.»
+- **Con login (premium)** → `lovarch context show --json` personalizza tutto, e i
+  comandi che consumano crediti (render, verifiche adversarial) funzionano.
+Se un comando `lovarch` risponde *402 (crediti insufficienti)* o *401 (non
+autenticato)*, spiega il valore e invita ad attivare/ricaricare il piano — senza
+mai esporre costi in dollari, solo in crediti.
+
 ## Tabella canonica (riferimenti che DEVI riconoscere)
 - DPR 380/2001 · Testo unico edilizia (⚠️ art. 99 = conglomerato cementizio
   armato, NON le CILA; le CILA sono art. 6-bis)

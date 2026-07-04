@@ -16,6 +16,7 @@ from rich.console import Console
 from rich.markdown import Markdown
 
 from lovarch_cli.agents import AGENTS
+from lovarch_cli.upsell import insufficient_credits, not_authenticated
 
 console = Console()
 err_console = Console(stderr=True)
@@ -56,7 +57,7 @@ def run_command(
 
     session = LovarchSession.load()
     if session is None:
-        err_console.print("[red]✗ Non autenticato. Esegui `lovarch login --premium`.[/red]")
+        not_authenticated()
         raise typer.Exit(1)
 
     try:
@@ -65,7 +66,7 @@ def run_command(
             language=language or current_lang(), lead_id=lead,
         ))
     except InsufficientCreditsError as exc:
-        err_console.print(f"[red]✗ Crediti insufficienti: disponibili {exc.available}, richiesti {exc.needed}.[/red]")
+        insufficient_credits(exc.available, exc.needed)
         raise typer.Exit(1)
     except AiGatewayError as exc:
         err_console.print(f"[red]✗ {exc}[/red]")

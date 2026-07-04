@@ -11,6 +11,7 @@ from pathlib import Path
 import typer
 from rich.console import Console
 from rich.table import Table
+from lovarch_cli.upsell import not_authenticated
 
 console = Console()
 err_console = Console(stderr=True)
@@ -55,15 +56,20 @@ def computo_command(
     region: str = typer.Option("Lombardia", "--region", help="Regione del prezzario di riferimento."),
     version: str = typer.Option(None, "--version", help="Versione del prezzario (opzionale)."),
 ) -> None:
-    """Confronta le voci del computo col prezzario regionale (gratis, deterministico)."""
+    """Confronta le voci del computo col prezzario regionale (gratis, deterministico).
+
+    Funziona offline con il prezzario Lombardia integrato; con login usa i prezzari
+    live del DB (tutte le regioni/versioni)."""
     from lovarch_cli.auth.session import LovarchSession
     from lovarch_cli.verify import verify_computo
     from lovarch_cli.verify.computo import ComputoError
 
+    # Login is optional: without a session we use the bundled Lombardia prezzario.
     session = LovarchSession.load()
-    if session is None:
-        err_console.print("[red]✗ Non autenticato. Esegui `lovarch login --premium`.[/red]")
-        raise typer.Exit(1)
+    if session is None and region.lower() != "lombardia":
+        err_console.print(
+            f"[yellow]Prezzario '{region}' richiede login (i prezzari live).[/yellow] "
+            "Offline è disponibile solo Lombardia. `lovarch login --premium`.")
 
     try:
         report = asyncio.run(verify_computo(session, computo, region=region, version=version))
@@ -103,7 +109,7 @@ def pratica_command(
 
     session = LovarchSession.load()
     if session is None:
-        err_console.print("[red]✗ Non autenticato. Esegui `lovarch login --premium`.[/red]")
+        not_authenticated()
         raise typer.Exit(1)
 
     try:
@@ -145,7 +151,7 @@ def normativa_command(
 
     session = LovarchSession.load()
     if session is None:
-        err_console.print("[red]✗ Non autenticato. Esegui `lovarch login --premium`.[/red]")
+        not_authenticated()
         raise typer.Exit(1)
 
     try:
@@ -188,7 +194,7 @@ def contratto_command(
 
     session = LovarchSession.load()
     if session is None:
-        err_console.print("[red]\u2717 Non autenticato. Esegui `lovarch login --premium`.[/red]")
+        not_authenticated()
         raise typer.Exit(1)
     try:
         report = asyncio.run(verify_contratto(
@@ -229,7 +235,7 @@ def dossier_command(
 
     session = LovarchSession.load()
     if session is None:
-        err_console.print("[red]\u2717 Non autenticato. Esegui `lovarch login --premium`.[/red]")
+        not_authenticated()
         raise typer.Exit(1)
     try:
         report = asyncio.run(verify_dossier(
