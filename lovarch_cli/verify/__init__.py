@@ -7,9 +7,13 @@ Sonnet 5 (executor) extracts/structures → Opus 4.8 (verifier) tries to refute
 each claim independently. Credits are debited per real tokens via cli-ai-text;
 deterministic checks are free.
 """
+from lovarch_cli.verify.computo import verify_computo
 from lovarch_cli.verify.contratto import verify_contratto
 from lovarch_cli.verify.dossier import verify_dossier
 from lovarch_cli.verify.misure import verify_misure
 from lovarch_cli.verify.normativa import verify_normativa
 
-__all__ = ["verify_contratto", "verify_dossier", "verify_misure", "verify_normativa"]
+__all__ = [
+    "verify_computo", "verify_contratto", "verify_dossier",
+    "verify_misure", "verify_normativa",
+]

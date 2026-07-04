@@ -49,6 +49,45 @@ def misure_command(
     raise typer.Exit(0 if report.verdict == "PASS" else (2 if report.verdict == "CONCERNS" else 1))
 
 
+@verifica_app.command("computo")
+def computo_command(
+    computo: Path = typer.Argument(..., help="Computo metrico (.csv o .json: codice,quantita,prezzo_unitario)."),
+    region: str = typer.Option("Lombardia", "--region", help="Regione del prezzario di riferimento."),
+    version: str = typer.Option(None, "--version", help="Versione del prezzario (opzionale)."),
+) -> None:
+    """Confronta le voci del computo col prezzario regionale (gratis, deterministico)."""
+    from lovarch_cli.auth.session import LovarchSession
+    from lovarch_cli.verify import verify_computo
+    from lovarch_cli.verify.computo import ComputoError
+
+    session = LovarchSession.load()
+    if session is None:
+        err_console.print("[red]✗ Non autenticato. Esegui `lovarch login --premium`.[/red]")
+        raise typer.Exit(1)
+
+    try:
+        report = asyncio.run(verify_computo(session, computo, region=region, version=version))
+    except ComputoError as exc:
+        err_console.print(f"[red]✗ {exc}[/red]")
+        raise typer.Exit(1)
+
+    table = Table(title=f"verifica computo — {computo.name}", header_style="bold gold1")
+    table.add_column("Metrica", style="cyan")
+    table.add_column("Valore", justify="right")
+    table.add_row("Prezzario", str(report.stats.get("prezzario", "—")))
+    table.add_row("Voci totali", str(report.stats.get("voci_totali", "—")))
+    table.add_row("Voci verificate", str(report.stats.get("voci_verificate", "—")))
+    table.add_row("Codici sconosciuti", str(report.stats.get("codici_sconosciuti", 0)))
+    table.add_row("Prezzi fuori tolleranza", str(report.stats.get("prezzi_fuori_tolleranza", 0)))
+    table.add_row("Unità incoerenti", str(report.stats.get("unita_incoerenti", 0)))
+    table.add_row("Totale computo (€)", f"{report.stats.get('totale_computo_eur', 0):,.2f}")
+    console.print(table)
+    for f in report.findings:
+        console.print(f"  [yellow]·[/yellow] {f}")
+    _print_verdict(report.verdict)
+    raise typer.Exit(0 if report.verdict == "PASS" else (2 if report.verdict == "CONCERNS" else 1))
+
+
 @verifica_app.command("normativa")
 def normativa_command(
     documento: Path = typer.Argument(..., help="Documento da verificare (.pdf, .md, .txt)."),
