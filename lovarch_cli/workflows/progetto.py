@@ -127,3 +127,70 @@ def _assemble_dossier(
     if sections.get("preventivo"):
         parts.append("## Preventivo / Proposta\n\n" + sections["preventivo"])
     return "\n\n".join(parts) + "\n"
+
+
+@dataclass
+class CantiereResult:
+    dossier_md: str
+    sections: dict = field(default_factory=dict)   # cronoprogramma / sicurezza
+    credits_charged: int = 0
+    warnings: list = field(default_factory=list)
+
+
+async def cantiere_check(
+    gateway: LovarchAiGateway,
+    brief: str,
+    *,
+    language: str = "it",
+    want_sicurezza: bool = True,
+    lead_id: str | None = None,
+    on_phase: Any = None,
+) -> CantiereResult:
+    """Composed site-check: direzione-lavori (cronoprogramma) → sicurezza pre-check
+    → assembled cantiere dossier. Text via platform models (debits)."""
+    def _phase(name: str) -> None:
+        if callable(on_phase):
+            on_phase(name)
+
+    credits = 0
+    sections: dict = {}
+    warnings: list = []
+
+    _phase("direzione-lavori")
+    dl = await run_agent(gateway, "direzione-lavori", brief, language=language, lead_id=lead_id)
+    credits += dl.credits_charged
+    sections["cronoprogramma"] = dl.text
+
+    if want_sicurezza:
+        _phase("sicurezza-advisor")
+        try:
+            sic = await run_agent(
+                gateway, "sicurezza-advisor",
+                f"Cantiere. Brief: {brief}\n\nCronoprogramma sintetico:\n{dl.text[:2000]}",
+                language=language, lead_id=lead_id,
+            )
+            credits += sic.credits_charged
+            sections["sicurezza"] = sic.text
+        except AiGatewayError as exc:
+            warnings.append(f"pre-check sicurezza non generato: {exc}")
+
+    _phase("dossier")
+    banner = {
+        "it": "> **BOZZA** — pre-check generato con IA. PSC/POS e responsabilità "
+              "restano del coordinatore abilitato (CSP/CSE).",
+        "en": "> **DRAFT** — AI pre-check. The signed safety plan remains the "
+              "licensed coordinator's responsibility.",
+        "pt": "> **RASCUNHO** — pré-verificação por IA. O PSC/POS assinado é do "
+              "coordenador habilitado.",
+        "es": "> **BORRADOR** — pre-check por IA. El plan firmado es del "
+              "coordinador habilitado.",
+    }.get(language, "")
+    parts = [f"# Cantiere — check\n\n{banner}\n", f"**Brief:** {brief}\n"]
+    if sections.get("cronoprogramma"):
+        parts.append("## Direzione lavori · cronoprogramma\n\n" + sections["cronoprogramma"])
+    if sections.get("sicurezza"):
+        parts.append("## Pre-check sicurezza (advisory)\n\n" + sections["sicurezza"])
+    dossier = "\n\n".join(parts) + "\n"
+
+    return CantiereResult(dossier_md=dossier, sections=sections,
+                          credits_charged=credits, warnings=warnings)
