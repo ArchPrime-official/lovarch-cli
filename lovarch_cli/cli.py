@@ -265,6 +265,14 @@ app.add_typer(
     help="Workflow composti (progetto interni: concept → render → preventivo → dossier).",
 )
 
+from lovarch_cli.commands.archchat_cmd import archchat_app  # noqa: E402
+
+app.add_typer(
+    archchat_app,
+    name="archchat",
+    help="Leggi le tue conversazioni ArchChat dello studio (sola lettura, nessun credito).",
+)
+
 from lovarch_cli.commands.skills_cmd import skills_app  # noqa: E402
 
 app.add_typer(
