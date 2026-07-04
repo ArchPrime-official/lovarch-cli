@@ -386,3 +386,39 @@ async def tool_agent(gateway: Any, *, agent_id: str, brief: str,
         return {"ok": False, "error": str(exc)}
     return {"ok": True, "agent": r.agent_id, "text": r.text,
             "model": r.model, "credits_charged": r.credits_charged}
+
+
+async def tool_data(gateway: Any, *, resource: str, **params: Any) -> dict:
+    """Read the user's own Lovarch data (media/projects/finance/prezzari…)."""
+    if gateway is None:
+        return {"error": "not_authenticated", "hint": "Esegui `lovarch login --premium`."}
+    try:
+        return await gateway.data(resource, **{k: v for k, v in params.items() if v is not None})
+    except AiGatewayError as exc:
+        return {"ok": False, "error": str(exc)}
+
+
+async def tool_world(gateway: Any, *, operation: str, prompt: str | None = None,
+                     image_url: str | None = None, display_name: str | None = None,
+                     world_asset_id: str | None = None) -> dict:
+    """Generate / poll a WorldLabs Marble 3D world (1200 credits per world)."""
+    if gateway is None:
+        return {"error": "not_authenticated", "hint": "Esegui `lovarch login --premium`."}
+    from lovarch_cli.ai import InsufficientCreditsError
+
+    body: dict = {"operation": operation, "source": "mcp"}
+    if prompt:
+        body["prompt"] = prompt
+    if image_url:
+        body["image_url"] = image_url
+    if display_name:
+        body["display_name"] = display_name
+    if world_asset_id:
+        body["id"] = world_asset_id
+    try:
+        return await gateway.platform("worldlabs-world", body)
+    except InsufficientCreditsError as exc:
+        return {"ok": False, "error": "insufficient_credits",
+                "credits_available": exc.available, "credits_needed": exc.needed}
+    except AiGatewayError as exc:
+        return {"ok": False, "error": str(exc)}

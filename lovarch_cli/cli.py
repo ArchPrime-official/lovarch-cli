@@ -258,7 +258,23 @@ from lovarch_cli.commands.cad_cmd import cad_app  # noqa: E402
 app.add_typer(
     cad_app,
     name="cad",
-    help="Genera CAD 2D (DXF) da specifiche di ambienti (deterministico, gratis).",
+    help="CAD: genera DXF 2D (gratis) e viewer BIM Autodesk (`cad view`, premium).",
+)
+
+from lovarch_cli.commands.media_cmd import media_app  # noqa: E402
+
+app.add_typer(
+    media_app,
+    name="media",
+    help="La tua galleria Lovarch: immagini, video, mondi 3D, CAD — list e download.",
+)
+
+from lovarch_cli.commands.dati_cmd import dati_app  # noqa: E402
+
+app.add_typer(
+    dati_app,
+    name="dati",
+    help="I tuoi dati Lovarch: progetti, finanze, prezzari, CRM (sola lettura).",
 )
 
 from lovarch_cli.commands.skills_cmd import skills_app  # noqa: E402

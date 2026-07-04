@@ -19,6 +19,7 @@ from lovarch_cli.auth.session import LovarchSession
 
 CLI_AI_GENERATE_PATH = "/functions/v1/cli-ai-generate"
 CLI_AI_TEXT_PATH = "/functions/v1/cli-ai-text"
+CLI_DATA_PATH = "/functions/v1/cli-data"
 # Image generation with gpt-image-2 can take 10-60s; give it generous headroom.
 _IMAGE_TIMEOUT = 200.0
 _TEXT_TIMEOUT = 300.0
@@ -238,3 +239,51 @@ class LovarchAiGateway:
                 f"cli-user-context ha risposto {response.status_code}: {detail or 'errore sconosciuto'}"
             )
         return data
+
+    async def data(self, resource: str, **params: object) -> dict:
+        """Read the user's own Lovarch data / save deliverables (cli-data).
+
+        Resources: media_list, media_get, worlds_list, cad_list, projects_list,
+        project_get, financial_summary, contracts_list, leads_list, prezzario,
+        deliverable_save, deliverable_download. All owner-scoped server-side.
+        """
+        body: dict[str, object] = {"resource": resource, **params}
+        response = await self._session.request(
+            "POST", CLI_DATA_PATH, json=body, timeout=120.0
+        )
+        try:
+            payload = response.json()
+        except ValueError:
+            payload = {}
+        if response.status_code != 200 or not payload.get("ok"):
+            detail = payload.get("error") if isinstance(payload, dict) else None
+            raise AiGatewayError(
+                f"cli-data/{resource} ha risposto {response.status_code}: {detail or 'errore sconosciuto'}"
+            )
+        return payload
+
+    async def platform(
+        self, function: str, body: dict, *, timeout: float = 180.0
+    ) -> dict:
+        """Call a platform EF (aps-cad, worldlabs-world) with the session token.
+
+        Raises ``InsufficientCreditsError`` on 402; ``AiGatewayError`` otherwise.
+        """
+        response = await self._session.request(
+            "POST", f"/functions/v1/{function}", json=body, timeout=timeout
+        )
+        try:
+            payload = response.json()
+        except ValueError:
+            payload = {}
+        if response.status_code == 402:
+            raise InsufficientCreditsError(
+                available=int(payload.get("credits_available", 0) or 0),
+                needed=int(payload.get("credits_needed", 0) or 0),
+            )
+        if response.status_code != 200 or not payload.get("ok"):
+            detail = payload.get("error") if isinstance(payload, dict) else None
+            raise AiGatewayError(
+                f"{function} ha risposto {response.status_code}: {detail or 'errore sconosciuto'}"
+            )
+        return payload

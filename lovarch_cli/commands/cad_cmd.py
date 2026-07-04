@@ -106,3 +106,90 @@ def genera_command(
         style = {"PASS": "green", "CONCERNS": "yellow", "REJECT": "red"}.get(report.verdict, "white")
         console.print(f"[dim]verifica misure:[/dim] [bold {style}]{report.verdict}[/bold {style}]"
                       + (f" — {report.findings[0]}" if report.findings else ""))
+
+
+@cad_app.command("view")
+def view_command(
+    file: str = typer.Argument(..., help="File CAD/BIM: .dwg .dxf .rvt .ifc .skp .obj …"),
+    wait: bool = typer.Option(True, "--wait/--no-wait", help="Attendi la traduzione."),
+) -> None:
+    """Carica un file CAD/BIM e rendilo navigabile nel viewer Autodesk dell'app.
+
+    Traduzione addebitata in crediti (RVT/IFC/NWD 1500 · DWG/DXF e altri 300),
+    rimborso automatico se fallisce. Il modello appare in `lovarch media cad`
+    e su app.lovarch.com/cad/<id>.
+    """
+    import asyncio
+    from pathlib import Path
+
+    import httpx
+
+    from lovarch_cli.ai import AiGatewayError, InsufficientCreditsError, LovarchAiGateway
+    from lovarch_cli.auth.session import LovarchSession
+    from lovarch_cli.upsell import insufficient_credits, not_authenticated
+
+    path = Path(file).expanduser()
+    if not path.is_file():
+        err_console.print(f"[red]✗ File non trovato: {file}[/red]")
+        raise typer.Exit(2)
+    size = path.stat().st_size
+
+    session = LovarchSession.load()
+    if session is None:
+        not_authenticated()
+        raise typer.Exit(1)
+    gw = LovarchAiGateway(session)
+
+    try:
+        begin = asyncio.run(gw.platform("aps-cad", {
+            "operation": "upload_begin", "file_name": path.name,
+            "size_bytes": size, "source": "cli",
+        }))
+    except AiGatewayError as exc:
+        err_console.print(f"[red]✗ {exc}[/red]"); raise typer.Exit(1)
+
+    cad_id = begin["cad_id"]
+    urls = begin["upload_urls"]
+    part_size = (size // len(urls)) + (1 if size % len(urls) else 0) if len(urls) > 1 else size
+
+    with console.status(f"[gold1]Caricando {path.name} ({size // 1024} KB)…[/gold1]"):
+        with open(path, "rb") as f, httpx.Client(timeout=600.0) as client:
+            for url in urls:
+                chunk = f.read(part_size)
+                r = client.put(url, content=chunk)
+                r.raise_for_status()
+
+    try:
+        asyncio.run(gw.platform("aps-cad", {
+            "operation": "upload_complete", "cad_id": cad_id,
+            "upload_key": begin["upload_key"],
+        }))
+        console.print("[green]✓[/green] caricato — urn pronto")
+        tr = asyncio.run(gw.platform("aps-cad", {"operation": "translate", "cad_id": cad_id}))
+        console.print(f"[green]✓[/green] traduzione avviata (crediti: {tr.get('credits_charged', 0)})")
+    except InsufficientCreditsError as exc:
+        insufficient_credits(exc.available, exc.needed); raise typer.Exit(1)
+    except AiGatewayError as exc:
+        err_console.print(f"[red]✗ {exc}[/red]"); raise typer.Exit(1)
+
+    if not wait:
+        console.print(f"Controlla con: lovarch media cad  (id {str(cad_id)[:8]})")
+        return
+
+    import time as _time
+    with console.status("[gold1]Traducendo il modello (Autodesk)…[/gold1]"):
+        for _ in range(60):  # up to ~10 min
+            _time.sleep(10)
+            try:
+                st = asyncio.run(gw.platform("aps-cad", {"operation": "status", "cad_id": cad_id}))
+            except AiGatewayError:
+                continue
+            if st.get("status") == "ready":
+                console.print("\n[green]✓ Modello pronto[/green]")
+                console.print(f"  Viewer: https://app.lovarch.com/cad/{cad_id}")
+                console.print("[dim]Elenco: lovarch media cad[/dim]")
+                return
+            if st.get("status") == "failed":
+                err_console.print("[red]✗ Traduzione fallita — crediti rimborsati.[/red]")
+                raise typer.Exit(1)
+    console.print("[yellow]⚠ Traduzione ancora in corso — `lovarch media cad` per lo stato.[/yellow]")
