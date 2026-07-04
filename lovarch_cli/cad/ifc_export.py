@@ -34,8 +34,10 @@ class IfcExportError(RuntimeError):
 
 
 def _require_ifcopenshell():
+    import importlib
+
     try:
-        import ifcopenshell.api  # noqa: F401
+        importlib.import_module("ifcopenshell.api")
     except ImportError as exc:  # pragma: no cover - environment dependent
         raise IfcExportError(
             "ifcopenshell non installato. Installa con: pip install 'lovarch-cli[ifc]' "
