@@ -1,15 +1,17 @@
 """lovarch-cli — AI-powered architectural project execution CLI.
 
-Squad di 17 agenti specializzati (mind clones di Schumacher, Baldwin, Mazria,
-Deming, Juran, English, Dodds) che esegue audit, briefing, normativa IT, CAD,
-BIM/IFC, computo metrico, capitolato, pratiche edilizie, contratto CNAPPC, energy/LCA
-preliminare, dossier consolidato.
+Agenti LLM reali per architetti, interior designer, geometri e ingegneri:
+progetto di interni, direzione lavori, preventivi, catasto, sicurezza,
+strutture/impianti/energia, capitolato, computo metrico — più 12 verifiche
+(deterministiche o adversarial a 2 modelli), CAD 2D DXF, render e workflow
+orchestrati dal @progetto-chief. Tutto advisory (BOZZA): firma e responsabilità
+restano del professionista abilitato.
 
 Two modes:
-- Free: standalone (your own API keys, SQLite local, filesystem storage)
-- Premium: Lovarch-integrated (Supabase + S3 + Edge Functions + credits)
+- Free: CAD DXF, verifica misure/computo offline, skill (il TUO modello)
+- Premium: Lovarch-integrated (agenti server-side, render, crediti)
 
-Powered by Lovarch — https://lovarch.com
+Powered by Lovarch — https://app.lovarch.com
 """
 from lovarch_cli.version import __version__
 

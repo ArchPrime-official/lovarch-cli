@@ -21,6 +21,40 @@ class AgentResult:
     balance: int | None
 
 
+# Appended to EVERY agent system prompt: when the brief lacks essentials the
+# agent must ASK (Dati mancanti section) and declare its assumptions — never
+# silently invent measures/prices/local rules.
+AGENT_TAIL = (
+    "\n\nSe nel brief mancano dati essenziali per un lavoro professionale, apri "
+    "la risposta con una sezione '## Dati mancanti' elencando le domande precise "
+    "da fare al cliente; poi procedi dichiarando esplicitamente le ipotesi "
+    "assunte. Non inventare mai dati specifici (misure, prezzi, riferimenti "
+    "locali) senza dichiararli come ipotesi."
+)
+
+
+async def personalize_system(
+    gateway: LovarchAiGateway,
+    system: str,
+    *,
+    lead_id: str | None = None,
+    language: str = "it",
+) -> tuple[str, str]:
+    """Best-effort personalization: prepend the user's context prompt_block and
+    honor the mandatory preferred_language. Returns (system, language)."""
+    try:
+        bundle = await gateway.get_user_context(lead_id=lead_id)
+        block = bundle.get("prompt_block") if isinstance(bundle, dict) else None
+        if block:
+            system = f"{block}\n\n{system}"
+        lang = ((bundle or {}).get("preferences") or {}).get("preferred_language") if isinstance(bundle, dict) else None
+        if lang:
+            language = lang
+    except AiGatewayError:
+        pass  # personalization is optional; the agent still runs
+    return system, language
+
+
 async def run_agent(
     gateway: LovarchAiGateway,
     agent_id: str,
@@ -36,18 +70,9 @@ async def run_agent(
             f"Agente sconosciuto: {agent_id}. Disponibili: {', '.join(AGENTS)}"
         )
 
-    system = persona.system
-    # Best-effort personalization: prepend the user's context prompt_block.
-    try:
-        bundle = await gateway.get_user_context(lead_id=lead_id)
-        block = bundle.get("prompt_block") if isinstance(bundle, dict) else None
-        if block:
-            system = f"{block}\n\n{system}"
-        lang = ((bundle or {}).get("preferences") or {}).get("preferred_language") if isinstance(bundle, dict) else None
-        if lang:
-            language = lang
-    except AiGatewayError:
-        pass  # personalization is optional; the agent still runs
+    system, language = await personalize_system(
+        gateway, persona.system + AGENT_TAIL, lead_id=lead_id, language=language,
+    )
 
     result = await gateway.generate_text(
         brief,

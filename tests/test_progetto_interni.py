@@ -117,8 +117,12 @@ async def test_progetto_completo_esegui():
             if role == "chief":
                 payload={"inquadramento":"x","agenti":[{"id":"interior-designer","focus":"c"}],"note":[]}
                 return AiTextResult(text=_json.dumps(payload),model="opus",input_tokens=1,output_tokens=1,credits_charged=8,balance=90,is_admin=False)
-            return AiTextResult(text="testo agente",model="sonnet",input_tokens=1,output_tokens=1,credits_charged=3,balance=87,is_admin=False)
+            # >400 char per non far scattare il guard anti-troncamento del workflow
+            return AiTextResult(text="testo agente. " + ("Concept e layout realistici per il progetto. " * 12),model="sonnet",input_tokens=1,output_tokens=1,credits_charged=3,balance=87,is_admin=False)
     gw=_PlanGW()
     r=await progetto_completo(gw,"attico",esegui=2)
     assert "interior-designer" in r.sections
-    assert r.credits_charged==8+3    # chief + 1 agente
+    # chief-plan (8) + 1 agente (3) + chief-sintesi (8): il ritorno al chief
+    # (review di coerenza) e' parte del workflow.
+    assert r.credits_charged==8+3+8
+    assert "Sintesi di direzione" in r.dossier_md

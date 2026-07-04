@@ -11,7 +11,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any
 
-from lovarch_cli.agents import run_agent
+from lovarch_cli.agents import AGENTS, personalize_system, run_agent
 from lovarch_cli.ai import AiGatewayError, LovarchAiGateway
 
 
@@ -196,23 +196,39 @@ async def cantiere_check(
                           credits_charged=credits, warnings=warnings)
 
 
-_CHIEF_PLAN_SYSTEM = (
-    "Sei @progetto-chief, direttore di studio. Dato un brief, decidi quali "
-    "specialisti coinvolgere — SOLO quelli pertinenti. Rispondi SOLO con JSON "
-    'valido: {"inquadramento": "...", "agenti": [{"id": "<id>", "focus": "cosa '
-    'deve produrre per questo progetto"}], "note": ["..."]}. Gli id ammessi: '
-    "interior-designer, capitolato-writer, computo-engineer, preventivi, "
-    "direzione-lavori, geometra-catasto, sicurezza-advisor, strutturista, "
-    "impianti-engineer, energia-engineer. Sii selettivo (di norma 2-4 agenti)."
-)
+# Every runnable specialist except the chief itself — derived from AGENTS so
+# the plan prompt and the dispatch set can never drift apart (that drift is
+# exactly the bug that hid moodboard-curator/fornitori-scout from the chief).
+_DISPATCHABLE = {aid for aid in AGENTS if aid != "progetto-chief"}
 
-# Only agents that exist can be dispatched by the orchestrator.
-_DISPATCHABLE = {
-    "interior-designer", "capitolato-writer", "computo-engineer", "preventivi",
-    "direzione-lavori", "geometra-catasto", "sicurezza-advisor", "strutturista",
-    "impianti-engineer", "energia-engineer", "moodboard-curator",
-    "fornitori-scout",
-}
+
+def _chief_plan_system() -> str:
+    roster = "; ".join(
+        f"{p.id} ({p.label})" for aid, p in sorted(AGENTS.items())
+        if aid != "progetto-chief"
+    )
+    return (
+        "Sei @progetto-chief, direttore di studio. Dato un brief, decidi quali "
+        "specialisti coinvolgere — SOLO quelli pertinenti. Rispondi SOLO con JSON "
+        'valido: {"inquadramento": "...", "agenti": [{"id": "<id>", "focus": "cosa '
+        'deve produrre per questo progetto"}], "note": ["..."]}. '
+        f"Gli id ammessi: {roster}. Sii selettivo (di norma 2-4 agenti); ordina "
+        "gli agenti nella sequenza di lavoro corretta (chi produce input per gli "
+        "altri va prima)."
+    )
+
+
+_CHIEF_SYNTH_SYSTEM = (
+    "Sei @progetto-chief, direttore di studio. Hai ricevuto il brief e gli "
+    "elaborati prodotti dagli specialisti che hai coinvolto. Produci in markdown "
+    "la SINTESI DI DIREZIONE: (1) valutazione di coerenza tra gli elaborati — "
+    "contraddizioni, sovrapposizioni, buchi (cita lo specialista e il punto "
+    "esatto); (2) '## Dati mancanti' — le domande da fare al cliente prima di "
+    "procedere; (3) prossimi passi concreti in ordine, indicando quale agente "
+    "rilanciare con quale focus se un elaborato è debole; (4) cosa richiede la "
+    "firma di un tecnico abilitato. Sii critico e concreto: se un elaborato non "
+    "regge, dillo."
+)
 
 
 @dataclass
@@ -245,10 +261,14 @@ async def progetto_completo(
     warnings: list = []
     sections: dict = {}
 
-    # Phase 1 — chief plans (structured).
+    # Phase 1 — chief plans (structured), personalized with the user's context
+    # (brand/studio/fiscal/CRM lead) like every other agent.
     _phase("progetto-chief")
+    plan_system, language = await personalize_system(
+        gateway, _chief_plan_system(), lead_id=lead_id, language=language,
+    )
     planned = await gateway.generate_text(
-        brief, role="chief", system=_CHIEF_PLAN_SYSTEM, max_tokens=1200,
+        brief, role="chief", system=plan_system, max_tokens=1200,
         language=language, operation_type="progetto:chief-plan",
     )
     credits += planned.credits_charged
@@ -260,21 +280,56 @@ async def progetto_completo(
 
     agenti = [a for a in (plan.get("agenti") or []) if a.get("id") in _DISPATCHABLE]
 
-    # Phase 2 — optionally run the recommended agents.
+    # Phase 2 — optionally run the recommended agents, chaining context: each
+    # specialist sees a digest of what the previous ones produced (coherence).
+    prior_digest = ""
     if esegui > 0 and agenti:
         for a in agenti[:esegui]:
             aid = a["id"]
             focus = a.get("focus", "")
             _phase(aid)
+            payload = f"{brief}\n\nFocus richiesto: {focus}"
+            if prior_digest:
+                payload += (
+                    "\n\nELABORATI GIÀ PRODOTTI dagli altri specialisti "
+                    "(mantieni coerenza, non ripeterli):\n" + prior_digest[-6000:]
+                )
             try:
-                r = await run_agent(gateway, aid, f"{brief}\n\nFocus richiesto: {focus}",
+                r = await run_agent(gateway, aid, payload,
                                     language=language, lead_id=lead_id)
                 credits += r.credits_charged
+                # Guard against transient provider early-stops: a specialist
+                # deliverable under ~400 chars is truncation, not work — retry once.
+                if len(r.text.strip()) < 400:
+                    warnings.append(f"{aid}: output troncato ({len(r.text)} char), retry")
+                    r = await run_agent(gateway, aid, payload,
+                                        language=language, lead_id=lead_id)
+                    credits += r.credits_charged
                 sections[aid] = r.text
+                prior_digest += f"\n### {aid}\n{r.text[:1500]}\n"
             except AiGatewayError as exc:
                 warnings.append(f"{aid} non eseguito: {exc}")
 
-    # Phase 3 — assemble.
+    # Phase 3 — back to the chief: it REVIEWS the specialists' output and writes
+    # the executive synthesis (coherence check, missing data, next steps).
+    synthesis = ""
+    if sections:
+        _phase("progetto-chief:sintesi")
+        review_payload = f"BRIEF:\n{brief}\n\n" + "\n\n".join(
+            f"## Elaborato di {aid}\n{text[:4000]}" for aid, text in sections.items()
+        )
+        try:
+            synth = await gateway.generate_text(
+                review_payload, role="chief", system=_CHIEF_SYNTH_SYSTEM,
+                max_tokens=2000, language=language,
+                operation_type="progetto:chief-sintesi",
+            )
+            credits += synth.credits_charged
+            synthesis = synth.text
+        except AiGatewayError as exc:
+            warnings.append(f"sintesi del chief non generata: {exc}")
+
+    # Phase 4 — assemble.
     _phase("dossier")
     banner = {
         "it": "> **BOZZA** — piano e elaborati generati con IA. Firme e "
@@ -293,6 +348,8 @@ async def progetto_completo(
             f"- **{a['id']}** — {a.get('focus','')}" for a in agenti))
     for aid, text in sections.items():
         parts.append(f"## {aid}\n\n{text}")
+    if synthesis:
+        parts.append("## Sintesi di direzione (progetto-chief)\n\n" + synthesis)
     dossier = "\n\n".join(parts) + "\n"
 
     return CompletoResult(dossier_md=dossier, plan=plan, sections=sections,
