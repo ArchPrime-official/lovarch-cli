@@ -119,6 +119,28 @@ def generate_ifc(
         ifcopenshell.api.run(
             "aggregate.assign_object", model, relating_object=storey, products=[space],
         )
+        # Attach a property set with the room's real quantities so downstream
+        # tools (Autodesk Model Derivative, Revit, computo) can READ the areas.
+        # Without this the IFC has geometry but no queryable data.
+        area = round(w * d, 2)
+        pset = ifcopenshell.api.run(
+            "pset.add_pset", model, product=space, name="Pset_SpaceCommon",
+        )
+        ifcopenshell.api.run(
+            "pset.edit_pset", model, pset=pset,
+            properties={"Reference": label, "GrossFloorArea": area,
+                        "NetFloorArea": area, "Category": "Locale"},
+        )
+        # Base quantities (IfcElementQuantity) — the canonical place BIM tools
+        # look for area/height.
+        qto = ifcopenshell.api.run(
+            "pset.add_qto", model, product=space, name="Qto_SpaceBaseQuantities",
+        )
+        ifcopenshell.api.run(
+            "pset.edit_qto", model, qto=qto,
+            properties={"GrossFloorArea": area, "NetFloorArea": area,
+                        "Height": round(height_m, 2)},
+        )
         spaces += 1
         total_area += w * d
         placed.append({"name": label, "width_m": w, "height_m": d, "x": x})
