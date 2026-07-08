@@ -5,6 +5,11 @@ All notable changes to `lovarch-cli` are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.7] — 2026-07-08
+
+### Changed
+- **Pagine di login ridisegnate col brand Lovarch.** Le schermate che il browser mostra durante `lovarch login --premium` (successo e errore, servite da `local_server.py`) ora hanno l'identità Lovarch: simbolo (SVG inline), oro del brand, tipografia Outfit/DM Sans — e **una sola lingua** (quella del CLI, `it/pt/en/es`), non più italiano + inglese insieme. La pagina di errore mostra il codice d'errore reale.
+
 ## [0.4.6] — 2026-07-08
 
 ### Fixed

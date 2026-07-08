@@ -91,7 +91,7 @@ def login_command(
 
     # ─── Premium PKCE flow ───────────────────────────────────────────────
     pkce = PkceParams.generate()
-    server = AuthServer(port=0)
+    server = AuthServer(port=0, lang=lang)
     server.start()
 
     auth_url = (
