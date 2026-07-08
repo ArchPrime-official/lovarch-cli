@@ -15,7 +15,7 @@
     "invalid_phone": "Teléfono debe estar en formato internacional (ej. +34612345678).",
     "invalid_country": "Código país debe ser 2 letras (ISO 3166 alpha-2).",
     "submitting": "Enviando...",
-    "next_steps": "[bold green]✓ Registro completado[/bold green]\n\nPróximos pasos:\n 1. [cyan]lovarch init <proyecto>[/cyan] — crea un nuevo proyecto\n 2. [cyan]lovarch audit <proyecto>[/cyan] — verifica inputs\n 3. [cyan]lovarch run dal-brief-al-cantiere[/cyan] — ejecuta workflow\n\nUpgrade a Premium (créditos incluidos): [link]https://app.lovarch.com/settings/credits[/link]"
+    "next_steps": "[bold green]✓ Registro completado[/bold green]\n\nPróximos pasos (gratis, sin créditos):\n 1. [cyan]lovarch skills install[/cyan] — instala las personas en tu Claude Code\n 2. [cyan]lovarch cad genera[/cyan] — genera un plano DXF profesional\n 3. [cyan]lovarch verifica misure <plano.dxf>[/cyan] — verifica el plano (gratis)\n\nRender, agentes IA y verificaciones premium → activa Premium: [link]https://app.lovarch.com/settings/credits[/link]"
   },
   "account": {
     "no_account": "Sin cuenta configurada. Ejecuta 'lovarch signup' o 'lovarch login'.",
