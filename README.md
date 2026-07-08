@@ -73,6 +73,35 @@ lovarch --version
 
 `brew upgrade lovarch-cli` aggiorna alla nuova release.
 
+### 🪟 Windows
+
+Homebrew **non esiste** su Windows nativo: i comandi `brew` qui sopra sono solo
+macOS/Linux. Su Windows il CLI si installa con **pipx** (è Python puro — gira
+identico). Guida passo-passo completa: **[docs/installazione-windows.md](./docs/installazione-windows.md)**.
+
+```powershell
+# 1. installa Python 3.11+ da https://www.python.org/downloads/
+#    (spunta "Add python.exe to PATH" durante il setup)
+
+# 2. installa pipx (una volta sola)
+py -m pip install --user pipx
+py -m pipx ensurepath          # chiudi e riapri il terminale dopo
+
+# 3. installa il Lovarch CLI da GitHub
+pipx install git+https://github.com/ArchPrime-official/lovarch-cli.git
+
+# 4. da qui è tutto identico al Mac:
+lovarch --version
+lovarch login --premium
+lovarch agent list
+```
+
+`pipx upgrade lovarch-cli` aggiorna. In alternativa, con **WSL** (Ubuntu su
+Windows) valgono gli stessi comandi di macOS/Linux (Homebrew o pipx).
+
+> ⚠️ Su Windows usa `pipx install git+…` (GitHub), **non** `pip install lovarch-cli`:
+> il pacchetto PyPI è fermo a una versione vecchia.
+
 ### 📦 pipx — install isolato da GitHub
 
 Se preferisci un'install Python isolata senza Homebrew (utile su Linux server,
