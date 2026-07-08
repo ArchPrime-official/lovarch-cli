@@ -10,4 +10,4 @@ Bump policy (semver):
 - MINOR: new subcommands, new agents, new languages
 - PATCH: bug fixes, dependency bumps
 """
-__version__ = "0.4.2"
+__version__ = "0.4.3"

@@ -100,6 +100,14 @@ def main(
     ctx.obj["lang"] = lang
     ctx.obj["verbose"] = verbose
 
+    # Keep the Claude Code skills (/lovarch-*) in lockstep with the installed
+    # CLI: install on first run, refresh on upgrade. Cheap + best-effort — see
+    # ensure_skills_synced. Skipped for --version/--help (eager, exit before
+    # this body runs). Opt out with LOVARCH_NO_SKILLS_SYNC=1.
+    from lovarch_cli.commands.skills_cmd import ensure_skills_synced
+
+    ensure_skills_synced()
+
 
 def _agents_count() -> int:
     from lovarch_cli.agents import AGENTS
