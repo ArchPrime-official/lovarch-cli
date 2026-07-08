@@ -24,42 +24,127 @@ from urllib.parse import parse_qs, urlparse
 
 CALLBACK_PATH = "/callback"
 
-SUCCESS_HTML = """<!doctype html>
-<html lang="en">
+# ── Lovarch brand mark — hexagon node-mesh, recreated as inline SVG so the
+# served page stays self-contained (no external image, no JS). ──────────────
+_SYMBOL_SVG = (
+    '<svg viewBox="0 0 100 100" width="34" height="34" aria-hidden="true" '
+    'style="color:#18181B">'
+    '<g stroke="currentColor" stroke-width="1.1" fill="none" stroke-linecap="round">'
+    '<line x1="50" y1="10" x2="84.6" y2="30"/><line x1="84.6" y1="30" x2="84.6" y2="70"/>'
+    '<line x1="84.6" y1="70" x2="50" y2="90"/><line x1="50" y1="90" x2="15.4" y2="70"/>'
+    '<line x1="15.4" y1="70" x2="15.4" y2="30"/><line x1="15.4" y1="30" x2="50" y2="10"/>'
+    '<line x1="50" y1="10" x2="50" y2="90"/><line x1="15.4" y1="30" x2="84.6" y2="70"/>'
+    '<line x1="84.6" y1="30" x2="15.4" y2="70"/><line x1="50" y1="10" x2="15.4" y2="70"/>'
+    '<line x1="50" y1="10" x2="84.6" y2="70"/><line x1="50" y1="90" x2="15.4" y2="30"/>'
+    '<line x1="50" y1="90" x2="84.6" y2="30"/></g>'
+    '<g fill="currentColor">'
+    '<circle cx="50" cy="10" r="2.7"/><circle cx="84.6" cy="30" r="2.7"/>'
+    '<circle cx="84.6" cy="70" r="2.7"/><circle cx="50" cy="90" r="2.7"/>'
+    '<circle cx="15.4" cy="70" r="2.7"/><circle cx="15.4" cy="30" r="2.7"/>'
+    '<circle cx="50" cy="50" r="2.7"/></g></svg>'
+)
+
+_CHECK_SVG = (
+    '<svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" '
+    'stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">'
+    '<polyline points="20 6 9 17 4 12"/></svg>'
+)
+_X_SVG = (
+    '<svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" '
+    'stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">'
+    '<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>'
+)
+
+# Single-language copy (the CLI knows the user's language and passes it in).
+_SUCCESS_TEXT = {
+    "it": ("Accesso completato", "Puoi chiudere questa scheda e tornare al terminale."),
+    "pt": ("Login concluído", "Você pode fechar esta aba e voltar ao terminal."),
+    "en": ("You're signed in", "You can close this tab and return to your terminal."),
+    "es": ("Sesión iniciada", "Puedes cerrar esta pestaña y volver a la terminal."),
+}
+_ERROR_TEXT = {
+    "it": ("Accesso non riuscito", "Torna al terminale per i dettagli e riprova."),
+    "pt": ("Login não concluído", "Volte ao terminal para ver os detalhes e tente de novo."),
+    "en": ("Sign-in failed", "Return to your terminal for details and try again."),
+    "es": ("Error al iniciar sesión", "Vuelve a la terminal para ver los detalles e inténtalo de nuevo."),
+}
+
+_SHELL = """<!doctype html>
+<html lang="{lang}">
 <head>
 <meta charset="utf-8">
-<title>lovarch-cli login</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>lovarch-cli</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500&family=Outfit:wght@300;500;600&display=swap" rel="stylesheet">
 <style>
-  body { font-family: -apple-system, system-ui, sans-serif;
-         display: flex; align-items: center; justify-content: center;
-         height: 100vh; margin: 0; background: #FAF9F7; color: #09090B; }
-  .card { text-align: center; padding: 2rem 3rem;
-          border: 1px solid rgba(0,0,0,0.08); border-radius: 12px;
-          background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,0.04); }
-  h1 { color: #A16207; margin: 0 0 0.5rem; font-weight: 600; }
-  p { margin: 0.5rem 0 0; color: #71717a; }
+  * {{ box-sizing: border-box; }}
+  body {{ margin: 0; min-height: 100vh; display: flex; align-items: center;
+          justify-content: center; padding: 24px;
+          background: #FAF9F7; color: #18181B;
+          font-family: 'DM Sans', -apple-system, system-ui, sans-serif;
+          -webkit-font-smoothing: antialiased; }}
+  .card {{ background: #fff; border: 1px solid rgba(24,24,27,.10);
+           border-radius: 16px; box-shadow: 0 1px 3px rgba(0,0,0,.05);
+           padding: 34px 30px; max-width: 380px; width: 100%; text-align: center; }}
+  .brand {{ display: flex; align-items: center; justify-content: center;
+            gap: 11px; margin-bottom: 22px; }}
+  .word {{ font-family: 'Outfit', system-ui, sans-serif; font-size: 20px;
+           font-weight: 300; letter-spacing: .34em; padding-left: .34em; color: #18181B; }}
+  .badge {{ width: 60px; height: 60px; border-radius: 50%; display: flex;
+            align-items: center; justify-content: center; margin: 6px auto 18px; }}
+  .badge.ok {{ background: rgba(21,128,61,.09); color: #15803D; }}
+  .badge.err {{ background: rgba(185,28,28,.08); color: #B91C1C; }}
+  h1 {{ font-family: 'Outfit', system-ui, sans-serif; font-size: 20px;
+        font-weight: 600; letter-spacing: -.01em; margin: 0 0 8px; color: #18181B; }}
+  p {{ font-size: 14px; line-height: 1.55; color: #71717A; margin: 0; }}
+  .errbox {{ margin-top: 16px; background: rgba(185,28,28,.08);
+             border: 1px solid rgba(185,28,28,.16); border-radius: 9px;
+             padding: 10px 12px; font-family: ui-monospace, Menlo, monospace;
+             font-size: 12px; color: #B91C1C; word-break: break-word; }}
+  .foot {{ margin-top: 22px; padding-top: 16px; border-top: 1px solid rgba(24,24,27,.10);
+           font-size: 11.5px; color: #a1a1aa; letter-spacing: .02em; }}
 </style>
 </head>
 <body>
   <div class="card">
-    <h1>✓ lovarch-cli</h1>
-    <p>Login completato. Puoi chiudere questa scheda.</p>
-    <p style="margin-top:1rem;font-size:0.85rem">Login complete — you can close this tab.</p>
+    <div class="brand">{symbol}<span class="word">LOVARCH</span></div>
+    <div class="badge {badge_cls}">{badge_svg}</div>
+    <h1>{title}</h1>
+    <p>{body}</p>
+    {extra}
+    <p class="foot">lovarch-cli</p>
   </div>
 </body>
 </html>
 """
 
-ERROR_HTML = """<!doctype html>
-<html lang="en">
-<head><meta charset="utf-8"><title>lovarch-cli login error</title></head>
-<body style="font-family:sans-serif;padding:2rem;background:#FAF9F7">
-<h1 style="color:#dc2626">lovarch-cli login failed</h1>
-<p>{error}</p>
-<p>Torna al terminale per maggiori dettagli. Return to the terminal for details.</p>
-</body>
-</html>
-"""
+
+def _normalize_lang(lang: str) -> str:
+    lang = (lang or "it").lower()[:2]
+    return lang if lang in _SUCCESS_TEXT else "it"
+
+
+def success_html(lang: str = "it") -> str:
+    """Branded, single-language 'login complete' page."""
+    lang = _normalize_lang(lang)
+    title, body = _SUCCESS_TEXT[lang]
+    return _SHELL.format(
+        lang=lang, symbol=_SYMBOL_SVG, badge_cls="ok", badge_svg=_CHECK_SVG,
+        title=title, body=body, extra="",
+    )
+
+
+def error_html(error: str, lang: str = "it") -> str:
+    """Branded, single-language 'login failed' page (shows the error code)."""
+    lang = _normalize_lang(lang)
+    title, body = _ERROR_TEXT[lang]
+    from html import escape
+    errbox = f'<div class="errbox">{escape(error or "unknown")}</div>'
+    return _SHELL.format(
+        lang=lang, symbol=_SYMBOL_SVG, badge_cls="err", badge_svg=_X_SVG,
+        title=title, body=body, extra=errbox,
+    )
 
 
 @dataclass
@@ -92,12 +177,14 @@ class _Handler(BaseHTTPRequestHandler):
         params = parse_qs(parsed.query, keep_blank_values=True)
         result: CallbackResult = self.server.callback_result  # type: ignore[attr-defined]
 
+        lang: str = getattr(self.server, "lang", "it")  # type: ignore[attr-defined]
+
         if "error" in params:
             result.error = params["error"][0]
             result.error_description = params.get(
                 "error_description", [""]
             )[0]
-            html = ERROR_HTML.format(error=result.error)
+            html = error_html(result.error, lang)
             self.send_response(400)
             self.send_header("Content-Type", "text/html; charset=utf-8")
             self.end_headers()
@@ -108,7 +195,7 @@ class _Handler(BaseHTTPRequestHandler):
             self.send_response(200)
             self.send_header("Content-Type", "text/html; charset=utf-8")
             self.end_headers()
-            self.wfile.write(SUCCESS_HTML.encode("utf-8"))
+            self.wfile.write(success_html(lang).encode("utf-8"))
         else:
             result.error = "missing_params"
             result.error_description = "neither code/state nor error returned"
@@ -123,11 +210,13 @@ class _Handler(BaseHTTPRequestHandler):
 class AuthServer:
     """Single-shot localhost HTTP server for PKCE callback capture."""
 
-    def __init__(self, port: int = 0) -> None:
+    def __init__(self, port: int = 0, lang: str = "it") -> None:
         self._httpd = HTTPServer(("127.0.0.1", port), _Handler)
         # Attach result holder + event to the server instance for handler access
         self._httpd.callback_result = CallbackResult()  # type: ignore[attr-defined]
         self._httpd.done_event = threading.Event()  # type: ignore[attr-defined]
+        # Language for the branded success/error pages (single-language render).
+        self._httpd.lang = lang  # type: ignore[attr-defined]
         self._thread: Optional[threading.Thread] = None
 
     @property
