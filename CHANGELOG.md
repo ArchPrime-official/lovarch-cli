@@ -5,6 +5,14 @@ All notable changes to `lovarch-cli` are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.4] — 2026-07-08
+
+### Fixed
+- **Login apre il dominio sbagliato.** `lovarch login --premium` (e tutti i redirect del CLI) aprivano `lovarch.com` (sito marketing) invece di `app.lovarch.com` (l'app dove vive `/cli-auth`). Ora tutti i redirect — login, upgrade (`/cli-upgrade`, `/settings/credits`), signup ToS, cancellazione account, ricarica crediti, "Powered by", corso — puntano ad `app.lovarch.com`.
+
+### Changed
+- Il dominio web è ora centralizzato in `config.DEFAULT_WEB_URL` (single source of truth, così non può più divergere tra login/upgrade/signup) ed è sovrascrivibile con `LOVARCH_WEB_URL` per ambienti di staging/preview.
+
 ## [0.4.3] — 2026-07-08
 
 ### Added

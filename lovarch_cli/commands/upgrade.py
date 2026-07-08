@@ -20,14 +20,14 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.text import Text
 
-from lovarch_cli.config import load_credentials
+from lovarch_cli.config import DEFAULT_WEB_URL, load_credentials
 from lovarch_cli.i18n import current_lang, set_current_lang, t
 
 console = Console()
 err_console = Console(stderr=True)
 
-# Same web base used by `arch login --premium` for the PKCE flow.
-LOVARCH_WEB_BASE = "https://lovarch.com"
+# Same web APP base used by `arch login --premium` (app.lovarch.com).
+LOVARCH_WEB_BASE = DEFAULT_WEB_URL
 UPGRADE_PATH = "/cli-upgrade"
 PREMIUM_DASHBOARD_PATH = "/settings/credits"
 
