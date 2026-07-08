@@ -15,7 +15,7 @@
     "invalid_phone": "Phone must be in international format (e.g. +14155552671).",
     "invalid_country": "Country code must be 2 letters (ISO 3166 alpha-2).",
     "submitting": "Submitting...",
-    "next_steps": "[bold green]✓ Signup complete[/bold green]\n\nNext steps:\n 1. [cyan]lovarch init <project>[/cyan] — create a new project\n 2. [cyan]lovarch audit <project>[/cyan] — verify inputs\n 3. [cyan]lovarch run dal-brief-al-cantiere[/cyan] — run workflow\n\nUpgrade to Premium (credits included): [link]https://lovarch.com/cli-upgrade[/link]"
+    "next_steps": "[bold green]✓ Signup complete[/bold green]\n\nNext steps:\n 1. [cyan]lovarch init <project>[/cyan] — create a new project\n 2. [cyan]lovarch audit <project>[/cyan] — verify inputs\n 3. [cyan]lovarch run dal-brief-al-cantiere[/cyan] — run workflow\n\nUpgrade to Premium (credits included): [link]https://app.lovarch.com/cli-upgrade[/link]"
   },
   "account": {
     "no_account": "No account configured. Run 'lovarch signup' or 'lovarch login'.",
@@ -26,7 +26,7 @@
     "deletion_aborted": "Deletion aborted. No data changed.",
     "deletion_success": "✓ Account deleted. Thanks for trying lovarch-cli.",
     "info_title": "Current account",
-    "premium_delete_redirect": "Premium account deletion is handled in the Lovarch web app:\n  https://lovarch.com/settings/account/delete"
+    "premium_delete_redirect": "Premium account deletion is handled in the Lovarch web app:\n  https://app.lovarch.com/settings/account/delete"
   },
   "login": {
     "choose_mode_prompt": "Choose mode",
@@ -43,14 +43,14 @@
   "info": {
     "title": "Status",
     "mode_not_configured": "not configured — run 'lovarch login' to begin",
-    "powered_by": "🌐 Powered by Lovarch — https://lovarch.com",
-    "course_promo": "🎓 Advanced AI Course for Architects — https://lovarch.com/corso"
+    "powered_by": "🌐 Powered by Lovarch — https://app.lovarch.com",
+    "course_promo": "🎓 Advanced AI Course for Architects — https://app.lovarch.com/corso"
   },
   "errors": {
     "network": "Network error calling {function_name}: {exc}",
     "invalid_json": "Invalid JSON from {function_name} (HTTP {status_code}): {snippet}",
     "unknown_api_error": "API error: {error_code}",
-    "credits_insufficient": "Insufficient credits: you have {remaining}, need {required} (deficit: {deficit}). Top up at https://lovarch.com/credits.",
+    "credits_insufficient": "Insufficient credits: you have {remaining}, need {required} (deficit: {deficit}). Top up at https://app.lovarch.com/credits.",
     "credits_check_failed": "Credits check failed: {message}"
   },
   "upgrade": {

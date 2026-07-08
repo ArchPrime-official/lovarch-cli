@@ -8,7 +8,7 @@ Subcommand structure:
 Premium PKCE flow:
   1. Generate verifier + challenge + state via PkceParams.generate()
   2. Spin up local HTTP server on 127.0.0.1:RANDOM/callback
-  3. Open browser to https://lovarch.com/cli-auth?...
+  3. Open browser to https://app.lovarch.com/cli-auth?...
   4. Show "Waiting for browser..." spinner with timeout 5min
   5. On callback: validate state matches, POST cli-auth-exchange EF
   6. Save tokens via keyring_store.save_premium_session
@@ -33,16 +33,16 @@ from rich.text import Text
 from lovarch_cli.api import ApiClient, LovarchApiError
 from lovarch_cli.auth import PkceParams, save_premium_session
 from lovarch_cli.auth.local_server import AuthServer
-from lovarch_cli.config import DEFAULT_API_URL
+from lovarch_cli.config import DEFAULT_API_URL, DEFAULT_WEB_URL
 from lovarch_cli.i18n import current_lang, set_current_lang, t
 
 console = Console()
 err_console = Console(stderr=True)
 
-# https://lovarch.com host — ALWAYS the web app for /cli-auth, NOT the
-# Supabase API URL (which is for EF calls). This is hardcoded because the
-# /cli-auth React page only exists on lovarch.com.
-LOVARCH_WEB_BASE = "https://lovarch.com"
+# Web APP host for the /cli-auth React page (app.lovarch.com) — NOT the
+# marketing site (lovarch.com) and NOT the Supabase API URL (EF calls).
+# Centralized in config.DEFAULT_WEB_URL; override with LOVARCH_WEB_URL.
+LOVARCH_WEB_BASE = DEFAULT_WEB_URL
 PKCE_TIMEOUT_SECONDS = 300.0  # 5 minutes — matches DB code TTL
 
 

@@ -15,7 +15,7 @@
     "invalid_phone": "Telefone deve estar em formato internacional (ex. +5511987654321).",
     "invalid_country": "Código país deve ser 2 letras (ISO 3166 alpha-2).",
     "submitting": "Enviando...",
-    "next_steps": "[bold green]✓ Cadastro concluído[/bold green]\n\nPróximos passos:\n 1. [cyan]lovarch init <projeto>[/cyan] — cria novo projeto\n 2. [cyan]lovarch audit <projeto>[/cyan] — verifica inputs\n 3. [cyan]lovarch run dal-brief-al-cantiere[/cyan] — executa workflow\n\nUpgrade pra Premium (créditos inclusos): [link]https://lovarch.com/cli-upgrade[/link]"
+    "next_steps": "[bold green]✓ Cadastro concluído[/bold green]\n\nPróximos passos:\n 1. [cyan]lovarch init <projeto>[/cyan] — cria novo projeto\n 2. [cyan]lovarch audit <projeto>[/cyan] — verifica inputs\n 3. [cyan]lovarch run dal-brief-al-cantiere[/cyan] — executa workflow\n\nUpgrade pra Premium (créditos inclusos): [link]https://app.lovarch.com/cli-upgrade[/link]"
   },
   "account": {
     "no_account": "Nenhuma conta configurada. Execute 'lovarch signup' ou 'lovarch login'.",
@@ -26,7 +26,7 @@
     "deletion_aborted": "Exclusão cancelada. Nenhum dado modificado.",
     "deletion_success": "✓ Conta excluída. Obrigado por ter testado lovarch-cli.",
     "info_title": "Conta atual",
-    "premium_delete_redirect": "A exclusão de conta Premium é feita no app web Lovarch:\n  https://lovarch.com/settings/account/delete"
+    "premium_delete_redirect": "A exclusão de conta Premium é feita no app web Lovarch:\n  https://app.lovarch.com/settings/account/delete"
   },
   "login": {
     "choose_mode_prompt": "Escolha modalidade",
@@ -43,14 +43,14 @@
   "info": {
     "title": "Status",
     "mode_not_configured": "não configurado — execute 'lovarch login' para começar",
-    "powered_by": "🌐 Powered by Lovarch — https://lovarch.com",
-    "course_promo": "🎓 Curso IA Avançado para Arquitetos — https://lovarch.com/corso"
+    "powered_by": "🌐 Powered by Lovarch — https://app.lovarch.com",
+    "course_promo": "🎓 Curso IA Avançado para Arquitetos — https://app.lovarch.com/corso"
   },
   "errors": {
     "network": "Erro de rede chamando {function_name}: {exc}",
     "invalid_json": "JSON inválido de {function_name} (HTTP {status_code}): {snippet}",
     "unknown_api_error": "Erro API: {error_code}",
-    "credits_insufficient": "Créditos insuficientes: você tem {remaining}, são necessários {required} (faltam {deficit}). Recarregue em https://lovarch.com/credits.",
+    "credits_insufficient": "Créditos insuficientes: você tem {remaining}, são necessários {required} (faltam {deficit}). Recarregue em https://app.lovarch.com/credits.",
     "credits_check_failed": "Verificação de créditos falhou: {message}"
   },
   "upgrade": {

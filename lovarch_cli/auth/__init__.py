@@ -9,8 +9,8 @@ Three modules:
 The flow (orchestrated in commands/login.py):
 1. Generate verifier + challenge via pkce.PkceParams.generate()
 2. Spin up local_server.AuthServer on 127.0.0.1:RANDOM_PORT
-3. Open browser to https://lovarch.com/cli-auth?...&redirect_uri=http://127.0.0.1:PORT/callback
-4. User authorizes on lovarch.com → web POSTs to cli-auth-store EF →
+3. Open browser to https://app.lovarch.com/cli-auth?...&redirect_uri=http://127.0.0.1:PORT/callback
+4. User authorizes on app.lovarch.com → web POSTs to cli-auth-store EF →
    web redirects browser back to local server with ?code=X&state=Y
 5. Local server captures code+state, validates state, calls cli-auth-exchange
 6. Tokens returned → stored via keyring_store.save_premium_session()
