@@ -5,6 +5,19 @@ All notable changes to `lovarch-cli` are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.2] — 2026-07-08
+
+### Changed
+- **`lovarch cad floorplan` — planta DXF di qualità professionale.** Il generatore di floorplan ora cattura il valore del DWG editabile senza Design Automation né costi Flex:
+  - cotas DIMENSION reali (linee di richiamo + frecce) per ambiente + catena totale;
+  - pareti a doppia linea (spessore), boundary esterno doppio;
+  - arco di apertura della porta (quarto di cerchio) + anta;
+  - finestra a doppia linea con davanzale;
+  - barra di scala (0–5m) + freccia nord con punta;
+  - cartiglio CNAPPC con cornice, titolo e 2 colonne separate da divisore.
+
+  Round-trip mantenuto: il default a 7 ambienti passa `verifica misure` (9/9 layer ISO); DXF tradotto in SVF2 e renderizzato nel viewer `/cad`.
+
 ## [0.4.1] — 2026-07-04
 
 ### Added
