@@ -59,11 +59,14 @@ py -m pipx ensurepath
 
 ### 3. Installa il Lovarch CLI (dal wheel della release — nessun git)
 
+Usa **`py -m pipx`** (non `pipx` da solo): funziona anche se `pipx` non è ancora
+nel PATH — è la causa n°1 dell'errore «`pipx` non è riconosciuto».
+
 ```powershell
-pipx install "https://github.com/ArchPrime-official/lovarch-cli/releases/download/v0.4.3/lovarch_cli-0.4.3-py3-none-any.whl"
+py -m pipx install "https://github.com/ArchPrime-official/lovarch-cli/releases/download/v0.4.3/lovarch_cli-0.4.3-py3-none-any.whl"
 ```
 
-> Le virgolette servono in PowerShell. Trovi l'URL dell'ultima versione tra gli
+> Le virgolette servono nel terminale. Trovi l'URL dell'ultima versione tra gli
 > asset di ogni release: <https://github.com/ArchPrime-official/lovarch-cli/releases>
 > (file `lovarch_cli-<versione>-py3-none-any.whl`).
 >
@@ -108,7 +111,7 @@ lovarch login --premium
 Rilancia l'install puntando al wheel della **nuova** versione, con `--force`:
 
 ```powershell
-pipx install --force "https://github.com/ArchPrime-official/lovarch-cli/releases/download/vX.Y.Z/lovarch_cli-X.Y.Z-py3-none-any.whl"
+py -m pipx install --force "https://github.com/ArchPrime-official/lovarch-cli/releases/download/vX.Y.Z/lovarch_cli-X.Y.Z-py3-none-any.whl"
 ```
 
 (Sostituisci `X.Y.Z` con l'ultima versione dalla pagina delle release.) Se hai
@@ -120,7 +123,7 @@ comando `lovarch` dopo l'upgrade — non serve reinstallarle.
 ## Disinstallare
 
 ```powershell
-pipx uninstall lovarch-cli
+py -m pipx uninstall lovarch-cli
 ```
 
 ---
@@ -145,7 +148,8 @@ Windows. Cambiando macchina o utente di Windows, reinstalli e rifai il login.
 | Sintomo | Causa / soluzione |
 |---|---|
 | «`$` non è riconosciuto» | Il `$` è solo il simbolo del prompt — digita il comando **senza** `$` (e `brew` non esiste su Windows). |
-| `lovarch` non riconosciuto | PATH non aggiornato → riapri il terminale; se persiste, ri-esegui `py -m pipx ensurepath`. |
+| «`pipx` non è riconosciuto» | Non hai ancora installato pipx (passo 2) **oppure** non è nel PATH → usa `py -m pipx …` al posto di `pipx …`. |
+| `lovarch` non riconosciuto | PATH non aggiornato → chiudi e riapri il terminale; se persiste, ri-esegui `py -m pipx ensurepath` e riapri di nuovo. |
 | `py` / `python` non riconosciuto | Python non è nel PATH → reinstalla Python (`winget install --id Python.Python.3.12 -e`) o spunta **"Add python.exe to PATH"**. |
 | Ho fatto `pip install lovarch-cli` e la versione è vecchia | Il pacchetto PyPI è fermo a una release vecchia. Disinstalla (`pip uninstall lovarch-cli`) e usa il **wheel della release** (vedi passo 3). |
 | Il browser non si apre al login | Copia l'URL stampato dal CLI e incollalo manualmente nel browser. |
@@ -160,7 +164,7 @@ Windows. Cambiando macchina o utente di Windows, reinstalli e rifai il login.
 winget install --id Python.Python.3.12 -e                              # riapri il terminale
 py -m pip install --user pipx
 py -m pipx ensurepath                                                  # riapri il terminale
-pipx install "https://github.com/ArchPrime-official/lovarch-cli/releases/download/v0.4.3/lovarch_cli-0.4.3-py3-none-any.whl"
+py -m pipx install "https://github.com/ArchPrime-official/lovarch-cli/releases/download/v0.4.3/lovarch_cli-0.4.3-py3-none-any.whl"
 lovarch login --premium
 
 # ogni giorno, in qualsiasi progetto:

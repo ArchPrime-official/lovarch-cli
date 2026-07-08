@@ -90,10 +90,11 @@ winget install --id Python.Python.3.12 -e
 
 # 2. installa pipx (una volta sola)
 py -m pip install --user pipx
-py -m pipx ensurepath          # chiudi e riapri il terminale dopo
+py -m pipx ensurepath          # POI chiudi e riapri il terminale
 
 # 3. installa il Lovarch CLI dal wheel della release (nessun git)
-pipx install "https://github.com/ArchPrime-official/lovarch-cli/releases/download/v0.4.3/lovarch_cli-0.4.3-py3-none-any.whl"
+#    usa "py -m pipx" — non dipende dal PATH
+py -m pipx install "https://github.com/ArchPrime-official/lovarch-cli/releases/download/v0.4.3/lovarch_cli-0.4.3-py3-none-any.whl"
 
 # 4. da qui è tutto identico al Mac:
 lovarch --version
