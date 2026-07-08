@@ -60,7 +60,7 @@ def test_upgrade_no_account_localized_in_pt(runner: CliRunner):
 
 
 # ──────────────────────────────────────────────────────────────────────────
-# State: free — show benefits, would open /cli-upgrade
+# State: free — show benefits, would open /settings/credits
 # ──────────────────────────────────────────────────────────────────────────
 
 def test_upgrade_free_shows_benefits_and_url(runner: CliRunner):
@@ -83,7 +83,7 @@ def test_upgrade_free_shows_benefits_and_url(runner: CliRunner):
     assert result.exit_code == 0
     # Italian (creds.language='it') benefits + upgrade URL
     assert "Premium" in result.stdout
-    assert "lovarch.com/cli-upgrade" in result.stdout
+    assert "lovarch.com/settings/credits" in result.stdout
     # Should not mention "already premium"
     assert "già Premium" not in result.stdout or "Crediti AI" in result.stdout
 
@@ -111,7 +111,7 @@ def test_upgrade_free_uses_user_signup_language(runner: CliRunner):
     assert result.exit_code == 0
     # Spanish body marker (the signup lang is preferred for upgrade body)
     assert "Actualiza a Premium" in result.stdout
-    assert "lovarch.com/cli-upgrade" in result.stdout
+    assert "lovarch.com/settings/credits" in result.stdout
 
 
 def test_upgrade_free_no_browser_does_not_open(runner: CliRunner):
@@ -157,7 +157,7 @@ def test_upgrade_free_default_opens_browser(runner: CliRunner):
     assert result.exit_code == 0
     mock_open.assert_called_once()
     args, _ = mock_open.call_args
-    assert "/cli-upgrade" in args[0]
+    assert "/settings/credits" in args[0]
 
 
 # ──────────────────────────────────────────────────────────────────────────

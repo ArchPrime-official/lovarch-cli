@@ -15,7 +15,7 @@
     "invalid_phone": "Telefono deve essere in formato internazionale (es. +391234567890).",
     "invalid_country": "Codice paese deve essere 2 lettere (ISO 3166 alpha-2).",
     "submitting": "Invio in corso...",
-    "next_steps": "[bold green]✓ Cadastro completato[/bold green]\n\nProssimi passi:\n 1. [cyan]lovarch init <progetto>[/cyan] — crea un nuovo progetto\n 2. [cyan]lovarch audit <progetto>[/cyan] — verifica gli input\n 3. [cyan]lovarch run dal-brief-al-cantiere[/cyan] — esegui workflow\n\nPer upgrade a Premium (crediti inclusi): [link]https://app.lovarch.com/cli-upgrade[/link]"
+    "next_steps": "[bold green]✓ Cadastro completato[/bold green]\n\nProssimi passi:\n 1. [cyan]lovarch init <progetto>[/cyan] — crea un nuovo progetto\n 2. [cyan]lovarch audit <progetto>[/cyan] — verifica gli input\n 3. [cyan]lovarch run dal-brief-al-cantiere[/cyan] — esegui workflow\n\nPer upgrade a Premium (crediti inclusi): [link]https://app.lovarch.com/settings/credits[/link]"
   },
   "account": {
     "no_account": "Nessun account configurato. Esegui 'lovarch signup' o 'lovarch login'.",
@@ -26,7 +26,7 @@
     "deletion_aborted": "Cancellazione annullata. Nessun dato modificato.",
     "deletion_success": "✓ Account cancellato. Grazie per aver provato lovarch-cli.",
     "info_title": "Account corrente",
-    "premium_delete_redirect": "La cancellazione di un account Premium si effettua nell'app web Lovarch:\n  https://app.lovarch.com/settings/account/delete"
+    "premium_delete_redirect": "La cancellazione di un account Premium si effettua nell'app web Lovarch:\n  https://app.lovarch.com/settings"
   },
   "login": {
     "choose_mode_prompt": "Scegli modalità",
@@ -43,14 +43,13 @@
   "info": {
     "title": "Stato",
     "mode_not_configured": "non configurato — esegui 'lovarch login' per iniziare",
-    "powered_by": "🌐 Powered by Lovarch — https://app.lovarch.com",
-    "course_promo": "🎓 Corso IA Avanzato per Architetti — https://app.lovarch.com/corso"
+    "powered_by": "🌐 Powered by Lovarch — https://lovarch.com"
   },
   "errors": {
     "network": "Errore di rete chiamando {function_name}: {exc}",
     "invalid_json": "JSON non valido da {function_name} (HTTP {status_code}): {snippet}",
     "unknown_api_error": "Errore API: {error_code}",
-    "credits_insufficient": "Crediti insufficienti: hai {remaining}, ne servono {required} (mancano {deficit}). Ricarica su https://app.lovarch.com/credits.",
+    "credits_insufficient": "Crediti insufficienti: hai {remaining}, ne servono {required} (mancano {deficit}). Ricarica su https://app.lovarch.com/settings/credits.",
     "credits_check_failed": "Verifica crediti fallita: {message}"
   },
   "upgrade": {

@@ -36,7 +36,7 @@ DEFAULT_API_ANON_KEY = os.environ.get(
 )
 
 # Lovarch web APP base URL — host of the React pages the CLI opens in the
-# browser (/cli-auth, /cli-upgrade, /settings/*). This is the APP domain
+# browser (/cli-auth, /settings/credits, /settings/*). This is the APP domain
 # (app.lovarch.com), NOT the marketing site (lovarch.com) nor the Supabase API.
 # Single source of truth so the domain can't drift across login/upgrade/signup.
 # Override with LOVARCH_WEB_URL for staging/preview environments.

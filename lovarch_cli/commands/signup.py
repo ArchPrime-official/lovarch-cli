@@ -124,7 +124,7 @@ def signup_command(
     if not yes:
         console.print(
             f"\n[dim]{t('signup.tos_url_label', lang=lang)} "
-            f"https://app.lovarch.com/legal/cli-tos[/dim]"
+            f"https://lovarch.com/terms-of-service[/dim]"
         )
         accept = Confirm.ask(
             f"[bold yellow]{t('signup.prompt_consent', lang=lang)}[/bold yellow]",
