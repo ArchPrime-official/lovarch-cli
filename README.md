@@ -79,16 +79,21 @@ Homebrew **non esiste** su Windows nativo: i comandi `brew` qui sopra sono solo
 macOS/Linux. Su Windows il CLI si installa con **pipx** (è Python puro — gira
 identico). Guida passo-passo completa: **[docs/installazione-windows.md](./docs/installazione-windows.md)**.
 
+Non serve git. Nei comandi qui sotto **non digitare il `$`/`PS>`**: è solo il
+simbolo del prompt.
+
 ```powershell
-# 1. installa Python 3.11+ da https://www.python.org/downloads/
-#    (spunta "Add python.exe to PATH" durante il setup)
+# 1. installa Python 3.11+ (unico prerequisito). Con winget:
+winget install --id Python.Python.3.12 -e
+#    (oppure scarica da python.org spuntando "Add python.exe to PATH")
+#    chiudi e riapri il terminale, poi verifica:  py --version
 
 # 2. installa pipx (una volta sola)
 py -m pip install --user pipx
 py -m pipx ensurepath          # chiudi e riapri il terminale dopo
 
-# 3. installa il Lovarch CLI da GitHub
-pipx install git+https://github.com/ArchPrime-official/lovarch-cli.git
+# 3. installa il Lovarch CLI dal wheel della release (nessun git)
+pipx install "https://github.com/ArchPrime-official/lovarch-cli/releases/download/v0.4.3/lovarch_cli-0.4.3-py3-none-any.whl"
 
 # 4. da qui è tutto identico al Mac:
 lovarch --version
@@ -96,11 +101,12 @@ lovarch login --premium
 lovarch agent list
 ```
 
-`pipx upgrade lovarch-cli` aggiorna. In alternativa, con **WSL** (Ubuntu su
-Windows) valgono gli stessi comandi di macOS/Linux (Homebrew o pipx).
+Per aggiornare a una release successiva, rilancia il passo 3 con il nuovo
+numero di versione e `--force`. In alternativa, con **WSL** (Ubuntu su Windows)
+valgono gli stessi comandi di macOS/Linux (Homebrew o pipx).
 
-> ⚠️ Su Windows usa `pipx install git+…` (GitHub), **non** `pip install lovarch-cli`:
-> il pacchetto PyPI è fermo a una versione vecchia.
+> ⚠️ **Non** usare `pip install lovarch-cli`: il pacchetto PyPI è fermo a una
+> versione vecchia. Usa sempre il wheel della release (URL qui sopra).
 
 ### 📦 pipx — install isolato da GitHub
 
