@@ -142,7 +142,6 @@ def info_cmd() -> None:
     )
     console.print(
         f"\n[dim]{t('info.powered_by', lang=lang)}[/dim]\n"
-        f"[dim]{t('info.course_promo', lang=lang)}[/dim]\n"
     )
 
 

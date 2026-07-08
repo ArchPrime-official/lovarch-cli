@@ -2,7 +2,7 @@
 
 State-aware:
   - none    → instruct user to run `arch signup` first
-  - free    → show benefits + open browser to /cli-upgrade
+  - free    → show benefits + open browser to /settings/credits
   - premium → already-premium acknowledgment + open /settings/credits
 
 This is a thin CLI surface around a web page; no backend interaction. The
@@ -28,7 +28,8 @@ err_console = Console(stderr=True)
 
 # Same web APP base used by `arch login --premium` (app.lovarch.com).
 LOVARCH_WEB_BASE = DEFAULT_WEB_URL
-UPGRADE_PATH = "/cli-upgrade"
+# Both upgrade (plans) and credit top-up live on the /settings/credits page.
+UPGRADE_PATH = "/settings/credits"
 PREMIUM_DASHBOARD_PATH = "/settings/credits"
 
 

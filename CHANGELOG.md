@@ -5,6 +5,18 @@ All notable changes to `lovarch-cli` are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.5] — 2026-07-08
+
+### Fixed
+- **Link rotti verso pagine 404.** Audit di tutti i link del CLI (smoke test reali nel browser): diversi puntavano a pagine inesistenti. Corretti verso le rotte reali:
+  - upgrade + ricarica crediti: `/cli-upgrade` e `/credits` (404) → **`/settings/credits`** (pagina reale con piani + acquisto crediti);
+  - cancellazione account: `/settings/account/delete` (404) → **`/settings`**;
+  - Termini di servizio (signup): `/legal/cli-tos` (404) → **`https://lovarch.com/terms-of-service`** (pagina reale);
+  - rimosso il promo del **corso** (`/corso` era 404 su entrambi i domini — la pagina non esiste);
+  - "Powered by" → `https://lovarch.com` (sito pubblico).
+
+  Link verificati OK e lasciati invariati: login `/cli-auth`, dashboard `/settings/credits`, MCP `mcp.lovarch.com/mcp`, GitHub releases, Supabase API.
+
 ## [0.4.4] — 2026-07-08
 
 ### Fixed

@@ -46,10 +46,30 @@ def test_env_override(monkeypatch):
         importlib.reload(config)
 
 
-def test_no_bare_marketing_domain_in_translations():
-    # No user-facing string should point to the bare marketing domain for
-    # app pages — everything moved to app.lovarch.com.
+# Paths that returned 404 in the 2026-07-08 link audit — must never come back.
+# Real pages: /settings/credits (credits+upgrade), /terms-of-service (ToS),
+# /settings (account). /corso does not exist anywhere.
+DEAD_PATHS = (
+    "app.lovarch.com/cli-upgrade",
+    "app.lovarch.com/credits",  # bare; real page is /settings/credits
+    "app.lovarch.com/legal/cli-tos",
+    "app.lovarch.com/settings/account/delete",
+    "/corso",
+)
+
+
+def test_translations_have_no_dead_paths():
     for f in I18N_DIR.glob("*.json"):
         raw = f.read_text(encoding="utf-8")
         json.loads(raw)  # still valid JSON
-        assert "https://lovarch.com" not in raw, f"{f.name} still references lovarch.com"
+        for dead in DEAD_PATHS:
+            assert dead not in raw, f"{f.name} still references dead path {dead}"
+
+
+def test_signup_tos_and_upgrade_paths_are_live():
+    from lovarch_cli.commands import signup, upgrade
+
+    src = Path(signup.__file__).read_text(encoding="utf-8")
+    assert "legal/cli-tos" not in src
+    assert "lovarch.com/terms-of-service" in src
+    assert upgrade.UPGRADE_PATH == "/settings/credits"
