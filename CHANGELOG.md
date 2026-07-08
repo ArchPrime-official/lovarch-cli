@@ -5,6 +5,11 @@ All notable changes to `lovarch-cli` are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.3] — 2026-07-08
+
+### Added
+- **Skill Lovarch automatiche** — al primo comando `lovarch` le skill (`/lovarch-*`) si installano da sole in `~/.claude/skills` e si aggiornano a ogni upgrade del CLI (versione allineata al bundle). Idempotente e version-gated (stamp in `~/.lovarch`), self-healing se la cartella viene rimossa, non invasivo (salta se non usi Claude Code), best-effort (non rompe mai un comando). Opt-out con `LOVARCH_NO_SKILLS_SYNC=1`. `lovarch skills install` resta per forzare/scegliere il target.
+
 ## [0.4.2] — 2026-07-08
 
 ### Changed

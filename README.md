@@ -161,8 +161,13 @@ Vedi `arch --help` per dettagli completi.
 Se usi già un agente con un suo modello, il TESTO lo genera lui (zero crediti
 Lovarch); la piattaforma addebita solo immagini, dati e verifiche di piattaforma.
 
+Le skill si installano **da sole**: al primo comando `lovarch` (se hai
+`~/.claude`) vengono copiate in `~/.claude/skills` e si aggiornano a ogni
+upgrade del CLI. `lovarch skills install` resta per forzare/scegliere il target;
+`LOVARCH_NO_SKILLS_SYNC=1` disattiva il sync automatico.
+
 ```bash
-lovarch skills install     # → ~/.claude/skills
+lovarch skills install     # opzionale — forza la copia in ~/.claude/skills
 # poi, nel tuo agente: "progetto di interni per un attico 90mq..." → parte lovarch-interior-designer
 ```
 
