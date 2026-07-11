@@ -63,7 +63,7 @@ Usa **`py -m pipx`** (non `pipx` da solo): funziona anche se `pipx` non è ancor
 nel PATH — è la causa n°1 dell'errore «`pipx` non è riconosciuto».
 
 ```powershell
-py -m pipx install "https://github.com/ArchPrime-official/lovarch-cli/releases/download/v0.4.3/lovarch_cli-0.4.3-py3-none-any.whl"
+py -m pipx install "https://github.com/ArchPrime-official/lovarch-cli/releases/download/v0.4.7/lovarch_cli-0.4.7-py3-none-any.whl"
 ```
 
 > Le virgolette servono nel terminale. Trovi l'URL dell'ultima versione tra gli
@@ -164,7 +164,7 @@ Windows. Cambiando macchina o utente di Windows, reinstalli e rifai il login.
 winget install --id Python.Python.3.12 -e                              # riapri il terminale
 py -m pip install --user pipx
 py -m pipx ensurepath                                                  # riapri il terminale
-py -m pipx install "https://github.com/ArchPrime-official/lovarch-cli/releases/download/v0.4.3/lovarch_cli-0.4.3-py3-none-any.whl"
+py -m pipx install "https://github.com/ArchPrime-official/lovarch-cli/releases/download/v0.4.7/lovarch_cli-0.4.7-py3-none-any.whl"
 lovarch login --premium
 
 # ogni giorno, in qualsiasi progetto:
