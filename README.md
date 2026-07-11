@@ -94,7 +94,7 @@ py -m pipx ensurepath          # POI chiudi e riapri il terminale
 
 # 3. installa il Lovarch CLI dal wheel della release (nessun git)
 #    usa "py -m pipx" — non dipende dal PATH
-py -m pipx install "https://github.com/ArchPrime-official/lovarch-cli/releases/download/v0.4.3/lovarch_cli-0.4.3-py3-none-any.whl"
+py -m pipx install "https://github.com/ArchPrime-official/lovarch-cli/releases/download/v0.4.7/lovarch_cli-0.4.7-py3-none-any.whl"
 
 # 4. da qui è tutto identico al Mac:
 lovarch --version
