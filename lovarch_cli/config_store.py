@@ -1,7 +1,7 @@
 """User config store — ~/.lovarch/config.json.
 
 Holds non-secret preferences (language, storage path) and, for FREE mode, the
-student's own provider API keys (OpenAI, Mapbox) so `lovarch run` in free mode
+student's own provider API keys (OpenAI, Mapbox) — legacy free-mode keys
 can pick them up without exporting shell env vars. Premium mode never needs
 these — paid AI is debited via the platform.
 

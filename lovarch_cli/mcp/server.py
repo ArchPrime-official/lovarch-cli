@@ -14,6 +14,7 @@ The ``mcp`` SDK is an optional dependency; install with ``pip install
 """
 from __future__ import annotations
 
+from lovarch_cli.version import __version__
 from lovarch_cli.ai import LovarchAiGateway
 from lovarch_cli.auth.session import LovarchSession
 from lovarch_cli.mcp import tools
@@ -37,7 +38,16 @@ def build_server():
     gateway = LovarchAiGateway(session) if session is not None else None
     workflows = PlatformWorkflows(session) if session is not None else None
 
-    mcp = FastMCP("lovarch")
+    # FastMCP non espone `version` nel costruttore: il serverInfo.version che
+    # il client vede è quello della libreria. Mettiamo la versione del CLI nelle
+    # instructions, che il modello legge davvero.
+    mcp = FastMCP(
+        "lovarch",
+        instructions=(
+            f"Server MCP locale di Lovarch CLI v{__version__}. I tool passano "
+            "sempre dalla piattaforma (crediti dell'utente, mai provider diretti)."
+        ),
+    )
 
     @mcp.tool()
     async def lovarch_whoami() -> dict:

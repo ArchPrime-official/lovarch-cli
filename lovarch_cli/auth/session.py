@@ -11,6 +11,7 @@ LovarchStorage (StorageClient impl). NOT used by free-mode clients.
 """
 from __future__ import annotations
 
+from ..version import __version__
 import asyncio
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
@@ -90,7 +91,7 @@ class LovarchSession:
         url = f"{self._api_url}{path}" if path.startswith("/") else path
 
         merged_headers: dict[str, str] = {
-            "User-Agent": "lovarch-cli/0.1.0",
+            "User-Agent": f"lovarch-cli/{__version__}",
             "apikey": self._anon_key,
             "Authorization": f"Bearer {self._session.access_token}",
         }

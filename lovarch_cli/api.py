@@ -15,6 +15,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
+from .version import __version__
 import httpx
 
 from lovarch_cli.config import DEFAULT_API_ANON_KEY, DEFAULT_API_URL
@@ -50,7 +51,7 @@ class ApiClient:
     def _headers(self) -> dict[str, str]:
         headers = {
             "Content-Type": "application/json",
-            "User-Agent": "lovarch-cli/0.1.0",
+            "User-Agent": f"lovarch-cli/{__version__}",
         }
         if self.anon_key:
             headers["apikey"] = self.anon_key
