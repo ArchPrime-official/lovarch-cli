@@ -147,7 +147,7 @@ def signup_command(
         "language": lang,
         "source": "cli-free",
         "accept_tos": True,
-        "cli_version": "0.1.0",
+        "cli_version": __version__,
     }
 
     try:

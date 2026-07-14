@@ -159,11 +159,14 @@ def clienti_command(limit: int = typer.Option(20, "--limit", "-n")) -> None:
         console.print("[dim]Nessun cliente nel CRM.[/dim]")
         return
     table = Table(title="Clienti / lead", header_style="bold gold1")
-    for c in ("ID", "Nome", "Azienda", "Stato", "Budget"):
+    # 'Azienda' era um campo fantasma: a tabela leads não tem `company`.
+    # A coluna saía sempre "—" e o backend quebrava ao selecioná-la.
+    for c in ("ID", "Nome", "Email", "Telefono", "Stato", "Budget"):
         table.add_column(c, style="cyan" if c == "ID" else None, no_wrap=(c == "ID"))
     for x in items:
-        table.add_row(str(x["id"])[:8], x.get("name", "?"), x.get("company") or "—",
-                      x.get("status") or "—", str(x.get("budget") or "—"))
+        table.add_row(str(x["id"])[:8], x.get("name", "?"), x.get("email") or "—",
+                      x.get("phone") or "—", x.get("status") or "—",
+                      str(x.get("budget") or "—"))
     console.print(table)
     console.print("[dim]Usa un cliente come contesto: lovarch agent preventivi \"...\" --lead <id>[/dim]")
 

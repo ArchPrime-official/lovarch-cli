@@ -25,7 +25,7 @@ Gratis (nessun credito): `lovarch context show`, `lovarch verifica misure`,
 
 ## Architetto / progettista
 
-- **Progetto completo**: `lovarch run` (bootstrap CRM nel tuo account + deliverable) oppure il workflow composto `lovarch progetto interni "<brief>" --renders 2`.
+- **Progetto completo**: `lovarch progetto completo "<brief>" --esegui 3` (il chief pianifica e gli specialisti eseguono) oppure `lovarch progetto interni "<brief>" --renders 2` (concept → render → preventivo → dossier).
 - **Render**: `lovarch do render "<scena>"` · logo/sito: `lovarch do logo|site`.
 - **Contenuti**: `lovarch do script "<argomento>"`, `lovarch do copy`.
 - **Verifiche**: `lovarch verifica normativa capitolato.pdf` (adversarial), `lovarch verifica contratto contratto.pdf`.

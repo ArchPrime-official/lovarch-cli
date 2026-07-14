@@ -5,6 +5,21 @@ All notable changes to `lovarch-cli` are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0] — 2026-07-14
+
+### Added
+- **`lovarch credits`.** Non c'era modo di vedere il saldo dal terminale: l'unico segnale era un 402 a operazione già fallita. Ora `lovarch credits` mostra saldo e uso del mese, e `--required N` verifica (exit 1) se copre un'operazione. La logica esisteva già (`cli-credits-check`), mancava il comando.
+- **Avviso di versione nuova.** Il CLI non aveva nessun update-check: chi installava una volta restava fermo per sempre. Ora, 1×/24h (timeout 2s, silenzioso se fallisce, cache in `~/.lovarch/.update-check`), avvisa se c'è una release più recente. Opt-out: `LOVARCH_NO_UPDATE_CHECK=1`.
+
+### Fixed
+- **`lovarch dati clienti` mostrava una colonna fantasma.** "Azienda" veniva dal campo `company`, che nella tabella `leads` **non esiste**: usciva sempre "—" e il backend andava in errore 500 selezionandola (corretto lato piattaforma il 14/07). Ora la tabella mostra Email e Telefono.
+- **Timeout senza spiegazione.** Un `ReadTimeout` diventava un messaggio di rete generico, senza dire che l'operazione poteva essere ancora in corso né dove guardare. Ora indica `lovarch media list` / `lovarch jobs list` e ricorda che i crediti addebitati senza risultato vengono rimborsati. Nessun retry automatico: ripetere una chiamata che addebita rischierebbe il doppio addebito.
+- **User-Agent e `cli_version` erano fissi a `0.1.0`** in `api.py`, `session.py` e `signup.py` — la telemetria lato piattaforma vedeva la versione sbagliata da mesi. Ora seguono `__version__`.
+
+### Changed
+- **`lovarch mcp serve`**: le instructions dichiarano la versione reale del CLI (FastMCP non espone `version` nel costruttore, quindi `serverInfo.version` resta quello della libreria).
+- **Documentazione allineata al codice**: rimosso il fantasma `lovarch run` (rimosso nella 0.3.4) dalla guida per persona e dal docstring di `config_store.py`; README: 18 tool MCP (erano dichiarati 15), conteggio test reale.
+
 ## [0.4.7] — 2026-07-08
 
 ### Changed

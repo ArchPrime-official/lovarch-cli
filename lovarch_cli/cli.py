@@ -108,6 +108,20 @@ def main(
 
     ensure_skills_synced()
 
+    # Avviso di versione nuova (1×/24h, timeout 2s, silenzioso se fallisce).
+    # Senza questo, chi installa una volta resta fermo per sempre.
+    # Opt out: LOVARCH_NO_UPDATE_CHECK=1.
+    try:
+        from lovarch_cli.update_check import check_for_update
+
+        msg = check_for_update()
+        if msg:
+            from rich.console import Console
+
+            Console(stderr=True).print(f"[dim]↑ {msg}[/dim]")
+    except Exception:
+        pass
+
 
 def _agents_count() -> int:
     from lovarch_cli.agents import AGENTS
@@ -181,6 +195,12 @@ from lovarch_cli.commands.upgrade import upgrade_command  # noqa: E402
 
 app.command(name="upgrade", help="Passa da Free a Premium (apre il browser).")(
     upgrade_command
+)
+
+from lovarch_cli.commands.credits_cmd import credits_command  # noqa: E402
+
+app.command(name="credits", help="Saldo crediti del tuo account Lovarch.")(
+    credits_command
 )
 
 # The hard-coded squad demo pipeline (init/audit/run/consolidate/dev) was a test

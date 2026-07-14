@@ -15,7 +15,23 @@ import base64
 from dataclasses import dataclass
 from typing import Literal
 
+import httpx
+
 from lovarch_cli.auth.session import LovarchSession
+
+def _timeout_message(op: str) -> str:
+    """Il caso peggiore di un timeout è il silenzio: l'utente non sa se ha
+    pagato né dove guardare. La generazione spesso CONTINUA sul server e
+    l'asset finisce in galleria; se fallisce davvero, i crediti tornano.
+    Nessun retry automatico qui: ripetere una chiamata che addebita crediti
+    rischierebbe un doppio addebito."""
+    return (
+        f"{op}: il server non ha risposto in tempo. L'operazione potrebbe essere "
+        "ancora in corso — controlla `lovarch media list` (immagini/render) o "
+        "`lovarch jobs list` (video). Eventuali crediti addebitati senza "
+        "risultato vengono rimborsati automaticamente."
+    )
+
 
 CLI_AI_GENERATE_PATH = "/functions/v1/cli-ai-generate"
 CLI_AI_TEXT_PATH = "/functions/v1/cli-ai-text"
@@ -119,9 +135,12 @@ class LovarchAiGateway:
         if operation_type:
             body["operation_type"] = operation_type
 
-        response = await self._session.request(
-            "POST", CLI_AI_GENERATE_PATH, json=body, timeout=_IMAGE_TIMEOUT
-        )
+        try:
+            response = await self._session.request(
+                "POST", CLI_AI_GENERATE_PATH, json=body, timeout=_IMAGE_TIMEOUT
+            )
+        except httpx.TimeoutException as exc:
+            raise AiGatewayError(_timeout_message('Generazione immagine')) from exc
 
         try:
             data = response.json()
@@ -186,9 +205,12 @@ class LovarchAiGateway:
         if operation_type:
             body["operation_type"] = operation_type
 
-        response = await self._session.request(
-            "POST", CLI_AI_TEXT_PATH, json=body, timeout=_TEXT_TIMEOUT
-        )
+        try:
+            response = await self._session.request(
+                "POST", CLI_AI_TEXT_PATH, json=body, timeout=_TEXT_TIMEOUT
+            )
+        except httpx.TimeoutException as exc:
+            raise AiGatewayError(_timeout_message('Generazione testo')) from exc
         try:
             data = response.json()
         except ValueError:
@@ -226,9 +248,12 @@ class LovarchAiGateway:
         body: dict[str, object] = {}
         if lead_id:
             body["lead_id"] = lead_id
-        response = await self._session.request(
-            "POST", "/functions/v1/cli-user-context", json=body, timeout=60.0
-        )
+        try:
+            response = await self._session.request(
+                "POST", "/functions/v1/cli-user-context", json=body, timeout=60.0
+            )
+        except httpx.TimeoutException as exc:
+            raise AiGatewayError(_timeout_message('Operazione')) from exc
         try:
             data = response.json()
         except ValueError:
@@ -248,9 +273,12 @@ class LovarchAiGateway:
         deliverable_save, deliverable_download. All owner-scoped server-side.
         """
         body: dict[str, object] = {"resource": resource, **params}
-        response = await self._session.request(
-            "POST", CLI_DATA_PATH, json=body, timeout=120.0
-        )
+        try:
+            response = await self._session.request(
+                "POST", CLI_DATA_PATH, json=body, timeout=120.0
+            )
+        except httpx.TimeoutException as exc:
+            raise AiGatewayError(_timeout_message('Lettura dati')) from exc
         try:
             payload = response.json()
         except ValueError:
@@ -269,9 +297,12 @@ class LovarchAiGateway:
 
         Raises ``InsufficientCreditsError`` on 402; ``AiGatewayError`` otherwise.
         """
-        response = await self._session.request(
-            "POST", f"/functions/v1/{function}", json=body, timeout=timeout
-        )
+        try:
+            response = await self._session.request(
+                "POST", f"/functions/v1/{function}", json=body, timeout=timeout
+            )
+        except httpx.TimeoutException as exc:
+            raise AiGatewayError(_timeout_message('Operazione')) from exc
         try:
             payload = response.json()
         except ValueError:

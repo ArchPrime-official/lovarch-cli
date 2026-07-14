@@ -131,7 +131,7 @@ git clone https://github.com/ArchPrime-official/lovarch-cli.git
 cd lovarch-cli
 python3.12 -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"
-pytest tests/      # → 198 passing
+pytest tests/      # → 152 passing
 lovarch --version
 ```
 
@@ -220,7 +220,7 @@ Workflow composto per interni: `lovarch progetto interni "<brief>" --renders 2`
 
 ## Server MCP (Claude Code / Claude / IDE)
 
-Il CLI espone le sue capacità come server **MCP** — 15 tools (render, verifica,
+Il CLI espone le sue capacità come server **MCP** — 18 tools (render, verifica,
 crediti, contesto, testo multi-modello...). Registrazione in Claude Code:
 
 ```bash
