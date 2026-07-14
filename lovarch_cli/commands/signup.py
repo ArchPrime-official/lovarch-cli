@@ -28,6 +28,7 @@ from lovarch_cli.api import ApiClient, LovarchApiError
 from lovarch_cli.config import Credentials, save_credentials
 from lovarch_cli.i18n import current_lang, set_current_lang, t
 from lovarch_cli.i18n.loader import VALID_LANGUAGES
+from lovarch_cli.version import __version__
 
 console = Console()
 err_console = Console(stderr=True)
