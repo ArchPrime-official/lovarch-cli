@@ -200,7 +200,7 @@ def new_command(
     console.print(f"[green]✓[/green] Skill creata: [bold]{dest / 'SKILL.md'}[/bold]")
     console.print(
         "[dim]È TUA: il sync di Lovarch non la tocca. Personalizzala o chiedi aiuto a "
-        "@lovarch-studio-builder. Riavvia la sessione per caricarla.[/dim]"
+        "@lovarch-squad-creator. Riavvia la sessione per caricarla.[/dim]"
     )
 
 

@@ -7,7 +7,7 @@
 
 These are Claude Code *subagents* (`~/.claude/agents/*.md`): a directing layer
 ON TOP of the Lovarch skills. `lovarch-content-chief` orchestrates content
-creation; `lovarch-studio-builder` helps the user craft their OWN agents/skills.
+creation; `lovarch-squad-creator` helps the user craft their OWN agents/skills.
 
 Distinct from `lovarch agent` (singular) — those are the 17 server-side LLM
 personas that run on the gateway and debit credits. The subagents here run in
@@ -33,7 +33,7 @@ console = Console()
 err_console = Console(stderr=True)
 
 agents_app = typer.Typer(
-    help="Subagent Lovarch per Claude Code: content-chief (regia) e studio-builder (crea i TUOI agenti/skill).",
+    help="Subagent Lovarch per Claude Code: content-chief (regia) e squad-creator (crea i TUOI agenti/skill).",
     no_args_is_help=True,
 )
 
@@ -224,7 +224,7 @@ def install_command(
         console.print(f"[dim]  ({len(removed)} agenti ritirati rimossi)[/dim]")
     console.print(
         "\n[dim]Nel tuo agente: invoca @lovarch-content-chief per la regia dei "
-        "contenuti, o @lovarch-studio-builder per creare i tuoi agenti/skill. "
+        "contenuti, o @lovarch-squad-creator per creare i tuoi agenti/skill. "
         "Riavvia la sessione per caricarli.[/dim]"
     )
 
@@ -300,6 +300,6 @@ def new_command(
     console.print(f"[green]✓[/green] Agente creato: [bold]{dest}[/bold]")
     console.print(
         "[dim]È TUO: il sync di Lovarch non lo tocca mai. Aprilo e personalizzalo, "
-        "oppure chiedi a @lovarch-studio-builder di aiutarti a scriverlo. "
+        "oppure chiedi a @lovarch-squad-creator di aiutarti a scriverlo. "
         "Riavvia la sessione per caricarlo.[/dim]"
     )
