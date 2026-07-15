@@ -168,9 +168,18 @@ def ensure_agents_synced() -> None:
 
 
 def _first_field(md_path: Path, field: str) -> str:
-    for line in md_path.read_text(encoding="utf-8").splitlines():
+    """First value of a frontmatter field, handling YAML block scalars (`>`/`|`)."""
+    lines = md_path.read_text(encoding="utf-8").splitlines()
+    for i, line in enumerate(lines):
         if line.startswith(f"{field}:"):
-            return line.split(":", 1)[1].strip()
+            val = line.split(":", 1)[1].strip()
+            if val in (">", ">-", "|", "|-"):
+                # Block scalar: take the first non-empty indented line.
+                for nxt in lines[i + 1:]:
+                    if nxt.strip():
+                        return nxt.strip()
+                return ""
+            return val
     return ""
 
 

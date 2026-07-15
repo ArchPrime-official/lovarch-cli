@@ -37,6 +37,16 @@ piattaforma = crediti):
 - **ArchChat** (`lovarch archchat`) — leggi le conversazioni del tuo studio (gratis).
 - **Skills** (`lovarch skills install`) — il tuo Claude Code esegue le personas col
   proprio modello (zero crediti di testo).
+- **Agenti** (`lovarch agents`) — subagent per Claude Code: `@lovarch-content-chief`
+  dirige la creazione di contenuti (reel/video/caroselli/render), e
+  `@lovarch-studio-builder` ti aiuta a creare i TUOI agenti e skill su misura.
+  I tuoi (`lovarch agents new` / `lovarch skills new`) non vengono mai toccati
+  dagli aggiornamenti.
+
+> **Due sensi di "agente":** `lovarch agent` (singolare) = le 17 personae
+> server-side che girano sul gateway (consumano crediti). `lovarch agents`
+> (plurale) = i subagent che girano nel TUO Claude Code col TUO modello (testo
+> gratis), orchestrando le skill e le tool del conector.
 
 ## Due modalità
 
