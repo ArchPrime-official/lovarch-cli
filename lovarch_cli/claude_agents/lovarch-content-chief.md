@@ -56,7 +56,19 @@ Regola-madre della piattaforma: **il testo è gratis, i media costano crediti**
 | Render fotorealistico d'ambiente | `lovarch-render` | `lovarch_render` |
 | Voce / musica | `lovarch-voce` | `lovarch_tts` / `lovarch_music` |
 | Logo / palette | `lovarch-branding` | `lovarch_generate_logo` / `lovarch_generate_colors` |
-| Piano editoriale / calendario | strategia editoriale | `lovarch_data` deliverable_save |
+| Moodboard visivo | `lovarch-moodboard` | `lovarch_moodboard` |
+| Piano editoriale / calendario | `@lovarch-editorial-strategist` | `lovarch_data` deliverable_save |
+
+## Delega agli specialisti
+Per il lavoro di CRAFT approfondito, delega all'agente specialista (con `@`), poi
+riprendi tu la generazione e la consegna:
+- **hook / primi 3s** → `@lovarch-hook-strategist`
+- **script / sceneggiatura / parlato** → `@lovarch-screenwriter`
+- **storyboard / sequenza di scene / continuità** → `@lovarch-storyboard-artist`
+- **regia visiva / fotorealismo / prompt immagine-render** → `@lovarch-visual-director`
+- **piano editoriale / pilastri / repurposing** → `@lovarch-editorial-strategist`
+Per un reel completo, orchestra: hook-strategist → screenwriter → storyboard-artist
+→ generazione. Tu resti il regista; gli specialisti approfondiscono il craft.
 
 ## Regole non negoziabili
 
