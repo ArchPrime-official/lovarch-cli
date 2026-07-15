@@ -137,6 +137,73 @@ def list_command() -> None:
         console.print(f"  [cyan]{name}[/cyan] — {desc}…")
 
 
+_SKILL_TEMPLATE = """\
+---
+name: {name}
+description: {desc} Trigger — "{trigger}".
+---
+
+# {title}
+
+Tu scrivi il testo/la regia (a costo zero, col TUO modello); la piattaforma
+Lovarch genera/persiste ciò che richiede crediti.
+
+## Craft
+Spiega QUI il know-how: cosa rende buono questo tipo di contenuto/output.
+
+## Flusso
+1. Raccogli il contesto (`lovarch context show --json` per brand/stile/lingua).
+2. Scrivi TU il testo/la regia.
+3. (Se serve media) chiama lo strumento del connettore Lovarch corrispondente
+   e **avvisa la stima in crediti PRIMA**.
+4. Il risultato finisce nella galleria/nell'account dell'utente.
+
+## Note
+- Testo = gratis. Media/dati = crediti (1000 cr = 1$). Mai costi in $, solo crediti.
+"""
+
+
+@skills_app.command("new")
+def new_command(
+    name: str = typer.Argument(..., help="Nome della skill (es. mia-skill-reel)."),
+    desc: str = typer.Option(
+        "Skill personalizzata.", "--desc", help="Descrizione breve (quando usarla)."
+    ),
+    trigger: str = typer.Option(
+        "", "--trigger", help="Parole che attivano la skill (separate da virgola)."
+    ),
+    target: Path = typer.Option(
+        None, "--target", help="Directory (default: ~/.claude/skills)."
+    ),
+) -> None:
+    """Crea lo scheletro di una TUA skill in ~/.claude/skills (non gestita da Lovarch)."""
+    slug = name.strip().lower().replace(" ", "-")
+    bundled = {p.parent.name for p in _bundled_skills_dir().glob("*/SKILL.md")}
+    if slug in bundled:
+        raise typer.Exit(code=_fail(
+            f"'{slug}' è una skill Lovarch ufficiale. Scegli un altro nome."
+        ))
+    dest_root = (target or (Path.home() / ".claude" / "skills")).expanduser()
+    dest = dest_root / slug
+    if dest.exists():
+        raise typer.Exit(code=_fail(f"{dest} esiste già. Modificala o scegli un altro nome."))
+    dest.mkdir(parents=True, exist_ok=True)
+    (dest / "SKILL.md").write_text(
+        _SKILL_TEMPLATE.format(
+            name=slug,
+            desc=desc,
+            trigger=trigger or slug,
+            title=slug.replace("-", " ").title(),
+        ),
+        encoding="utf-8",
+    )
+    console.print(f"[green]✓[/green] Skill creata: [bold]{dest / 'SKILL.md'}[/bold]")
+    console.print(
+        "[dim]È TUA: il sync di Lovarch non la tocca. Personalizzala o chiedi aiuto a "
+        "@lovarch-studio-builder. Riavvia la sessione per caricarla.[/dim]"
+    )
+
+
 @skills_app.command("install")
 def install_command(
     target: Path = typer.Option(
