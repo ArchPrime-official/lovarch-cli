@@ -39,7 +39,7 @@ piattaforma = crediti):
   proprio modello (zero crediti di testo).
 - **Agenti** (`lovarch agents`) — subagent per Claude Code: `@lovarch-content-chief`
   dirige la creazione di contenuti (reel/video/caroselli/render), e
-  `@lovarch-studio-builder` ti aiuta a creare i TUOI agenti e skill su misura.
+  `@lovarch-squad-creator` ti aiuta a creare i TUOI agenti e skill su misura.
   I tuoi (`lovarch agents new` / `lovarch skills new`) non vengono mai toccati
   dagli aggiornamenti.
 

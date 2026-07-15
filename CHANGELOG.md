@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - **Subagent Lovarch per Claude Code (`lovarch agents`).** Nuovo pilastro: subagent installati in `~/.claude/agents` (sync automatico all'avvio, come le skill). Due agenti ufficiali:
   - **`@lovarch-content-chief`** — direttore creativo: riceve il brief, legge il contesto, stima i crediti PRIMA, dirige gli specialisti/skill (reel, video, carosello, storyboard, render, post, voce, branding) e consegna. È il "regista" che orchestra le skill di contenuto.
-  - **`@lovarch-studio-builder`** — la versione self-service del creatore di squad: aiuta il cliente a **creare, salvare e migliorare i PROPRI agenti e skill** su misura per il suo studio.
+  - **`@lovarch-squad-creator`** — il costruttore self-service: aiuta il cliente a **creare, salvare e migliorare i PROPRI agenti e skill** su misura per il suo studio, con tono per non-programmatori (intervista sul metodo, 4 fasi). Segue il pattern "un agente carica più skill": precarica **`lovarch-crea-skill`** (craft per scrivere una skill dal processo dell'utente) e **`lovarch-crea-agente`** (craft per scrivere un agente che orchestra skill). 16 skill totali.
 - **Crea i tuoi**: `lovarch agents new <nome>` e `lovarch skills new <nome>` generano lo scheletro (frontmatter valido) nel posto giusto. `lovarch agents list` elenca ufficiali + tuoi.
 - **Sync manifest-guarded**: gli agenti/skill creati dall'utente sono SUOI — un `brew upgrade`/aggiornamento non li tocca né li cancella mai (il sync agisce solo sui file ufficiali, tracciati in `~/.lovarch/.agents-manifest.json`; rimuove solo gli agenti ufficiali ritirati). Opt-out: `LOVARCH_NO_AGENTS_SYNC=1`.
 

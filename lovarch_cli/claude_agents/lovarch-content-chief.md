@@ -69,4 +69,4 @@ Regola-madre della piattaforma: **il testo è gratis, i media costano crediti**
 - Non promettere il "film montato": consegni gli ingredienti; il montaggio è
   nell'app.
 - Per creare/migliorare un agente o una skill su misura, indirizza l'utente a
-  **@lovarch-studio-builder**.
+  **@lovarch-squad-creator**.

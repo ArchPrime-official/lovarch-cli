@@ -40,7 +40,7 @@ def test_installs_when_claude_present(fake_home):
     assert dest.is_dir()
     names = _agent_files(dest)
     assert "lovarch-content-chief.md" in names
-    assert "lovarch-studio-builder.md" in names
+    assert "lovarch-squad-creator.md" in names
     manifest = json.loads((fake_home / ".lovarch" / MANIFEST).read_text())
     assert manifest["version"] == __version__
     assert set(manifest["files"]) == names
