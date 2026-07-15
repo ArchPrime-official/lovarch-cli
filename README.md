@@ -237,8 +237,19 @@ crediti, contesto, testo multi-modello...). Registrazione in Claude Code:
 claude mcp add lovarch -- lovarch mcp serve
 ```
 
-Oppure il **server MCP remoto** (nessuna installazione — una URL + una chiave):
+Oppure il **server MCP remoto** — il modo più semplice è **un comando solo**:
 
+```bash
+lovarch mcp connect      # crea la chiave E la registra in Claude Code
+```
+
+`connect` genera una chiave `lvk_` e la collega da solo (nessun copia-incolla).
+La chiave **non scade**: colleghi una volta e non ti verrà più chiesto il login.
+> ⚠️ Nel **browser** (claude.ai) la connessione usa OAuth e **scade ogni ora**
+> (rifà il login). Per una connessione permanente usa `lovarch mcp connect` nel
+> terminale (Claude Code).
+
+Passo manuale (se preferisci):
 ```bash
 lovarch mcp key                                   # crea una chiave lvk_...
 claude mcp add lovarch --transport http https://mcp.lovarch.com/mcp \\
