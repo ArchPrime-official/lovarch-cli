@@ -303,3 +303,104 @@ def new_command(
         "oppure chiedi a @lovarch-squad-creator di aiutarti a scriverlo. "
         "Riavvia la sessione per caricarlo.[/dim]"
     )
+
+
+def _official_skill_names() -> set[str]:
+    """Nomi delle skill ufficiali (bundle) — per NON fare backup di quelle."""
+    try:
+        from lovarch_cli.commands.skills_cmd import _bundled_skills_dir
+        return {p.parent.name for p in _bundled_skills_dir().glob("*/SKILL.md")}
+    except Exception:
+        return set()
+
+
+def _collect_user_files() -> list[dict]:
+    """Enumera SÓ os agentes/skills criados pelo USUÁRIO (fora do bundle/manifest)."""
+    from lovarch_cli.config import DEFAULT_HOME
+
+    files: list[dict] = []
+    official_agents = set(_bundled_names()) | set(_read_manifest(DEFAULT_HOME).get("files", []))
+    agents_dir = Path.home() / ".claude" / "agents"
+    if agents_dir.is_dir():
+        for md in sorted(agents_dir.glob("*.md")):
+            if md.name in official_agents:
+                continue
+            files.append({"kind": "agent", "slug": md.stem, "relative_path": md.name,
+                          "content": md.read_text(encoding="utf-8")})
+
+    official_skills = _official_skill_names()
+    skills_dir = Path.home() / ".claude" / "skills"
+    if skills_dir.is_dir():
+        for sk in sorted(p for p in skills_dir.iterdir() if p.is_dir()):
+            if sk.name in official_skills:
+                continue
+            for f in sorted(sk.rglob("*")):
+                if f.is_file():
+                    rel = f"{sk.name}/{f.relative_to(sk).as_posix()}"
+                    files.append({"kind": "skill", "slug": sk.name, "relative_path": rel,
+                                  "content": f.read_text(encoding="utf-8")})
+    return files
+
+
+@agents_app.command("push")
+def push_command() -> None:
+    """Salva i TUOI agenti e skill nell'account Lovarch (backup nel cloud)."""
+    import asyncio
+    from lovarch_cli.ai import AiGatewayError, LovarchAiGateway
+    from lovarch_cli.auth.session import LovarchSession
+    from lovarch_cli.upsell import not_authenticated
+
+    session = LovarchSession.load()
+    if session is None:
+        not_authenticated()
+        raise typer.Exit(1)
+    files = _collect_user_files()
+    if not files:
+        console.print("[dim]Nessun agente/skill TUO da salvare (gli ufficiali non si salvano).[/dim]")
+        return
+    try:
+        asyncio.run(LovarchAiGateway(session).data("agents_push", files=files))
+    except AiGatewayError as exc:
+        err_console.print(f"[red]✗ {exc}[/red]")
+        raise typer.Exit(1)
+    n_agents = len({f["slug"] for f in files if f["kind"] == "agent"})
+    n_skills = len({f["slug"] for f in files if f["kind"] == "skill"})
+    console.print(f"[green]✓[/green] Backup salvato: {n_agents} agenti + {n_skills} skill ({len(files)} file).")
+
+
+@agents_app.command("pull")
+def pull_command() -> None:
+    """Ripristina i TUOI agenti e skill dall'account Lovarch (in un'altra macchina)."""
+    import asyncio
+    from lovarch_cli.ai import AiGatewayError, LovarchAiGateway
+    from lovarch_cli.auth.session import LovarchSession
+    from lovarch_cli.upsell import not_authenticated
+
+    session = LovarchSession.load()
+    if session is None:
+        not_authenticated()
+        raise typer.Exit(1)
+    try:
+        data = asyncio.run(LovarchAiGateway(session).data("agents_pull"))
+    except AiGatewayError as exc:
+        err_console.print(f"[red]✗ {exc}[/red]")
+        raise typer.Exit(1)
+
+    official_agents = set(_bundled_names())
+    official_skills = _official_skill_names()
+    claude = Path.home() / ".claude"
+    written = 0
+    for f in data.get("files", []):
+        kind, rel, content = f.get("kind"), f.get("relative_path"), f.get("content", "")
+        if not rel or kind not in ("agent", "skill"):
+            continue
+        # Nunca sobrescrever oficiais.
+        if kind == "agent" and rel in official_agents:
+            continue
+        if kind == "skill" and rel.split("/")[0] in official_skills:
+            continue
+        target = (claude / ("agents" if kind == "agent" else "skills") / rel)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(content, encoding="utf-8")
+        written += 1
+    console.print(f"[green]✓[/green] Ripristinati {written} file in ~/.claude. Riavvia la sessione per caricarli.")
