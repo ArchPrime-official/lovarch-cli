@@ -5,6 +5,15 @@ All notable changes to `lovarch-cli` are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.0] — 2026-07-15
+
+### Added
+- **Subagent Lovarch per Claude Code (`lovarch agents`).** Nuovo pilastro: subagent installati in `~/.claude/agents` (sync automatico all'avvio, come le skill). Due agenti ufficiali:
+  - **`@lovarch-content-chief`** — direttore creativo: riceve il brief, legge il contesto, stima i crediti PRIMA, dirige gli specialisti/skill (reel, video, carosello, storyboard, render, post, voce, branding) e consegna. È il "regista" che orchestra le skill di contenuto.
+  - **`@lovarch-studio-builder`** — la versione self-service del creatore di squad: aiuta il cliente a **creare, salvare e migliorare i PROPRI agenti e skill** su misura per il suo studio.
+- **Crea i tuoi**: `lovarch agents new <nome>` e `lovarch skills new <nome>` generano lo scheletro (frontmatter valido) nel posto giusto. `lovarch agents list` elenca ufficiali + tuoi.
+- **Sync manifest-guarded**: gli agenti/skill creati dall'utente sono SUOI — un `brew upgrade`/aggiornamento non li tocca né li cancella mai (il sync agisce solo sui file ufficiali, tracciati in `~/.lovarch/.agents-manifest.json`; rimuove solo gli agenti ufficiali ritirati). Opt-out: `LOVARCH_NO_AGENTS_SYNC=1`.
+
 ## [0.6.0] — 2026-07-15
 
 ### Added

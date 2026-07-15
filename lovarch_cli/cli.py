@@ -108,6 +108,12 @@ def main(
 
     ensure_skills_synced()
 
+    # Stessa logica per i subagent Lovarch (~/.claude/agents). Manifest-guarded:
+    # non tocca mai gli agenti creati dall'utente. Opt out: LOVARCH_NO_AGENTS_SYNC=1.
+    from lovarch_cli.commands.agents_sync import ensure_agents_synced
+
+    ensure_agents_synced()
+
     # Avviso di versione nuova (1×/24h, timeout 2s, silenzioso se fallisce).
     # Senza questo, chi installa una volta resta fermo per sempre.
     # Opt out: LOVARCH_NO_UPDATE_CHECK=1.
@@ -310,6 +316,14 @@ app.add_typer(
     skills_app,
     name="skills",
     help="Skills per il tuo agente (Claude Code): testo col TUO modello, zero crediti.",
+)
+
+from lovarch_cli.commands.agents_sync import agents_app  # noqa: E402
+
+app.add_typer(
+    agents_app,
+    name="agents",
+    help="Subagent Lovarch (Claude Code): regia contenuti + crea i TUOI agenti/skill.",
 )
 
 from lovarch_cli.commands.config_cmd import config_app  # noqa: E402
