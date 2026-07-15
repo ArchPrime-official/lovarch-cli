@@ -27,6 +27,69 @@ def serve_command() -> None:
     serve()
 
 
+@mcp_app.command("connect")
+def connect_command(
+    label: str = typer.Option(None, "--label", "-l", help="Etichetta della connessione (es. 'macbook')."),
+) -> None:
+    """Collega Claude Code alla Lovarch in UN passo (connessione permanente).
+
+    Genera una chiave `lvk_` e la registra automaticamente in Claude Code
+    (`claude mcp add`). Nessun copia-incolla, nessun login ripetuto: la chiave
+    non scade (a differenza del login OAuth nel browser, che scade ogni ora).
+    """
+    import asyncio
+    import shutil
+    import subprocess
+
+    from rich.console import Console
+
+    from lovarch_cli.auth.session import LovarchSession
+
+    console = Console()
+    err_console = Console(stderr=True)
+
+    session = LovarchSession.load()
+    if session is None:
+        not_authenticated()
+        raise typer.Exit(1)
+
+    async def _create(body: dict) -> dict:
+        resp = await session.request("POST", "/functions/v1/mcp-key-create", json=body)
+        try:
+            return resp.json()
+        except ValueError:
+            return {"ok": False, "error": f"HTTP {resp.status_code}"}
+
+    data = asyncio.run(_create({"action": "create", "label": label or "claude-code"}))
+    if not data.get("ok"):
+        err_console.print(f"[red]✗ {data.get('error')}[/red]")
+        raise typer.Exit(1)
+
+    key = data["key"]
+    mcp_url = data.get("mcp_url", "https://mcp.lovarch.com/mcp")
+    add_cmd = [
+        "claude", "mcp", "add", "lovarch",
+        "--transport", "http", mcp_url,
+        "--header", f"Authorization: Bearer {key}",
+    ]
+
+    claude_bin = shutil.which("claude")
+    if claude_bin:
+        # Remove eventuale connessione precedente (idempotente), poi aggiunge.
+        subprocess.run(["claude", "mcp", "remove", "lovarch"], capture_output=True)
+        result = subprocess.run(add_cmd, capture_output=True, text=True)
+        if result.returncode == 0:
+            console.print("[green]✓[/green] Lovarch collegata a Claude Code [bold](connessione permanente)[/bold].")
+            console.print("[dim]Riavvia Claude Code per attivarla. Non ti chiederà più il login.[/dim]")
+            return
+        err_console.print(f"[yellow]Registrazione automatica non riuscita:[/yellow] {result.stderr.strip()[:200]}")
+
+    # Fallback: Claude Code non trovato nel PATH → mostra il comando da incollare.
+    console.print("\n[bold gold1]Chiave creata.[/bold gold1] Incolla questo comando nel terminale:\n")
+    console.print(f"  [cyan]{' '.join(add_cmd[:-1])} \"{add_cmd[-1]}\"[/cyan]\n")
+    console.print("[dim](Il CLI di Claude Code non è nel PATH: installalo o incolla il comando sopra.)[/dim]")
+
+
 @mcp_app.command("key")
 def key_command(
     label: str = typer.Option(None, "--label", "-l", help="Etichetta della chiave (es. 'claude-code macbook')."),
