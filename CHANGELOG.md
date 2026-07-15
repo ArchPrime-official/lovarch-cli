@@ -5,6 +5,16 @@ All notable changes to `lovarch-cli` are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.0] — 2026-07-15
+
+### Added
+- **5 agenti specialisti di contenuto** (Agenti Studio, derivati dal squad Creative Studio, pattern agente+skills): `@lovarch-hook-strategist` (primi 0-3s, hook A/B), `@lovarch-screenwriter` (script + parlato TTS con framework RMBC/StoryBrand/McKee + audio tags), `@lovarch-storyboard-artist` (decomposizione in piani + continuità 180°/identity lock), `@lovarch-visual-director` (fotorealismo camera/lente/film stock + coerenza), `@lovarch-editorial-strategist` (pilastri, calendario, repurposing). Il `@lovarch-content-chief` ora delega a loro. Nessun brand ArchPrime; il dolore/pubblico viene dal `lovarch_context` + CRM del cliente.
+
+## [0.7.1] — 2026-07-15
+
+### Added
+- **`lovarch mcp connect`** — collega Claude Code al MCP remoto in un comando (crea la chiave `lvk_` e la registra da solo, senza copia-incolla). Connessione permanente (la chiave non scade), a differenza dell'OAuth del browser che scade ogni ora.
+
 ## [0.7.0] — 2026-07-15
 
 ### Added
