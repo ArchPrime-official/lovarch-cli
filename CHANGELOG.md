@@ -5,6 +5,22 @@ All notable changes to `lovarch-cli` are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.10.0] — 2026-07-22
+
+### Added
+- **`lovarch crea` — il CLI adesso SCRIVE nel tuo account Lovarch** (finora scriveva solo creazioni: render, logo, agent run; i dati di gestione erano in sola lettura). 11 comandi, gli stessi 11 write del connettore MCP, senza aprire l'app:
+  - CRM: `crea lead` · `crea task` · `crea proposta` · `crea contratto` · `aggiorna lead-stato`
+  - Progetti: `crea progetto` · `crea fornitore`
+  - Soldi: `crea spesa` · `crea entrata` · `crea categoria`
+  - Marketing: `crea audience` · `crea campagna`
+- La transazione finanziaria è esposta come due comandi parlanti (`spesa` = uscita, `entrata` = income) invece di un flag `--type`.
+- Nessun credito addebitato (sono i tuoi dati). Scrittura owner-scoped lato server: un membro del team scrive nell'account del titolare, con il suo permesso di modifica.
+
+### Technical
+- Nuova EF `cli-write` (progetto Lovarch) — wrapper fino su `_shared/connectorWrite.ts`, lo STESSO core già usato da `mcp-server` e `api-v1`. Zero regole di scrittura duplicate: validazione per campo, permessi e INSERT owner-scoped restano nel `ACTION_REGISTRY`.
+- `LovarchAiGateway.write(action, **params)` → `/functions/v1/cli-write`. Gli errori del server (`missing_field` + `field`, `rate_limited`) arrivano leggibili all'utente.
+- Rate limit ereditato dal core: 120 scritture/ora per titolare.
+
 ## [0.8.0] — 2026-07-15
 
 ### Added
