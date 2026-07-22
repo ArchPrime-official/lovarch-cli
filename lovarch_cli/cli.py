@@ -310,6 +310,20 @@ app.add_typer(
     help="I tuoi dati Lovarch: progetti, finanze, prezzari, CRM (sola lettura).",
 )
 
+from lovarch_cli.commands.crea_cmd import aggiorna_app, crea_app  # noqa: E402
+
+app.add_typer(
+    crea_app,
+    name="crea",
+    help="Crea nel tuo account Lovarch: lead, progetti, spese, task, proposte… (gratis).",
+)
+
+app.add_typer(
+    aggiorna_app,
+    name="aggiorna",
+    help="Aggiorna dati esistenti nel tuo account Lovarch (gratis).",
+)
+
 from lovarch_cli.commands.skills_cmd import skills_app  # noqa: E402
 
 app.add_typer(

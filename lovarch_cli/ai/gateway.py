@@ -36,6 +36,7 @@ def _timeout_message(op: str) -> str:
 CLI_AI_GENERATE_PATH = "/functions/v1/cli-ai-generate"
 CLI_AI_TEXT_PATH = "/functions/v1/cli-ai-text"
 CLI_DATA_PATH = "/functions/v1/cli-data"
+CLI_WRITE_PATH = "/functions/v1/cli-write"
 # Image generation with gpt-image-2 can take 10-60s; give it generous headroom.
 _IMAGE_TIMEOUT = 200.0
 _TEXT_TIMEOUT = 300.0
@@ -288,6 +289,38 @@ class LovarchAiGateway:
             raise AiGatewayError(
                 f"cli-data/{resource} ha risposto {response.status_code}: {detail or 'errore sconosciuto'}"
             )
+        return payload
+
+    async def write(self, action: str, **params: object) -> dict:
+        """Write management data to the user's own Lovarch account (cli-write).
+
+        Actions: create_lead, update_lead_status, create_project, create_proposal,
+        create_contract, create_task, create_supplier, create_audience,
+        create_campaign, create_financial_transaction, create_financial_category.
+
+        Owner-scoped server-side (a team member writes into the owner's account).
+        No credits are debited — it is the user's own data.
+        """
+        body: dict[str, object] = {"action": action, **params}
+        try:
+            response = await self._session.request(
+                "POST", CLI_WRITE_PATH, json=body, timeout=60.0
+            )
+        except httpx.TimeoutException as exc:
+            raise AiGatewayError(_timeout_message("Scrittura dati")) from exc
+        try:
+            payload = response.json()
+        except ValueError:
+            payload = {}
+        if response.status_code != 200 or not payload.get("ok"):
+            detail = payload.get("error") if isinstance(payload, dict) else None
+            # missing_field devolve QUAL campo falta: dá para dizer ao utente.
+            field = payload.get("field") if isinstance(payload, dict) else None
+            hint = payload.get("hint") if isinstance(payload, dict) else None
+            msg = hint or detail or "errore sconosciuto"
+            if field and not hint:
+                msg = f"{msg} (campo: {field})"
+            raise AiGatewayError(f"cli-write/{action}: {msg}")
         return payload
 
     async def platform(
