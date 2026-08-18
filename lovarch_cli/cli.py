@@ -230,6 +230,14 @@ app.add_typer(
     help="Server MCP (Claude Code / IDE). Richiede l'extra [mcp].",
 )
 
+from lovarch_cli.commands.workspace_cmd import workspace_app  # noqa: E402
+
+app.add_typer(
+    workspace_app,
+    name="workspace",
+    help="Workspace attivo: il tuo studio o quelli che ti hanno invitato.",
+)
+
 from lovarch_cli.commands.context_cmd import context_app  # noqa: E402
 
 app.add_typer(

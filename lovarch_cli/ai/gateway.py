@@ -37,6 +37,7 @@ CLI_AI_GENERATE_PATH = "/functions/v1/cli-ai-generate"
 CLI_AI_TEXT_PATH = "/functions/v1/cli-ai-text"
 CLI_DATA_PATH = "/functions/v1/cli-data"
 CLI_WRITE_PATH = "/functions/v1/cli-write"
+API_V1_PATH = "/functions/v1/api-v1"
 # Image generation with gpt-image-2 can take 10-60s; give it generous headroom.
 _IMAGE_TIMEOUT = 200.0
 _TEXT_TIMEOUT = 300.0
@@ -321,6 +322,34 @@ class LovarchAiGateway:
             if field and not hint:
                 msg = f"{msg} (campo: {field})"
             raise AiGatewayError(f"cli-write/{action}: {msg}")
+        return payload
+
+    async def workspace(self, action: str, **params: object) -> dict:
+        """Elenca e cambia il workspace attivo (api-v1 `workspace.*`).
+
+        Chi collabora con più studi ha più workspace: il proprio e quelli di chi
+        lo ha invitato. Il workspace attivo decide di chi sono i dati e da chi
+        escono i crediti — per questo ogni comando che scrive lo mostra prima.
+
+        Con la sessione premium del CLI il cambio vale per l'account (come il
+        selettore dell'app). Una chiave `lvk_` invece resta fissata sul suo
+        workspace: è il modello "una chiave per cliente".
+        """
+        body: dict[str, object] = {"action": f"workspace.{action}", **params}
+        try:
+            response = await self._session.request(
+                "POST", API_V1_PATH, json=body, timeout=30.0
+            )
+        except httpx.TimeoutException as exc:
+            raise AiGatewayError(_timeout_message("Workspace")) from exc
+        try:
+            payload = response.json()
+        except ValueError:
+            payload = {}
+        if response.status_code != 200 or not payload.get("ok"):
+            detail = payload.get("error") if isinstance(payload, dict) else None
+            hint = payload.get("hint") or payload.get("detail") if isinstance(payload, dict) else None
+            raise AiGatewayError(f"workspace/{action}: {hint or detail or 'errore sconosciuto'}")
         return payload
 
     async def platform(

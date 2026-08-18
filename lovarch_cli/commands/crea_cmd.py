@@ -72,7 +72,36 @@ def _ok(label: str, payload: dict, hint: str) -> None:
     new_id = data.get("id") if isinstance(data, dict) else None
     suffix = f" [dim]({str(new_id)[:8]})[/dim]" if new_id else ""
     console.print(f"[green]✓[/green] {label}{suffix}")
+    _print_workspace_if_shared()
     console.print(f"[dim]{hint}[/dim]")
+
+
+def _print_workspace_if_shared() -> None:
+    """Dice DOVE è finito il dato, quando l'utente collabora con più studi.
+
+    Chi ha un solo workspace non vede niente: sarebbe rumore su ogni comando.
+    Chi ne ha più di uno ha bisogno di saperlo — creare un lead nello studio
+    sbagliato è silenzioso e si scopre giorni dopo.
+
+    Best-effort: se la chiamata fallisce non si dice niente e il comando resta
+    riuscito. Non è una conferma, è un promemoria.
+    """
+    try:
+        from lovarch_cli.ai import LovarchAiGateway
+        from lovarch_cli.auth.session import LovarchSession
+
+        session = LovarchSession.load()
+        if session is None:
+            return
+        payload = asyncio.run(LovarchAiGateway(session).workspace("status"))
+        spaces = payload.get("workspaces") or []
+        if len(spaces) <= 1:
+            return
+        cur = payload.get("current") or {}
+        name = "Personale" if cur.get("is_personal") else (cur.get("owner_name") or "—")
+        console.print(f"[dim]workspace: {name}[/dim]")
+    except Exception:
+        return
 
 
 # ── CRM ────────────────────────────────────────────────────────────────────────
