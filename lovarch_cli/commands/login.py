@@ -200,3 +200,51 @@ def login_command(
             padding=(1, 2),
         )
     )
+
+    _offer_workspace_picker()
+
+
+def _offer_workspace_picker() -> None:
+    """Dopo il login, se l'account ha più workspace, chiede in quale lavorare.
+
+    È il "scegli il workspace al login" del Claude. Chi ha UN solo workspace non
+    vede niente (zero attrito per il caso comune); chi collabora con più studi
+    sceglie subito — invece di scoprire giorni dopo che stava scrivendo nello
+    studio sbagliato. Saltabile con invio: resta il workspace attivo attuale.
+
+    Best-effort: qualsiasi errore qui NON tocca l'esito del login, che è già
+    riuscito e salvato.
+    """
+    try:
+        import asyncio
+
+        from lovarch_cli.ai import LovarchAiGateway
+        from lovarch_cli.auth.session import LovarchSession
+
+        session = LovarchSession.load()
+        if session is None:
+            return
+        payload = asyncio.run(LovarchAiGateway(session).workspace("list"))
+        spaces = payload.get("workspaces") or []
+        if len(spaces) <= 1:
+            return
+
+        console.print()
+        console.print("[bold gold1]In quale workspace vuoi lavorare?[/bold gold1]")
+        for i, w in enumerate(spaces, 1):
+            mark = " [green]●[/green]" if w.get("is_current") else ""
+            console.print(f"  {i}. {w.get('name') or '—'}{mark}")
+        raw = typer.prompt("Numero (invio = lascia così)", default="", show_default=False).strip()
+        if not raw:
+            return
+        idx = int(raw) - 1
+        if not (0 <= idx < len(spaces)):
+            return
+        chosen = spaces[idx]
+        target = chosen.get("owner_id") or "personal"
+        result = asyncio.run(LovarchAiGateway(session).workspace("use", owner=target))
+        dest = result.get("switched_to") or {}
+        console.print(f"[green]✓[/green] Workspace attivo: [bold]{dest.get('name')}[/bold]")
+    except Exception:
+        # Il login è già riuscito — il picker non può romperlo.
+        return
