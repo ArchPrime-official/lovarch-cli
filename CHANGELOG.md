@@ -5,6 +5,21 @@ All notable changes to `lovarch-cli` are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.11.0] — 2026-08-18
+
+### Added
+- **`lovarch workspace` — scegli in quale studio stai lavorando.** Chi collabora con più studi ha più workspace: il proprio e quello di ognuno che lo ha invitato. Il workspace attivo decide **di chi sono i dati** che leggi e scrivi e **da chi escono i crediti** — ma finora il terminale lo ereditava in silenzio dall'app: cambiarlo lì cambiava quello che il CLI faceva alla chiamata dopo, e da qui non c'era modo né di vederlo né di sceglierlo.
+  - `lovarch workspace` (o `workspace list`) elenca i workspace e segna l'attivo con ●
+  - `lovarch workspace use "<nome>"` — accetta nome parziale, email o uuid; `personal` torna al tuo
+  - `lovarch workspace status` — solo l'attivo, utile negli script
+- **Scelta del workspace subito dopo `lovarch login`** (premium): se l'account ha più di un workspace, il CLI chiede in quale lavorare. Saltabile con invio. Chi ne ha uno solo non vede niente.
+- **I comandi `crea …` stampano `workspace: <nome>`** dopo il risultato — solo a chi ha più di un workspace, perché per chi ne ha uno sarebbe rumore su ogni comando. Creare un lead nello studio sbagliato è silenzioso e si scopre giorni dopo.
+
+### Technical
+- `LovarchAiGateway.workspace(action, **params)` → `api-v1` op `workspace.*`, lo STESSO core della tool MCP `lovarch_workspace` (`_shared/workspaceTool.ts`). Nessuna logica di workspace duplicata nel CLI.
+- Lato server la precedenza è **pin della credenziale > contesto globale > personale**. Con la sessione premium del CLI il cambio vale per l'account (come il selettore dell'app); una chiave `lvk_` resta invece fissata sul suo workspace — è il modello "una chiave per cliente", per chi gestisce più studi e non vuole che uno script segua i cambi fatti da altri.
+- Il picker del login è best-effort per costruzione: a quel punto il login è già riuscito e salvato, quindi un errore del picker non può romperlo.
+
 ## [0.10.0] — 2026-07-22
 
 ### Added
