@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.12.0] — 2026-09-28
+
 ### Security
 - **`lovarch signup` ora conferma l'email con un codice di 6 cifre.** Finora il server emetteva il token per qualunque email che avesse già una registrazione CLI (il percorso per chi aveva perso `~/.lovarch/credentials.json`) senza verificare che l'email fosse davvero tua — e con quel token si poteva cancellare l'account di un altro con `lovarch account delete`. Adesso, dopo i dati, il server manda un codice via email: il CLI lo chiede nel terminale e solo dopo la conferma (`cli-signup-verify`) salva il token. Il codice vale 15 minuti e ha 5 tentativi; un codice di formato sbagliato non consuma tentativi.
 - Le versioni precedenti del CLI non ricevono più un token da `cli-signup`: il server risponde con l'istruzione `brew upgrade lovarch-cli`.
@@ -215,6 +217,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Persistenza premium: il runner ora crea il progetto CRM completo nell'account dell'utente tramite la EF `cli-persist` (scrittura controllata lato server, nessuna scrittura cross-tenant).
 
 ## [Unreleased]
+
+## [0.12.0] — 2026-09-28
 
 (No unreleased changes yet — last release was v0.3.0.)
 
