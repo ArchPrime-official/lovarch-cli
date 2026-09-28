@@ -15,6 +15,12 @@
     "invalid_phone": "Telefone deve estar em formato internacional (ex. +5511987654321).",
     "invalid_country": "Código país deve ser 2 letras (ISO 3166 alpha-2).",
     "submitting": "Enviando...",
+    "code_sent": "Enviamos um código de 6 dígitos para {email}. Confira o e-mail (inclusive o spam): vale 15 minutos.",
+    "prompt_code": "Código de verificação (6 dígitos)",
+    "invalid_code_format": "O código tem 6 dígitos.",
+    "code_retry": "Código inválido. Tentativas restantes: {remaining}.",
+    "code_attempts_exhausted": "Tentativas demais. Peça um código novo com [cyan]lovarch signup[/cyan].",
+    "verifying": "Verificando o código...",
     "next_steps": "[bold green]✓ Cadastro concluído[/bold green]\n\nPróximos passos (grátis, sem créditos):\n 1. [cyan]lovarch skills install[/cyan] — instala as personas no seu Claude Code\n 2. [cyan]lovarch cad genera[/cyan] — gera uma planta DXF profissional\n 3. [cyan]lovarch verifica misure <planta.dxf>[/cyan] — verifica a planta (grátis)\n\nRender, agentes IA e verificações premium → ative o Premium: [link]https://app.lovarch.com/settings/credits[/link]"
   },
   "account": {

@@ -4,9 +4,11 @@ Flow:
   1. Welcome banner (4-language)
   2. Interactive prompts: full_name, email, phone, country, language
   3. GDPR consent (mandatory — Italian/EU compliance)
-  4. POST → cli-signup EF (validates server-side, creates shadow user, lead)
-  5. Save returned token to ~/.lovarch/credentials.json (chmod 0600)
-  6. Success message + next-steps (arch init, arch run)
+  4. POST → cli-signup EF (validates server-side, emails a 6-digit code — no token yet)
+  5. Prompt the code → POST cli-signup-verify (proves email ownership; only then the
+     server creates the shadow user + lead, or re-issues the token of an existing lead)
+  6. Save returned token to ~/.lovarch/credentials.json (chmod 0600)
+  7. Success message + next-steps (arch init, arch run)
 
 Localization: i18n keys live in lovarch_cli/i18n/translations/{it,pt,en,es}.json.
 """
@@ -15,8 +17,9 @@ from __future__ import annotations
 import asyncio
 import re
 import sys
+from collections.abc import Callable
 from datetime import datetime, timezone
-from typing import Annotated
+from typing import Annotated, Any
 
 import typer
 from rich.console import Console
@@ -36,6 +39,62 @@ err_console = Console(stderr=True)
 EMAIL_RX = re.compile(r"^[^\s@]+@[^\s@]+\.[^\s@]+$")
 PHONE_RX = re.compile(r"^\+?[1-9]\d{6,14}$")
 COUNTRY_RX = re.compile(r"^[A-Z]{2}$")
+CODE_RX = re.compile(r"^\d{6}$")
+# Lo stesso limite del server (cli_signup_codes: 5 tentativi per codice).
+MAX_CODE_ATTEMPTS = 5
+
+
+def normalize_code(raw: str) -> str | None:
+    """Accetta "123 456" / "123-456"; qualunque altra cosa è None."""
+    code = re.sub(r"[\s-]", "", raw or "")
+    return code if CODE_RX.match(code) else None
+
+
+def _ask_code(lang: str) -> str:
+    return Prompt.ask(f"[bold]{t('signup.prompt_code', lang=lang)}[/bold]")
+
+
+def verify_email_code(
+    api: ApiClient,
+    email: str,
+    lang: str,
+    ask_code: Callable[[str], str],
+    max_attempts: int = MAX_CODE_ATTEMPTS,
+) -> dict[str, Any]:
+    """Chiede il codice ricevuto via email e lo conferma su cli-signup-verify.
+
+    Ritorna la risposta con ``free_token``. Un codice di formato sbagliato non consuma
+    tentativi (non arriva al server); un ``invalid_code`` del server sì. Qualunque altro
+    errore del server viene rilanciato così com'è.
+    """
+    remaining = max_attempts
+    while True:
+        code = normalize_code(ask_code(lang))
+        if code is None:
+            err_console.print(f"[red]{t('signup.invalid_code_format', lang=lang)}[/red]")
+            continue
+        console.print(f"[dim]{t('signup.verifying', lang=lang)}[/dim]")
+        try:
+            return asyncio.run(
+                api.invoke_ef(
+                    "cli-signup-verify",
+                    {"email": email, "code": code, "language": lang},
+                )
+            )
+        except LovarchApiError as exc:
+            if exc.error_code != "invalid_code":
+                raise
+            remaining -= 1
+            if remaining <= 0:
+                raise LovarchApiError(
+                    t("signup.code_attempts_exhausted", lang=lang),
+                    status_code=exc.status_code,
+                    error_code="invalid_code",
+                    payload=exc.payload,
+                ) from exc
+            err_console.print(
+                f"[red]{t('signup.code_retry', lang=lang, remaining=remaining)}[/red]"
+            )
 
 
 def signup_command(
@@ -149,10 +208,18 @@ def signup_command(
         "source": "cli-free",
         "accept_tos": True,
         "cli_version": __version__,
+        # Dice al server che questo CLI sa chiedere il codice ricevuto via email.
+        "verification": "email_code",
     }
 
     try:
         response = asyncio.run(api.invoke_ef("cli-signup", payload))
+        # Il token esce solo dopo aver provato di possedere l'email: il server manda un
+        # codice di 6 cifre e lo si conferma qui. Un server che risponde ancora con il
+        # token diretto (prima del deploy) viene accettato così com'è.
+        if response.get("verification_required") and not response.get("free_token"):
+            console.print(f"\n[yellow]{t('signup.code_sent', lang=lang, email=email)}[/yellow]")
+            response = verify_email_code(api, email, lang, ask_code=_ask_code)
     except LovarchApiError as exc:
         err_console.print(f"\n[red]✗ {exc}[/red]")
         if exc.error_code:
