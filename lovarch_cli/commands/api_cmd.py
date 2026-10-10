@@ -127,7 +127,14 @@ def call_command(
             if "=" not in spec:
                 raise typer.BadParameter(f"--file senza '=': {spec} (usa campo=percorso)")
             field, path = spec.split("=", 1)
-            ref = await gw.upload_file(path, purpose=action.split(".", 1)[0])
+            module = action.split(".", 1)[0]
+            pid = body.get("project_id") if isinstance(body.get("project_id"), str) else None
+            ref = await gw.upload_file(path, purpose=module, project_id=pid if module == "progetta" else None)
+            if module == "progetta":
+                # create senza id: il file è nella cartella della BOZZA → create usa quello stesso id
+                if not pid and isinstance(ref.get("project_id"), str):
+                    body["project_id"] = ref["project_id"]
+                ref = {"storage_path": ref["storage_path"]}
             existing = body.get(field)
             body[field] = [*existing, ref] if isinstance(existing, list) else [ref]
         result = await gw.api(action, body)

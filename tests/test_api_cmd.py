@@ -127,3 +127,55 @@ async def test_upload_file_errors(tmp_path, monkeypatch):
     f.write_bytes(b"%PDF")
     with pytest.raises(AiGatewayError):
         await LovarchAiGateway(_FakeSession([_resp(200, {"ok": True})])).upload_file(str(f), "proposals")
+
+
+async def test_upload_file_progetta_uses_project_folder_and_server_content_type(tmp_path, monkeypatch):
+    f = tmp_path / "pianta.dwg"
+    f.write_bytes(b"AC1032....")
+    s = _FakeSession([_resp(200, {
+        "ok": True, "upload_url": "https://storage.test/up?token=t", "content_type": "application/octet-stream",
+        "storage_path": "u/p1/inputs/ab-pianta.dwg", "project_id": "p1", "draft": False, "max_bytes": 1, "expires_in": 7200,
+        "hint": "…", "upload_page_url": "https://app/upload#t=x",
+    })])
+    _PutClient.puts = []
+    monkeypatch.setattr("lovarch_cli.ai.gateway.httpx.AsyncClient", _PutClient)
+    ref = await LovarchAiGateway(s).upload_file(str(f), "progetta", project_id="p1")
+    assert s.calls[0]["json"]["project_id"] == "p1"
+    # o bucket do Progetta só aceita a lista dele: vale o tipo do servidor, não o palpite local (image/vnd.dwg)
+    assert _PutClient.puts[0]["ct"] == "application/octet-stream"
+    assert ref == {"storage_path": "u/p1/inputs/ab-pianta.dwg", "project_id": "p1", "draft": False}
+
+
+class _UploadGw:
+    def __init__(self, draft_id: str | None = None) -> None:
+        self.uploads: list[tuple[str, str, str | None]] = []
+        self.calls: list[tuple[str, dict]] = []
+        self.draft_id = draft_id
+
+    async def upload_file(self, path, purpose, project_id=None):
+        self.uploads.append((path, purpose, project_id))
+        pid = project_id or self.draft_id
+        return {"storage_path": f"u/{pid}/inputs/x-{path.rsplit('/', 1)[-1]}", "project_id": pid, "draft": not project_id}
+
+    async def api(self, action, params=None):
+        self.calls.append((action, dict(params or {})))
+        return {"ok": True}
+
+
+def test_call_progetta_create_uses_draft_id_and_edit_keeps_project(monkeypatch, tmp_path):
+    from typer.testing import CliRunner
+    f = tmp_path / "pianta.pdf"
+    f.write_bytes(b"%PDF")
+    gw = _UploadGw(draft_id="draft-1")
+    monkeypatch.setattr(api_cmd, "_gateway", lambda: gw)
+    r = CliRunner().invoke(api_cmd.api_app, ["call", "progetta.create", "message=Casa", "--file", f"files={f}", "--raw"])
+    assert r.exit_code == 0, r.output
+    assert gw.uploads == [(str(f), "progetta", None)]
+    assert gw.calls[-1] == ("progetta.create", {"message": "Casa", "project_id": "draft-1",
+                                                 "files": [{"storage_path": "u/draft-1/inputs/x-pianta.pdf"}]})
+    gw2 = _UploadGw()
+    monkeypatch.setattr(api_cmd, "_gateway", lambda: gw2)
+    r = CliRunner().invoke(api_cmd.api_app, ["call", "progetta.edit", "project_id=p9", "--file", f"files={f}", "--raw"])
+    assert r.exit_code == 0, r.output
+    assert gw2.uploads == [(str(f), "progetta", "p9")]
+    assert gw2.calls[-1][1] == {"project_id": "p9", "files": [{"storage_path": "u/p9/inputs/x-pianta.pdf"}]}

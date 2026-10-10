@@ -368,13 +368,17 @@ class LovarchAiGateway:
         actions = payload.get("actions") if isinstance(payload, dict) else None
         return [a for a in actions if isinstance(a, str)] if isinstance(actions, list) else []
 
-    async def upload_file(self, path: str, purpose: str) -> dict:
+    async def upload_file(self, path: str, purpose: str, project_id: str | None = None) -> dict:
         """Carica un file locale nel workspace e restituisce il riferimento da passare alle
         operazioni che accettano file (`storage_path`).
 
         Piante del Progetta → `progetta.upload_url` (bucket del progetto); presentazioni →
         `files.upload` purpose=proposal; tutto il resto (immagini/video di riferimento) →
-        `files.upload` purpose=media. Poi PUT dei byte sull'URL firmato (2 ore)."""
+        `files.upload` purpose=media. Poi PUT dei byte sull'URL firmato (2 ore).
+
+        Progetta: il file deve stare nella cartella del progetto — con `project_id` va lì; senza,
+        il server crea l'id della bozza (restituito in `project_id`) da passare a create. Il
+        Content-Type del PUT è quello scelto dal server (il bucket accetta solo la sua lista)."""
         import mimetypes
         from pathlib import Path
 
@@ -386,7 +390,7 @@ class LovarchAiGateway:
         meta = {"file_name": file.name, "content_type": content_type, "size": len(data)}
         module = purpose.split(".", 1)[0].lower()
         if module == "progetta":
-            ticket = await self.api("progetta.upload_url", meta)
+            ticket = await self.api("progetta.upload_url", {**meta, **({"project_id": project_id} if project_id else {})})
         else:
             kind = "proposal" if module in ("proposals", "proposal", "proposte") else "media"
             ticket = await self.api("files.upload", {"purpose": kind, **meta})
@@ -394,10 +398,12 @@ class LovarchAiGateway:
         if not isinstance(url, str) or not url:
             raise AiGatewayError("upload: risposta senza upload_url")
         async with httpx.AsyncClient(timeout=httpx.Timeout(300.0, connect=30.0)) as client:
-            put = await client.put(url, content=data, headers={"Content-Type": content_type, "x-upsert": "false"})
+            put_type = ticket.get("content_type") if isinstance(ticket.get("content_type"), str) else content_type
+            put = await client.put(url, content=data, headers={"Content-Type": put_type, "x-upsert": "false"})
         if put.status_code >= 300:
             raise AiGatewayError(f"Caricamento non riuscito ({put.status_code}): {put.text[:200]}")
-        drop = {"upload_url", "upload_page_url", "headers", "method", "ok", "accepted"}
+        drop = {"upload_url", "upload_page_url", "headers", "method", "ok", "accepted", "content_type",
+                "max_bytes", "expires_in", "hint"}
         return {k: v for k, v in ticket.items() if k not in drop}
 
     async def workspace(self, action: str, **params: object) -> dict:
