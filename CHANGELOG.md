@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.12.1] — 2026-10-10
+
+### Changed
+- **Il server di Lovarch è passato da San Paolo a Londra.** L'indirizzo predefinito dell'API (`LOVARCH_API_URL`) e la chiave pubblica anon ora puntano al progetto di Londra (`bmjmlugriutujmfbdzst`), più vicino agli studi europei. Le versioni precedenti continuano a funzionare per qualche tempo grazie all'inoltro dal vecchio indirizzo, ma conviene aggiornare con `brew upgrade lovarch-cli`. Se il CLI chiede di accedere di nuovo, è normale: le sessioni del vecchio server non valgono sul nuovo.
+
 ## [0.12.0] — 2026-09-28
 
 ### Security
