@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.12.2] — 2026-10-10
+
+### Added
+- **`lovarch api` — qualsiasi operazione della piattaforma dal terminale.** La stessa superficie del connettore MCP di Claude e ChatGPT (Progetta, Progetti, CRM, Finanze, proposte, file, immagini, video, social, sito, ArchChat…): `lovarch api azioni` elenca le operazioni, `lovarch api call <azione> chiave=valore` le esegue (`--json` per i parametri complessi, `--wait` aspetta la fine dei job, `--raw` per gli script).
+- **`--file campo=percorso`**: carica un file locale e lo passa all'operazione. Le piante del Progetta vanno nella cartella del progetto (con `project_id`; senza, nella bozza da passare a `create`) con il tipo che il server accetta (DWG/IFC/docx compresi); le presentazioni e i riferimenti nel deposito privato del workspace, cancellati dopo l'uso.
+- **`lovarch proposte`** — `elenco` (con il link del cliente), `migliora FILE` (un PDF o PowerPoint diventa una proposta Lovarch, con lo stesso lettore dell'app: testo, foto e struttura; `--max-crediti` è il tetto), `pdf ID` (16:9 o `--a4`) e `stato JOB`.
+
 ## [0.12.1] — 2026-10-10
 
 ### Changed
