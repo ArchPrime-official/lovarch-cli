@@ -6,6 +6,7 @@ the canonical rule (1000 credits = $1 of API cost). See ``gateway.py``.
 """
 from lovarch_cli.ai.gateway import (
     AiGatewayError,
+    ApiCallError,
     AiImageResult,
     AiTextResult,
     InsufficientCreditsError,
@@ -13,6 +14,7 @@ from lovarch_cli.ai.gateway import (
 )
 
 __all__ = [
+    "ApiCallError",
     "AiGatewayError",
     "AiImageResult",
     "AiTextResult",
