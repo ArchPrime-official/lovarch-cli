@@ -28,11 +28,11 @@ DEFAULT_HOME = Path.home() / ".lovarch"
 # Same key shipped in Lovarch web frontend bundle. Safe to embed in
 # distributed CLI source.
 DEFAULT_API_URL = os.environ.get(
-    "LOVARCH_API_URL", "https://cuxbydmyahjaplzkthkr.supabase.co"
+    "LOVARCH_API_URL", "https://bmjmlugriutujmfbdzst.supabase.co"
 )
 DEFAULT_API_ANON_KEY = os.environ.get(
     "LOVARCH_ANON_KEY",
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN1eGJ5ZG15YWhqYXBsemt0aGtyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzODM3OTYsImV4cCI6MjA4Nzk1OTc5Nn0.UtHrPjSP40pwsRy6vCQseC5YA4DZ6e-hO8sXcRL8w_E",
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJtam1sdWdyaXV0dWptZmJkenN0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE2Mzc0ODEsImV4cCI6MjEwNzIxMzQ4MX0.0IkhhTi1HHH_2-K9FlFhjf1pGKDWYv49UWv753c_xY0",
 )
 
 # Lovarch web APP base URL — host of the React pages the CLI opens in the
