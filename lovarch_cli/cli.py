@@ -356,6 +356,14 @@ app.add_typer(
     help="Qualsiasi operazione della piattaforma (api-v1) — la stessa del connettore MCP.",
 )
 
+from lovarch_cli.commands.proposte_cmd import proposte_app  # noqa: E402
+
+app.add_typer(
+    proposte_app,
+    name="proposte",
+    help="Proposte: elenco, Migliora una presentazione (PDF/PPTX), PDF.",
+)
+
 from lovarch_cli.commands.config_cmd import config_app  # noqa: E402
 
 app.add_typer(

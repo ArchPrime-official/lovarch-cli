@@ -86,25 +86,44 @@ async def test_wait_without_job_id_returns_result():
     assert await api_cmd._wait(gw, "progetta.list", {"ok": True}, every=0, timeout=1) == {"ok": True}
 
 
-async def test_upload_file_puts_bytes_to_signed_url(tmp_path, monkeypatch):
+class _PutClient:
+    puts: list[dict] = []
+
+    def __init__(self, *a, **k): pass
+    async def __aenter__(self): return self
+    async def __aexit__(self, *a): return False
+    async def put(self, url, content=None, headers=None):
+        _PutClient.puts.append({"url": url, "len": len(content), "ct": headers["Content-Type"]})
+        return httpx.Response(200, request=httpx.Request("PUT", url))
+
+
+@pytest.mark.parametrize("module,action,purpose", [
+    ("progetta", "progetta.upload_url", None),
+    ("proposals", "files.upload", "proposal"),
+    ("render", "files.upload", "media"),
+])
+async def test_upload_file_routes_by_module_and_puts_bytes(tmp_path, monkeypatch, module, action, purpose):
     f = tmp_path / "pianta.pdf"
     f.write_bytes(b"%PDF-1.4 test")
     s = _FakeSession([_resp(200, {
-        "ok": True, "upload_url": "https://storage.test/upload?token=t", "path": "u/progetta/x.pdf", "bucket": "b",
+        "ok": True, "upload_url": "https://storage.test/upload?token=t", "upload_page_url": "https://app/upload#t=x",
+        "storage_path": "connector-uploads/u/x.pdf", "method": "PUT", "headers": {}, "accepted": ["pdf"],
     })])
-    puts: list[dict] = []
+    _PutClient.puts = []
+    monkeypatch.setattr("lovarch_cli.ai.gateway.httpx.AsyncClient", _PutClient)
+    ref = await LovarchAiGateway(s).upload_file(str(f), module)
+    assert ref == {"storage_path": "connector-uploads/u/x.pdf"}
+    sent = s.calls[0]["json"]
+    assert sent["action"] == action and sent["size"] == 13 and sent["file_name"] == "pianta.pdf"
+    assert sent.get("purpose") == purpose
+    assert _PutClient.puts == [{"url": "https://storage.test/upload?token=t", "len": 13, "ct": "application/pdf"}]
 
-    class _Client:
-        def __init__(self, *a, **k): pass
-        async def __aenter__(self): return self
-        async def __aexit__(self, *a): return False
-        async def put(self, url, content=None, headers=None):
-            puts.append({"url": url, "len": len(content), "ct": headers["Content-Type"]})
-            return httpx.Response(200, request=httpx.Request("PUT", url))
 
-    monkeypatch.setattr("lovarch_cli.ai.gateway.httpx.AsyncClient", _Client)
-    ref = await LovarchAiGateway(s).upload_file(str(f), "progetta")
-    assert ref == {"path": "u/progetta/x.pdf", "bucket": "b"}
-    assert s.calls[0]["json"]["action"] == "files.upload_url"
-    assert s.calls[0]["json"]["purpose"] == "progetta" and s.calls[0]["json"]["size"] == 13
-    assert puts == [{"url": "https://storage.test/upload?token=t", "len": 13, "ct": "application/pdf"}]
+async def test_upload_file_errors(tmp_path, monkeypatch):
+    from lovarch_cli.ai import AiGatewayError
+    with pytest.raises(AiGatewayError):
+        await LovarchAiGateway(_FakeSession([])).upload_file(str(tmp_path / "nada.pdf"), "proposals")
+    f = tmp_path / "a.pdf"
+    f.write_bytes(b"%PDF")
+    with pytest.raises(AiGatewayError):
+        await LovarchAiGateway(_FakeSession([_resp(200, {"ok": True})])).upload_file(str(f), "proposals")

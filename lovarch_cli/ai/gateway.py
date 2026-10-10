@@ -369,9 +369,12 @@ class LovarchAiGateway:
         return [a for a in actions if isinstance(a, str)] if isinstance(actions, list) else []
 
     async def upload_file(self, path: str, purpose: str) -> dict:
-        """Carica un file locale nel workspace: chiede alla api-v1 un URL firmato
-        (`files.upload_url`) e ci fa PUT dei byte. Restituisce {path, bucket, ...} da passare
-        alle operazioni che accettano file (es. progetta.create files=[...])."""
+        """Carica un file locale nel workspace e restituisce il riferimento da passare alle
+        operazioni che accettano file (`storage_path`).
+
+        Piante del Progetta → `progetta.upload_url` (bucket del progetto); presentazioni →
+        `files.upload` purpose=proposal; tutto il resto (immagini/video di riferimento) →
+        `files.upload` purpose=media. Poi PUT dei byte sull'URL firmato (2 ore)."""
         import mimetypes
         from pathlib import Path
 
@@ -380,17 +383,22 @@ class LovarchAiGateway:
             raise AiGatewayError(f"File non trovato: {file}")
         data = file.read_bytes()
         content_type = mimetypes.guess_type(file.name)[0] or "application/octet-stream"
-        ticket = await self.api("files.upload_url", {
-            "purpose": purpose, "file_name": file.name, "content_type": content_type, "size": len(data),
-        })
+        meta = {"file_name": file.name, "content_type": content_type, "size": len(data)}
+        module = purpose.split(".", 1)[0].lower()
+        if module == "progetta":
+            ticket = await self.api("progetta.upload_url", meta)
+        else:
+            kind = "proposal" if module in ("proposals", "proposal", "proposte") else "media"
+            ticket = await self.api("files.upload", {"purpose": kind, **meta})
         url = ticket.get("upload_url")
         if not isinstance(url, str) or not url:
-            raise AiGatewayError("files.upload_url: risposta senza upload_url")
+            raise AiGatewayError("upload: risposta senza upload_url")
         async with httpx.AsyncClient(timeout=httpx.Timeout(300.0, connect=30.0)) as client:
             put = await client.put(url, content=data, headers={"Content-Type": content_type, "x-upsert": "false"})
         if put.status_code >= 300:
             raise AiGatewayError(f"Caricamento non riuscito ({put.status_code}): {put.text[:200]}")
-        return {k: v for k, v in ticket.items() if k not in ("upload_url", "ok")}
+        drop = {"upload_url", "upload_page_url", "headers", "method", "ok", "accepted"}
+        return {k: v for k, v in ticket.items() if k not in drop}
 
     async def workspace(self, action: str, **params: object) -> dict:
         """Elenca e cambia il workspace attivo (api-v1 `workspace.*`).
