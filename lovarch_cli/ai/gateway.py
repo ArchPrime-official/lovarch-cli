@@ -51,6 +51,15 @@ class AiGatewayError(Exception):
     """Generic failure calling cli-ai-generate."""
 
 
+class ApiCallError(AiGatewayError):
+    """Errore restituito da un'operazione della api-v1 (con lo status e il payload)."""
+
+    def __init__(self, message: str, status_code: int = 0, payload: dict | None = None) -> None:
+        super().__init__(message)
+        self.status_code = status_code
+        self.payload = payload or {}
+
+
 class InsufficientCreditsError(AiGatewayError):
     """The user does not have enough credits for the requested operation."""
 
@@ -323,6 +332,79 @@ class LovarchAiGateway:
                 msg = f"{msg} (campo: {field})"
             raise AiGatewayError(f"cli-write/{action}: {msg}")
         return payload
+
+    async def api(self, action: str, params: dict | None = None, timeout: float = 180.0) -> dict:
+        """Chiama QUALSIASI operazione della api-v1 (`modulo.azione`) — la stessa superficie
+        del connettore MCP (Claude, ChatGPT). Restituisce il payload; errore leggibile se
+        `ok` è falso o lo status è >= 400 (con hint/campo quando il server li manda)."""
+        body: dict[str, object] = {**(params or {}), "action": action}
+        try:
+            response = await self._session.request("POST", API_V1_PATH, json=body, timeout=timeout)
+        except httpx.TimeoutException as exc:
+            raise AiGatewayError(_timeout_message(action)) from exc
+        try:
+            payload = response.json()
+        except ValueError:
+            payload = {}
+        if not isinstance(payload, dict):
+            payload = {"result": payload}
+        if response.status_code >= 400 or payload.get("ok") is False:
+            detail = payload.get("hint") or payload.get("detail") or payload.get("error") or "errore sconosciuto"
+            field = payload.get("field")
+            raise ApiCallError(
+                f"{action}: {detail}" + (f" (campo: {field})" if field and not payload.get("hint") else ""),
+                status_code=response.status_code,
+                payload=payload,
+            )
+        return payload
+
+    async def api_actions(self) -> list[str]:
+        """Elenco delle operazioni della api-v1 (il server le restituisce su GET)."""
+        response = await self._session.request("GET", API_V1_PATH, timeout=30.0)
+        try:
+            payload = response.json()
+        except ValueError:
+            return []
+        actions = payload.get("actions") if isinstance(payload, dict) else None
+        return [a for a in actions if isinstance(a, str)] if isinstance(actions, list) else []
+
+    async def upload_file(self, path: str, purpose: str, project_id: str | None = None) -> dict:
+        """Carica un file locale nel workspace e restituisce il riferimento da passare alle
+        operazioni che accettano file (`storage_path`).
+
+        Piante del Progetta → `progetta.upload_url` (bucket del progetto); presentazioni →
+        `files.upload` purpose=proposal; tutto il resto (immagini/video di riferimento) →
+        `files.upload` purpose=media. Poi PUT dei byte sull'URL firmato (2 ore).
+
+        Progetta: il file deve stare nella cartella del progetto — con `project_id` va lì; senza,
+        il server crea l'id della bozza (restituito in `project_id`) da passare a create. Il
+        Content-Type del PUT è quello scelto dal server (il bucket accetta solo la sua lista)."""
+        import mimetypes
+        from pathlib import Path
+
+        file = Path(path).expanduser()
+        if not file.is_file():
+            raise AiGatewayError(f"File non trovato: {file}")
+        data = file.read_bytes()
+        content_type = mimetypes.guess_type(file.name)[0] or "application/octet-stream"
+        meta = {"file_name": file.name, "content_type": content_type, "size": len(data)}
+        module = purpose.split(".", 1)[0].lower()
+        if module == "progetta":
+            ticket = await self.api("progetta.upload_url", {**meta, **({"project_id": project_id} if project_id else {})})
+        else:
+            kind = "proposal" if module in ("proposals", "proposal", "proposte") else "media"
+            ticket = await self.api("files.upload", {"purpose": kind, **meta})
+        url = ticket.get("upload_url")
+        if not isinstance(url, str) or not url:
+            raise AiGatewayError("upload: risposta senza upload_url")
+        async with httpx.AsyncClient(timeout=httpx.Timeout(300.0, connect=30.0)) as client:
+            put_type = ticket.get("content_type") if isinstance(ticket.get("content_type"), str) else content_type
+            put = await client.put(url, content=data, headers={"Content-Type": put_type, "x-upsert": "false"})
+        if put.status_code >= 300:
+            raise AiGatewayError(f"Caricamento non riuscito ({put.status_code}): {put.text[:200]}")
+        drop = {"upload_url", "upload_page_url", "headers", "method", "ok", "accepted", "content_type",
+                "max_bytes", "expires_in", "hint"}
+        return {k: v for k, v in ticket.items() if k not in drop}
 
     async def workspace(self, action: str, **params: object) -> dict:
         """Elenca e cambia il workspace attivo (api-v1 `workspace.*`).

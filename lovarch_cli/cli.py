@@ -348,6 +348,22 @@ app.add_typer(
     help="Subagent Lovarch (Claude Code): regia contenuti + crea i TUOI agenti/skill.",
 )
 
+from lovarch_cli.commands.api_cmd import api_app  # noqa: E402
+
+app.add_typer(
+    api_app,
+    name="api",
+    help="Qualsiasi operazione della piattaforma (api-v1) — la stessa del connettore MCP.",
+)
+
+from lovarch_cli.commands.proposte_cmd import proposte_app  # noqa: E402
+
+app.add_typer(
+    proposte_app,
+    name="proposte",
+    help="Proposte: elenco, Migliora una presentazione (PDF/PPTX), PDF.",
+)
+
 from lovarch_cli.commands.config_cmd import config_app  # noqa: E402
 
 app.add_typer(
