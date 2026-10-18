@@ -17,18 +17,20 @@ from typing import Any
 
 DEFAULT_HOME = Path.home() / ".lovarch"
 
-# Lovarch Supabase API endpoint.
+# Lovarch API endpoint — our own domain since 2026-10-18 (BE.8).
 #
-# Decision 2026-05-10 (Pablo + Orion): Opção A — URL Supabase direta.
-# Custom domain api.lovarch.com fica para fase pre-PyPI public publish
-# (ver cli/MIGRATION-PLAN.md). Quando criado, usuários instalados continuam
-# funcionando via env LOVARCH_API_URL override ou bump de versão.
+# api.lovarch.com is a Cloudflare worker in front of the production Supabase
+# project (functions, REST and auth). When production moved from São Paulo to
+# London (2026-10-10), every install that had the *.supabase.co address baked in
+# kept calling the old project; with our own domain, the next server move is a
+# change in the worker, not a new CLI release. Override with LOVARCH_API_URL
+# (e.g. https://bmjmlugriutujmfbdzst.supabase.co to bypass the worker).
 #
 # The anon key below is PUBLIC by Supabase design (role=anon, RLS-protected).
 # Same key shipped in Lovarch web frontend bundle. Safe to embed in
 # distributed CLI source.
 DEFAULT_API_URL = os.environ.get(
-    "LOVARCH_API_URL", "https://bmjmlugriutujmfbdzst.supabase.co"
+    "LOVARCH_API_URL", "https://api.lovarch.com"
 )
 DEFAULT_API_ANON_KEY = os.environ.get(
     "LOVARCH_ANON_KEY",
