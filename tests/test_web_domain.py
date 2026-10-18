@@ -8,13 +8,20 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from lovarch_cli.config import DEFAULT_WEB_URL
+from lovarch_cli.config import DEFAULT_API_URL, DEFAULT_WEB_URL
 
 I18N_DIR = Path(__file__).resolve().parents[1] / "lovarch_cli" / "i18n" / "translations"
 
 
 def test_default_web_url_is_app_domain():
     assert DEFAULT_WEB_URL == "https://app.lovarch.com"
+
+
+def test_default_api_url_is_own_domain():
+    # BE.8 (2026-10-18): never a *.supabase.co address baked into installs again —
+    # the São Paulo → London move left every old install calling the old project.
+    assert DEFAULT_API_URL == "https://api.lovarch.com"
+    assert "supabase.co" not in DEFAULT_API_URL
 
 
 def test_login_uses_app_domain():

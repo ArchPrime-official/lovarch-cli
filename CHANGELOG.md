@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.12.3] — 2026-10-18
+
+### Changed
+- **L'indirizzo dell'API è ora `https://api.lovarch.com`**, un dominio di Lovarch, invece dell'indirizzo del server (`*.supabase.co`). Quando il server è passato da San Paolo a Londra, le installazioni con il vecchio indirizzo hanno continuato a chiamare il server vecchio: con un dominio nostro, il prossimo trasloco non richiede un aggiornamento del CLI. Funzioni, dati e accesso passano tutti da lì. Per saltare l'inoltro: `LOVARCH_API_URL=https://bmjmlugriutujmfbdzst.supabase.co`.
+
 ## [0.12.2] — 2026-10-10
 
 ### Added
